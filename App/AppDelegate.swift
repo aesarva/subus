@@ -13,8 +13,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: StatusItemController!
     private var panel: PanelController!
     private var editor: EditorWindowController!
+    private var settings: SettingsWindowController!
 
     @objc func newSubscription() { editor?.open(editing: nil) }
+    @objc func openSettings() { settings?.show() }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         guard Bundle.main.bundleIdentifier != nil else { return }
@@ -35,7 +37,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         editor = EditorWindowController(model: model, closePanel: { [weak self] in self?.panel.close() })
         let onAdd: () -> Void = { [weak self] in self?.editor.open(editing: nil) }
-        let onSettings = { [log] in log.info("open settings") }
+        settings = SettingsWindowController(model: model, notifier: notifier,
+                                            closePanel: { [weak self] in self?.panel.close() })
+        let onSettings: () -> Void = { [weak self] in self?.settings.show() }
         statusItem = StatusItemController(
             onTogglePanel: { [weak self] in self?.panel.toggle() },
             onAdd: onAdd,

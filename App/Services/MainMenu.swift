@@ -4,10 +4,12 @@ import AppKit
 /// text fields ⌘X, ⌘C, ⌘V, ⌘A, ⌘Z and ⇧⌘Z.
 @MainActor
 enum MainMenu {
-    static func make(newSubscription: Selector, target: AnyObject) -> NSMenu {
+    static func make(newSubscription: Selector, openSettings: Selector, target: AnyObject) -> NSMenu {
         let main = NSMenu()
 
         let app = NSMenu()
+        app.addItem(withTitle: String(localized: "Settings…"), action: openSettings, keyEquivalent: ",").target = target
+        app.addItem(.separator())
         app.addItem(withTitle: String(localized: "Quit Subus"), action: #selector(NSApplication.terminate(_:)),
                     keyEquivalent: "q")
         main.addItem(submenu: app, title: "Subus")

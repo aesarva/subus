@@ -32,7 +32,7 @@ struct EditorView: View {
                                 .monospacedDigit()
                                 .focused($focus, equals: .price)
                                 .invalid(messages(.price))
-                            currencyPicker
+                            CurrencyPicker(selection: $state.draft.currency)
                         }
                     }
                     errorRows(.price)
@@ -180,17 +180,6 @@ struct EditorView: View {
         return Bundle.main.localizedString(forKey: "billing.unit.\(unit.rawValue).\(category)", value: nil, table: nil)
     }
 
-    private var currencyPicker: some View {
-        let (popular, others) = Self.currencies(including: state.draft.currency)
-        return Picker("Currency", selection: $state.draft.currency) {
-            ForEach(popular, id: \.self) { Text(Self.currencyLabel($0)).tag($0) }
-            Divider()
-            ForEach(others, id: \.self) { Text(Self.currencyLabel($0)).tag($0) }
-        }
-        .labelsHidden()
-        .frame(width: 200)
-    }
-
     private var fetchButton: some View {
         Button {
             state.fetchIcon()
@@ -248,22 +237,6 @@ struct EditorView: View {
         Binding(get: { (state.draft[keyPath: keyPath] ?? fallback).date(hour: 12, minute: 0, calendar: calendar) },
                 set: { state.draft[keyPath: keyPath] = LocalDate.today(now: $0, calendar: calendar) })
     }
-
-    // MARK: Currencies
-
-    private static let popularCurrencies = ["RUB", "USD", "EUR", "GBP", "KZT", "TRY", "AMD", "GEL", "UAH", "BYN", "CNY"]
-    private static let otherCurrencies = Set(Locale.commonISOCurrencyCodes).subtracting(popularCurrencies).sorted()
-
-    private static func currencies(including current: String) -> (popular: [String], others: [String]) {
-        guard !popularCurrencies.contains(current), !otherCurrencies.contains(current) else {
-            return (popularCurrencies, otherCurrencies)
-        }
-        return (popularCurrencies, (otherCurrencies + [current]).sorted())
-    }
-
-    private static func currencyName(_ code: String) -> String { Locale.current.localizedString(forCurrencyCode: code) ?? code }
-
-    private static func currencyLabel(_ code: String) -> String { "\(code) — \(currencyName(code))" }
 }
 
 private extension View {

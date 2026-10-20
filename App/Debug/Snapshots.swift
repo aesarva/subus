@@ -162,7 +162,46 @@ enum Snapshots {
             $0.save()
         }
 
+        // Settings
+        func settingsShot(_ name: String, _ tab: SettingsTab, appearance: NSAppearance.Name = .aqua) {
+            let navigation = SettingsNavigation()
+            navigation.tab = tab
+            let settingsModel = model(PreviewSupport.demoLibrary(today: today), in: directory)
+            renderWindow(SettingsView(model: settingsModel, notifier: UserNotifier(), navigation: navigation),
+                         width: SettingsView.width, appearance: appearance,
+                         to: directory.appendingPathComponent("\(name)-\(language).png"))
+        }
+        settingsShot("settings-general-light", .general)
+        settingsShot("settings-notifications-light", .notifications)
+        settingsShot("settings-categories-dark", .categories, appearance: .darkAqua)
+        settingsShot("settings-data-light", .data)
+        settingsShot("settings-about-light", .about)
+        var imported = ImportPreview(library: demo.library)
+        imported.errors = [ImportRowError(line: 4, field: "price"), ImportRowError(line: 9, field: "start_date")]
+        renderWindow(ImportPreviewView(preview: imported, onAdd: {}, onReplace: {}, onCancel: {}),
+                     width: 520, appearance: .aqua,
+                     to: directory.appendingPathComponent("import-preview-light-\(language).png"))
+
         print(directory.path)
+    }
+
+    private static func renderWindow<Content: View>(_ content: Content, width: CGFloat, appearance: NSAppearance.Name,
+                                                    to url: URL) {
+        let host = NSHostingView(rootView: content)
+        host.appearance = NSAppearance(named: appearance)
+        let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: width, height: 400),
+                              styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        window.appearance = NSAppearance(named: appearance)
+        window.contentView = host
+        NSApp.activate()
+        window.makeKeyAndOrderFront(nil)
+        for _ in 0..<3 {
+            host.layoutSubtreeIfNeeded()
+            window.setContentSize(NSSize(width: width, height: host.fittingSize.height))
+            RunLoop.main.run(until: Date().addingTimeInterval(0.2))
+        }
+        write(host, to: url)
+        window.orderOut(nil)
     }
 
     private static func renderEditor(_ state: EditorState, appearance: NSAppearance.Name, height: CGFloat, to url: URL) {
