@@ -23,6 +23,22 @@ private func sub(_ name: String = "X", id: UUID = UUID()) -> Subscription {
     #expect(s.price == rub(160))
 }
 
+@Test func changeBeforeAnchorApplies() {
+    var s = Subscription(name: "X", price: rub(100), cycle: .monthly, startDate: d("2026-11-01"))
+    s.changePrice(to: rub(150), effectiveFrom: d("2026-10-20"))
+    #expect(s.price(on: d("2026-11-01")) == rub(150))
+    #expect(s.price == rub(150))
+}
+
+@Test func changeOverridesLaterScheduledChange() {
+    var s = Subscription(name: "X", price: rub(100), cycle: .monthly, startDate: d("2026-01-01"))
+    s.changePrice(to: rub(150), effectiveFrom: d("2026-06-01"))
+    s.changePrice(to: rub(120), effectiveFrom: d("2026-03-01"))
+    #expect(s.priceHistory == [PriceChange(effectiveFrom: d("2026-01-01"), price: rub(100)),
+                               PriceChange(effectiveFrom: d("2026-03-01"), price: rub(120))])
+    #expect(s.price(on: d("2026-07-01")) == rub(120))
+}
+
 @Test func endedAndLive() {
     var s = sub()
     s.endDate = d("2026-10-19")

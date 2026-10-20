@@ -21,7 +21,9 @@ public enum IconHTMLParser {
             found.append((priority, largestSize(attrs["sizes"]), url))
         }
         let sorted = found.enumerated().sorted {
-            ($0.element.priority, -$0.element.size, $0.offset) < ($1.element.priority, -$1.element.size, $1.offset)
+            if $0.element.priority != $1.element.priority { return $0.element.priority < $1.element.priority }
+            if $0.element.size != $1.element.size { return $0.element.size > $1.element.size }
+            return $0.offset < $1.offset
         }.map(\.element.url)
 
         var result: [URL] = []
@@ -44,7 +46,8 @@ public enum IconHTMLParser {
         return sizes.lowercased().split(whereSeparator: \.isWhitespace).compactMap { token -> Int? in
             let parts = token.split(separator: "x")
             guard parts.count == 2, let w = Int(parts[0]), let h = Int(parts[1]) else { return nil }
-            return max(w, h)
+            let size = max(w, h)
+            return (1...4096).contains(size) ? size : nil
         }.max() ?? 0
     }
 

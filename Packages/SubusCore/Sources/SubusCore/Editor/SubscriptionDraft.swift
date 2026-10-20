@@ -97,6 +97,8 @@ public struct SubscriptionDraft: Equatable, Sendable {
     public var notificationsEnabled = true
     public var logo: Logo = .monogram(colorIndex: nil)
     public var priceEffectiveFrom: LocalDate
+    private var originalPriceText: String?
+    private var originalPrice: Money?
 
     public init(currency: String, today: LocalDate) {
         self.currency = currency.uppercased()
@@ -121,6 +123,8 @@ public struct SubscriptionDraft: Equatable, Sendable {
         notes = s.notes
         notificationsEnabled = s.notificationsEnabled
         logo = s.logo
+        originalPriceText = priceText
+        originalPrice = s.price
     }
 
     public func validate(locale: Locale) -> [DraftError] {
@@ -145,7 +149,8 @@ public struct SubscriptionDraft: Equatable, Sendable {
     /// Предусловие: `validate(locale:)` вернул пустой массив.
     public func apply(to existing: Subscription?, locale: Locale, now: Date) -> Subscription {
         assert(validate(locale: locale).isEmpty, "apply called with an invalid draft")
-        let money = Money(PriceParser.parse(priceText, locale: locale) ?? 0, currency)
+        var money = Money(PriceParser.parse(priceText, locale: locale) ?? 0, currency)
+        if let originalPrice, priceText == originalPriceText, currency == originalPrice.currency { money = originalPrice }
         let trial = hasTrial ? trialEndDate : nil
         let end = hasEndDate ? endDate : nil
         var s = existing ?? Subscription(name: name, price: money, cycle: cycle, startDate: startDate,

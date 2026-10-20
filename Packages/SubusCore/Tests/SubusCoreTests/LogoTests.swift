@@ -72,6 +72,16 @@ private func fill(_ ctx: CGContext, _ r: CGFloat, _ g: CGFloat, _ b: CGFloat, _ 
         #expect(urls.map(\.absoluteString) == ["https://ex.com/yes.png", "https://ex.com/favicon.ico"])
     }
 
+    @Test func hostileSizesDoNotCrash() {
+        let html = """
+        <link rel="icon" href="/a.png" sizes="-9223372036854775808x-9223372036854775808">
+        <link rel="icon" href="/b.png" sizes="32x32">
+        <link rel="icon" href="/c.png" sizes="9223372036854775807x1">
+        """
+        let urls = IconHTMLParser.candidates(html: html, baseURL: URL(string: "https://ex.com/")!)
+        #expect(urls.map(\.absoluteString) == ["https://ex.com/b.png", "https://ex.com/a.png", "https://ex.com/c.png", "https://ex.com/favicon.ico"])
+    }
+
     @Test func cyrillicColorPinned() {
         #expect(Monogram.colorIndex(for: "Яндекс Плюс", paletteCount: 8) == 2)
         #expect(Monogram.colorIndex(for: "x", paletteCount: 0) == 0)

@@ -78,6 +78,34 @@ struct TransferTests {
         #expect(p.errors == [2, 3, 4, 5].map { ImportRowError(line: $0, field: "cycle_count") })
     }
 
+    @Test func csvRejectsContradictoryDates() {
+        let head = "name,price,currency,cycle_count,cycle_unit,start_date,end_date,trial_end_date\n"
+        let text = head + "A,1,USD,1,month,2026-03-01,,2026-02-01\nB,1,USD,1,month,2026-01-01,2026-02-01,2026-03-01\nC,1,USD,1,month,2026-01-01,2025-12-01,\nD,1,USD,1,month,2026-01-01,2026-03-01,2026-02-01"
+        let p = Transfer.parseCSV(text, now: now)
+        #expect(p.library.subscriptions.map(\.name) == ["D"])
+        #expect(p.errors == [ImportRowError(line: 2, field: "trial_end_date"), ImportRowError(line: 3, field: "end_date"),
+                             ImportRowError(line: 4, field: "end_date")])
+    }
+
+    @Test func duplicateIDsInImportGetDistinctLogos() {
+        let (_, s) = library()
+        var dup = s
+        dup.name = "Dup"
+        var same = s
+        same.name = "Same ID"
+        dup.id = UUID()
+        var incoming = Library()
+        incoming.subscriptions = [s, dup, same]
+        let r = Transfer.apply(ImportPreview(library: incoming, logos: ["\(s.id).png": png]), to: Library(), mode: .add)
+        let names = r.library.subscriptions.map { sub -> String? in
+            if case .image(let n) = sub.logo { n } else { nil }
+        }
+        #expect(r.library.subscriptions.count == 3)
+        #expect(Set(names).count == 3)
+        #expect(names.allSatisfy { $0 != nil && r.logos[$0!] == png })
+        #expect(r.logos.count == 3)
+    }
+
     @Test func csvSemicolonAndErrors() {
         let text = "name;price;currency;cycle_count;cycle_unit;start_date\nA;9,99;USD;1;month;2026-01-01\nB;abc;USD;1;month;2026-01-01\nC;5;USD;1;fortnight;2026-01-01"
         let p = Transfer.parseCSV(text, now: now)

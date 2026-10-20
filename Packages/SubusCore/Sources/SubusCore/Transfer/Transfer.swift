@@ -201,6 +201,11 @@ public enum Transfer {
             }
             let website = optionalURL("website"), manage = optionalURL("manage_url")
 
+            if bad.isEmpty, let start {
+                if let trial, trial < start { bad.append("trial_end_date") }
+                if let end, end < (trial ?? start) { bad.append("end_date") }
+            }
+
             guard bad.isEmpty, let price, let count, let unit, let start else {
                 errors += bad.map { ImportRowError(line: record.line, field: $0) }
                 continue
@@ -278,7 +283,7 @@ public enum Transfer {
             }
         }
 
-        let existingLogoNames = Set(l.subscriptions.compactMap { Self.logoFileName($0.logo) })
+        var takenLogoNames = Set(l.subscriptions.compactMap { Self.logoFileName($0.logo) })
         var usedIDs = Set(l.subscriptions.map(\.id))
         var logos: [String: Data] = [:]
         for var s in preview.library.subscriptions {
@@ -290,16 +295,18 @@ public enum Transfer {
 
             if let name = logoFileName(s.logo) {
                 let bytes = preview.logos[name]
-                if idCollides || existingLogoNames.contains(name) {
+                if idCollides || takenLogoNames.contains(name) {
                     if let bytes {
                         let renamed = "\(s.id).png"
                         if case .siteIcon = s.logo { s.logo = .siteIcon(fileName: renamed) } else { s.logo = .image(fileName: renamed) }
                         logos[renamed] = bytes
+                        takenLogoNames.insert(renamed)
                     } else {
                         s.logo = .monogram(colorIndex: nil)
                     }
                 } else if let bytes {
                     logos[name] = bytes
+                    takenLogoNames.insert(name)
                 } else {
                     s.logo = .monogram(colorIndex: nil)
                 }

@@ -91,9 +91,21 @@ import Testing
 
     @Test func trialKind() {
         let r = plan([sub(anchor: "2026-10-01", trialEnd: "2026-10-25")], now: at("2026-10-20", 8))
-        #expect(r.filter { $0.chargeDate == d("2026-10-25") }.allSatisfy { $0.kind == .trialEnd })
+        let trial = r.filter { $0.chargeDate == d("2026-10-25") }
+        #expect(trial.map(\.fireDate) == [at("2026-10-20", 10), at("2026-10-22", 10), at("2026-10-24", 10)])
+        #expect(trial.allSatisfy { $0.kind == .trialEnd })
         #expect(r.filter { $0.chargeDate == d("2026-11-25") }.allSatisfy { $0.kind == .charge })
         #expect(r.contains { $0.chargeDate == d("2026-11-25") })
+    }
+
+    @Test func catchUpAcrossMidnight() {
+        let s = sub()
+        let now = at("2026-10-24", 23, 59).addingTimeInterval(30)
+        let r = plan([s], now: now, justSaved: [s.id])
+        let catchUp = r.filter(\.isCatchUp)
+        #expect(catchUp.count == 1)
+        #expect(catchUp[0].chargeDate == d("2026-10-25"))
+        #expect(catchUp[0].daysBefore == 0)
     }
 
     @Test func capAndOrder() {

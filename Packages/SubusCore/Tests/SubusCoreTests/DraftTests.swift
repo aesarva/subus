@@ -122,6 +122,16 @@ private func validDraft() -> SubscriptionDraft {
         #expect(recurrenced.apply(to: created, locale: en, now: Date()).price == Money(100, "USD"))
     }
 
+    @Test func renameKeepsThreeDecimalPrice() {
+        let s = Subscription(name: "A", price: Money(Decimal(string: "1.234")!, "RUB"), cycle: .monthly, startDate: d("2026-01-01"))
+        var draft = SubscriptionDraft(editing: s, today: d("2026-10-20"), locale: en)
+        draft.name = "B"
+        let edited = draft.apply(to: s, locale: en, now: Date())
+        #expect(edited.price == s.price)
+        #expect(edited.priceHistory == s.priceHistory)
+        #expect(edited.name == "B")
+    }
+
     @Test func applyClearsDisabledDates() {
         var s = Subscription(name: "A", price: rub(10), cycle: .monthly, startDate: d("2026-01-01"),
                              trialEndDate: d("2026-02-01"), endDate: d("2026-12-01"))

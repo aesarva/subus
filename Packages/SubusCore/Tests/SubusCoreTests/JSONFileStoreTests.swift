@@ -120,6 +120,33 @@ struct JSONFileStoreTests {
         #expect(try decode(dir.appendingPathComponent("subscriptions.backup.json")) == a)
     }
 
+    @Test func emptyObjectMainIsCorrupt() throws {
+        let dir = tempDir()
+        let store = JSONFileStore(directory: dir, initial: initial)
+        let a = sample("A")
+        try store.save(a)
+        try store.save(sample("A2"))
+        try Data("{}".utf8).write(to: store.fileURL)
+        let r = try store.load()
+        #expect(r.library == a)
+        guard case .restoredFromBackup = r.recovery else { Issue.record("wrong recovery \(String(describing: r.recovery))"); return }
+        #expect(try decode(dir.appendingPathComponent("subscriptions.backup.json")) == a)
+    }
+
+    @Test func nullSubscriptionsIsCorrupt() throws {
+        let dir = tempDir()
+        let store = JSONFileStore(directory: dir, initial: initial)
+        let a = sample("A")
+        try store.save(a)
+        try store.save(sample("A2"))
+        for body in [#"{"subscriptions":null}"#, #"{"schemaVersion":1}"#] {
+            try Data(body.utf8).write(to: store.fileURL)
+            let r = try store.load()
+            #expect(r.library == a, "\(body)")
+            guard case .restoredFromBackup = r.recovery else { Issue.record("wrong recovery \(body)"); return }
+        }
+    }
+
     @Test func failedRecoveryWriteIsRetriedNextLaunch() throws {
         let dir = tempDir()
         let a = sample("A")

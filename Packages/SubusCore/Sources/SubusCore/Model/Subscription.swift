@@ -74,11 +74,8 @@ public struct Subscription: Identifiable, Hashable, Codable, Sendable {
     }
 
     public mutating func changePrice(to newPrice: Money, effectiveFrom: LocalDate) {
-        if let i = priceHistory.firstIndex(where: { $0.effectiveFrom == effectiveFrom }) {
-            priceHistory[i].price = newPrice
-        } else {
-            priceHistory.append(PriceChange(effectiveFrom: effectiveFrom, price: newPrice))
-        }
+        priceHistory.removeAll { $0.effectiveFrom >= effectiveFrom }
+        priceHistory.append(PriceChange(effectiveFrom: effectiveFrom, price: newPrice))
         priceHistory.sort { $0.effectiveFrom < $1.effectiveFrom }
         price = priceHistory.last!.price
     }

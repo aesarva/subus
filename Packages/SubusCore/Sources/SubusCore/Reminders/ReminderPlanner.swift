@@ -54,9 +54,12 @@ public enum ReminderPlanner {
                                                    daysBefore: days, kind: kind, amount: charge.amount, isCatchUp: false))
                 }
                 if index == 0, !hasFuture, !settings.reminderDays.isEmpty, justSaved.contains(s.id) {
-                    catchUps.append(PlannedReminder(subscriptionID: s.id, fireDate: now.addingTimeInterval(catchUpDelay),
-                                                    chargeDate: charge.date, daysBefore: today.days(until: charge.date),
-                                                    kind: kind, amount: charge.amount, isCatchUp: true))
+                    let fire = now.addingTimeInterval(catchUpDelay)
+                    let days = LocalDate.today(now: fire, calendar: calendar).days(until: charge.date)
+                    if days >= 0 {
+                        catchUps.append(PlannedReminder(subscriptionID: s.id, fireDate: fire, chargeDate: charge.date,
+                                                        daysBefore: days, kind: kind, amount: charge.amount, isCatchUp: true))
+                    }
                 }
             }
         }

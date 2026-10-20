@@ -48,6 +48,10 @@ public struct JSONFileStore: SubscriptionStore {
         var schemaVersion: Int?
     }
 
+    private struct RequiresSubscriptions: Decodable {
+        var subscriptions: [Subscription]
+    }
+
     static func makeEncoder() -> JSONEncoder {
         let e = JSONEncoder()
         e.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -59,6 +63,7 @@ public struct JSONFileStore: SubscriptionStore {
         let decoder = JSONDecoder()
         guard let probe = try? decoder.decode(SchemaProbe.self, from: data),
               (probe.schemaVersion ?? 1) <= Library.currentSchemaVersion,
+              (try? decoder.decode(RequiresSubscriptions.self, from: data)) != nil,
               let library = try? decoder.decode(Library.self, from: data) else { return nil }
         return library.sanitized()
     }
