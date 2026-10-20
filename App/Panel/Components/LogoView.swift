@@ -41,7 +41,8 @@ struct LogoView: View {
         return Monogram.colorIndex(for: subscription.name, paletteCount: LinePalette.count)
     }
 
-    @MainActor private static let cache = NSCache<NSURL, NSImage>()
+    /// Keyed by path and modification date, so a replaced file is read again.
+    @MainActor private static let cache = NSCache<NSString, NSImage>()
 
     @MainActor private static func image(for logo: Logo, in directory: URL) -> NSImage? {
         let name: String
@@ -50,10 +51,13 @@ struct LogoView: View {
         case .monogram: return nil
         }
         guard Logo.isSafeFileName(name) else { return nil }
-        let url = directory.appendingPathComponent(name) as NSURL
-        if let cached = cache.object(forKey: url) { return cached }
-        guard let image = NSImage(contentsOf: url as URL) else { return nil }
-        cache.setObject(image, forKey: url)
+        let url = directory.appendingPathComponent(name)
+        guard let modified = try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
+        else { return nil }
+        let key = "\(url.path)|\(modified.timeIntervalSinceReferenceDate)" as NSString
+        if let cached = cache.object(forKey: key) { return cached }
+        guard let image = NSImage(contentsOf: url) else { return nil }
+        cache.setObject(image, forKey: key)
         return image
     }
 }

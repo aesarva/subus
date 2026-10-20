@@ -28,6 +28,9 @@ enum LinePalette {
 
     static let accent = Color(nsColor: Brand.accent)
 
+    /// The one opacity for rails and stations that recede behind a lifted station. Never applied to text.
+    static let recede = 0.45
+
     private static func wrap(_ i: Int) -> Int { ((i % count) + count) % count }
 }
 

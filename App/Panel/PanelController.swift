@@ -12,6 +12,7 @@ final class PanelController: NSObject, NSPopoverDelegate {
     private let popover = NSPopover()
     private var host: NSHostingController<PanelRoot>!
     private var keyMonitor: Any?
+    private var moveMonitor: Any?
     private var clickMonitor: Any?
     /// A click on the status item first closes the transient popover, then fires the button:
     /// that click means "close", not "reopen".
@@ -38,8 +39,6 @@ final class PanelController: NSObject, NSPopoverDelegate {
         popover.delegate = self
     }
 
-    isolated deinit { removeMonitors() }
-
     var isShown: Bool { popover.isShown }
 
     func toggle() {
@@ -53,7 +52,8 @@ final class PanelController: NSObject, NSPopoverDelegate {
     /// Opens the panel; the subscription card arrives with Task 17, until then the charge is selected.
     func show(subscription id: UUID?) {
         if !popover.isShown { open() }
-        if let id, let key = UpcomingTab.keys(model).first(where: { $0.subscriptionID == id }) {
+        guard let id, state.selection?.subscriptionID != id else { return }
+        if let key = UpcomingTab.keys(model).first(where: { $0.subscriptionID == id }) {
             state.selection = key
         }
     }
@@ -76,6 +76,7 @@ final class PanelController: NSObject, NSPopoverDelegate {
             // The popover window is a non-activating panel: making it key keeps glass and controls active.
             window.makeKey()
             window.makeFirstResponder(host.view)
+            window.acceptsMouseMovedEvents = true
         }
         Task { await model.refreshAuthorization() }
         installMonitors()
@@ -97,11 +98,15 @@ final class PanelController: NSObject, NSPopoverDelegate {
 
     private func installMonitors() {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            let key = Key(code: event.keyCode, characters: event.charactersIgnoringModifiers,
+            let key = Key(code: event.keyCode,
                           modifiers: event.modifierFlags.intersection([.command, .shift, .option, .control]),
                           windowNumber: event.windowNumber)
             let consumed = MainActor.assumeIsolated { self?.handle(key) ?? false }
             return consumed ? nil : event
+        }
+        moveMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { [weak self] event in
+            MainActor.assumeIsolated { self?.state.pointerMoved() }
+            return event
         }
         // Safety net: a click in another app closes the panel even if activation was refused.
         clickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
@@ -112,13 +117,14 @@ final class PanelController: NSObject, NSPopoverDelegate {
     private func removeMonitors() {
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
         if let clickMonitor { NSEvent.removeMonitor(clickMonitor) }
+        if let moveMonitor { NSEvent.removeMonitor(moveMonitor) }
+        moveMonitor = nil
         keyMonitor = nil
         clickMonitor = nil
     }
 
     private struct Key: Sendable {
         let code: UInt16
-        let characters: String?
         let modifiers: NSEvent.ModifierFlags
         let windowNumber: Int
     }
@@ -126,10 +132,11 @@ final class PanelController: NSObject, NSPopoverDelegate {
     /// true when the key was handled here.
     private func handle(_ key: Key) -> Bool {
         guard let window = host.view.window, key.windowNumber == window.windowNumber else { return false }
+        // Physical keys, so the shortcuts work on any layout (Russian included).
         if key.modifiers == .command {
-            switch key.characters {
-            case "n": onAdd(); return true
-            case ",": onSettings(); return true
+            switch key.code {
+            case 45: onAdd(); return true // kVK_ANSI_N
+            case 43: onSettings(); return true // kVK_ANSI_Comma
             default: return false
             }
         }

@@ -21,6 +21,10 @@ struct OverviewLine: View {
     private static let railEndInset: CGFloat = 8
     private static let railY: CGFloat = 25
     private static let mergeDistance: CGFloat = 14
+    /// Outer radii of today's ring and of a station; the leg in between is never shorter than `minLeg`.
+    private static let ringRadius: CGFloat = 7.5
+    private static let stationRadius: CGFloat = 6.5
+    private static let minLeg: CGFloat = 12
 
     struct Cluster {
         var items: [UpcomingItem]
@@ -31,15 +35,23 @@ struct OverviewLine: View {
         var isSingle: Bool { items.count == 1 }
     }
 
+    struct LineLayout {
+        /// Charges due today: drawn as today's ring itself, not as a station.
+        var today: Cluster?
+        /// Stations from tomorrow on, merged where closer than 14 pt.
+        var stations: [Cluster]
+        var next: Cluster? { today ?? stations.first }
+        var all: [Cluster] { (today.map { [$0] } ?? []) + stations }
+    }
+
     var body: some View {
         GeometryReader { proxy in
-            let width = proxy.size.width
-            let clusters = Self.clusters(items, width: width, shift: shift)
+            let layout = Self.layout(items, width: proxy.size.width, shift: shift)
             Canvas { context, size in
-                draw(in: &context, size: size, clusters: clusters)
+                draw(in: &context, size: size, layout: layout)
             }
             .overlay(alignment: .topLeading) {
-                ForEach(Array(clusters.enumerated()), id: \.offset) { _, cluster in
+                ForEach(Array(layout.all.enumerated()), id: \.offset) { _, cluster in
                     hitTarget(cluster)
                 }
             }
@@ -56,66 +68,80 @@ struct OverviewLine: View {
         (width - railStart - railEndInset) / CGFloat(Upcoming.horizonDays)
     }
 
-    static func clusters(_ items: [UpcomingItem], width: CGFloat, shift: CGFloat = 0) -> [Cluster] {
+    /// x = days × railWidth / 60, except that no station comes closer to today's ring than a visible leg.
+    static func layout(_ items: [UpcomingItem], width: CGFloat, shift: CGFloat = 0) -> LineLayout {
         let dw = dayWidth(width)
-        var result: [Cluster] = []
-        for item in items.sorted(by: { $0.days < $1.days }) {
-            let x = railStart + (CGFloat(item.days) + shift) * dw
-            if let last = result.indices.last, x - result[last].x1 < mergeDistance {
-                result[last].items.append(item)
-                result[last].x1 = x
+        let nearest = railStart + ringRadius + minLeg + stationRadius
+        let due = items.filter { $0.days <= 0 }
+        var stations: [Cluster] = []
+        for item in items.filter({ $0.days > 0 }).sorted(by: { $0.days < $1.days }) {
+            let x = max(railStart + (CGFloat(item.days) + shift) * dw, nearest)
+            if let last = stations.indices.last, x - stations[last].x1 < mergeDistance {
+                stations[last].items.append(item)
+                stations[last].x1 = x
             } else {
-                result.append(Cluster(items: [item], x0: x, x1: x))
+                stations.append(Cluster(items: [item], x0: x, x1: x))
             }
         }
-        return result
+        let today = due.isEmpty ? nil : Cluster(items: due, x0: railStart, x1: railStart)
+        return LineLayout(today: today, stations: stations)
     }
 
     // MARK: Drawing
 
-    private func draw(in context: inout GraphicsContext, size: CGSize, clusters: [Cluster]) {
+    private func draw(in context: inout GraphicsContext, size: CGSize, layout: LineLayout) {
         let stroke = LinePalette.stroke(contrast)
         let rail = LinePalette.rail(scheme)
         let start = Self.railStart, end = size.width - Self.railEndInset, y = Self.railY
         let ink = Color.primary
         let dw = Self.dayWidth(size.width)
+        let focused = layout.all.first { !focus.isDisjoint(with: $0.keys) }
 
         context.drawLayer { layer in
             var line = Path()
             line.move(to: CGPoint(x: start, y: y))
             line.addLine(to: CGPoint(x: end, y: y))
             layer.stroke(line, with: .color(rail), style: StrokeStyle(lineWidth: stroke, lineCap: .round))
+            drawTicks(in: &layer, dayWidth: dw, rail: rail)
 
-            drawCalendar(in: &layer, dayWidth: dw, rail: rail)
-
-            if let next = clusters.first, next.x0 > start {
+            if layout.today == nil, let next = layout.stations.first {
                 var leg = Path()
                 leg.move(to: CGPoint(x: start, y: y))
                 leg.addLine(to: CGPoint(x: next.x0, y: y))
                 layer.stroke(leg, with: .color(ink), style: StrokeStyle(lineWidth: stroke + 2, lineCap: .round))
             }
 
-            for cluster in clusters {
-                let lifted = !focus.isDisjoint(with: cluster.keys)
-                layer.opacity = focus.isEmpty || lifted ? 1 : 0.35
-                drawStation(cluster, lifted: lifted, in: &layer, stroke: stroke)
-            }
-            layer.opacity = 1
-
-            let nextIsToday = clusters.first.map { $0.x0 <= start + 0.5 } ?? false
-            let here = nextIsToday ? 11.5 : 6.0
-            let ring = Path(ellipseIn: CGRect(x: start - here, y: y - here, width: here * 2, height: here * 2))
+            // You are here; when something is due today the ring is that station, with the accent centre.
+            let todayLifted = layout.today.map { !focus.isDisjoint(with: $0.keys) } ?? false
+            let r = (todayLifted ? Self.ringRadius + 2 : Self.ringRadius) - stroke / 2
+            let ring = Path(ellipseIn: CGRect(x: start - r, y: y - r, width: r * 2, height: r * 2))
             layer.blendMode = .clear
             layer.fill(ring, with: .color(.black))
             layer.blendMode = .normal
             layer.stroke(ring, with: .color(ink), lineWidth: stroke)
-            if nextIsToday, let first = clusters.first {
-                drawStation(first, lifted: false, in: &layer, stroke: stroke)
+            if layout.today != nil {
+                let dot = r - stroke / 2 - 1.5
+                layer.fill(Path(ellipseIn: CGRect(x: start - dot, y: y - dot, width: dot * 2, height: dot * 2)),
+                           with: .color(LinePalette.accent))
+            }
+
+            for cluster in layout.stations {
+                let lifted = !focus.isDisjoint(with: cluster.keys)
+                layer.opacity = focus.isEmpty || lifted ? 1 : LinePalette.recede
+                drawStation(cluster, lifted: lifted, in: &layer, stroke: stroke)
             }
         }
 
-        if let next = clusters.first {
-            drawNextLabel(next, in: &context, width: size.width)
+        // Text stays at full opacity, whatever recedes.
+        for cluster in layout.stations where !cluster.isSingle {
+            let count = context.resolve(Text(verbatim: "\(cluster.items.count)")
+                .font(.system(size: 11, weight: .semibold).monospacedDigit())
+                .foregroundStyle(Color.primary))
+            context.draw(count, at: CGPoint(x: cluster.midX, y: y), anchor: .center)
+        }
+        drawMonthLabels(in: &context, dayWidth: dw, end: end)
+        if let labelled = focused ?? layout.next {
+            drawLabel(labelled, listAll: focused != nil, in: &context, end: end)
         }
     }
 
@@ -138,56 +164,76 @@ struct OverviewLine: View {
         context.fill(path, with: .color(.black))
         context.blendMode = .normal
         context.stroke(path, with: .color(color), lineWidth: stroke)
-        if !cluster.isSingle {
-            let count = context.resolve(Text(verbatim: "\(cluster.items.count)")
-                .font(.system(size: 11, weight: .semibold).monospacedDigit())
-                .foregroundStyle(Color.primary))
-            context.draw(count, at: CGPoint(x: cluster.midX, y: y), anchor: .center)
+    }
+
+    private var weekStarts: [(day: Int, isMonthStart: Bool)] {
+        let calendar = Calendar.subus()
+        return (1...Upcoming.horizonDays).compactMap { d in
+            let date = today.adding(days: d)
+            let weekday = calendar.component(.weekday, from: date.date(hour: 12, minute: 0, calendar: calendar))
+            return date.day == 1 || weekday == calendar.firstWeekday ? (d, date.day == 1) : nil
         }
     }
 
-    private func drawCalendar(in context: inout GraphicsContext, dayWidth dw: CGFloat, rail: Color) {
-        let calendar = Calendar.subus()
-        let tickTop = Self.railY + 8
-        var monthStarts: [(x: CGFloat, date: LocalDate)] = []
-        for d in 1...Upcoming.horizonDays {
-            let date = today.adding(days: d)
-            let x = Self.railStart + (CGFloat(d) + shift) * dw
-            let isMonthStart = date.day == 1
-            let weekday = calendar.component(.weekday, from: date.date(hour: 12, minute: 0, calendar: calendar))
-            guard isMonthStart || weekday == calendar.firstWeekday else { continue }
-            var tick = Path()
-            tick.move(to: CGPoint(x: x, y: tickTop))
-            tick.addLine(to: CGPoint(x: x, y: tickTop + (isMonthStart ? 8 : 4)))
-            context.stroke(tick, with: .color(rail), lineWidth: isMonthStart ? 1.5 : 1)
-            if isMonthStart { monthStarts.append((x, date)) }
+    private func drawTicks(in context: inout GraphicsContext, dayWidth dw: CGFloat, rail: Color) {
+        let top = Self.railY + 8
+        for tick in weekStarts {
+            let x = Self.railStart + (CGFloat(tick.day) + shift) * dw
+            var path = Path()
+            path.move(to: CGPoint(x: x, y: top))
+            path.addLine(to: CGPoint(x: x, y: top + (tick.isMonthStart ? 8 : 4)))
+            context.stroke(path, with: .color(rail), lineWidth: tick.isMonthStart ? 1.5 : 1)
         }
+    }
 
-        var labels = monthStarts.map { (x: $0.x - 0.75, date: $0.date, anchor: UnitPoint.topLeading) }
-        let first = (x: Self.railStart - 6, date: today, anchor: UnitPoint.topLeading)
-        if labels.first.map({ $0.x - first.x > 40 }) ?? true { labels.insert(first, at: 0) }
-        for label in labels {
-            let text = context.resolve(Text(verbatim: Formatters.monthAbbreviation(label.date))
+    /// Month names start at their tick; one that would run past the rail end ends at its tick, or is left out.
+    private func drawMonthLabels(in context: inout GraphicsContext, dayWidth dw: CGFloat, end: CGFloat) {
+        let top = Self.railY + 18
+        func resolve(_ date: LocalDate) -> GraphicsContext.ResolvedText {
+            context.resolve(Text(verbatim: Formatters.monthAbbreviation(date))
                 .font(.system(size: 11, weight: .semibold))
                 .tracking(0.6)
                 .foregroundStyle(Color.secondary))
-            context.draw(text, at: CGPoint(x: label.x, y: tickTop + 10), anchor: label.anchor)
+        }
+        func width(_ t: GraphicsContext.ResolvedText) -> CGFloat {
+            t.measure(in: CGSize(width: CGFloat.infinity, height: 20)).width
+        }
+        var placed: [(x0: CGFloat, x1: CGFloat, text: GraphicsContext.ResolvedText)] = []
+        for tick in weekStarts where tick.isMonthStart {
+            let text = resolve(today.adding(days: tick.day))
+            let x = Self.railStart + (CGFloat(tick.day) + shift) * dw - 0.75
+            let w = width(text)
+            let x0 = x + w <= end ? x : x - w + 1.5
+            if let last = placed.last, x0 < last.x1 + 8 { continue }
+            placed.append((x0, x0 + w, text))
+        }
+        let current = resolve(today)
+        let left = Self.railStart - Self.ringRadius
+        if placed.first.map({ $0.x0 > left + width(current) + 8 }) ?? true {
+            placed.insert((left, left + width(current), current), at: 0)
+        }
+        for label in placed {
+            context.draw(label.text, at: CGPoint(x: label.x0, y: top), anchor: .topLeading)
         }
     }
 
-    private func drawNextLabel(_ cluster: Cluster, in context: inout GraphicsContext, width: CGFloat) {
+    /// The next station's label at rest; under hover or the arrow keys, the focused station with all its charges.
+    private func drawLabel(_ cluster: Cluster, listAll: Bool, in context: inout GraphicsContext, end: CGFloat) {
         let first = cluster.items[0]
-        let others = cluster.items.count - 1
-        let suffix = others > 0 ? " +\(others)" : ""
-        let maxWidth = width * 0.7
-        var name = first.subscription.name
-        var resolved = labelText("\(first.charge.date.day) · \(name)\(suffix)", in: context)
-        while resolved.measure(in: CGSize(width: CGFloat.infinity, height: 20)).width > maxWidth, name.count > 1 {
-            name = String(name.dropLast(2)) + "…"
-            resolved = labelText("\(first.charge.date.day) · \(name)\(suffix)", in: context)
+        var names = listAll ? cluster.items.map(\.subscription.name).joined(separator: ", ") : first.subscription.name
+        let suffix = !listAll && cluster.items.count > 1 ? " +\(cluster.items.count - 1)" : ""
+        let left = Self.railStart - Self.ringRadius
+        func make() -> GraphicsContext.ResolvedText { labelText("\(first.charge.date.day) · \(names)\(suffix)", in: context) }
+        func width(_ t: GraphicsContext.ResolvedText) -> CGFloat {
+            t.measure(in: CGSize(width: CGFloat.infinity, height: 20)).width
         }
-        let w = resolved.measure(in: CGSize(width: CGFloat.infinity, height: 20)).width
-        let x = min(max(cluster.x0 - w / 2, 0), width - w)
+        var resolved = make()
+        while width(resolved) > end - left, names.count > 1 {
+            names = String(names.dropLast(2)) + "…"
+            resolved = make()
+        }
+        let w = width(resolved)
+        let x = min(max(cluster.midX - w / 2, left), end - w)
         context.draw(resolved, at: CGPoint(x: x, y: 0), anchor: .topLeading)
     }
 

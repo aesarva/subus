@@ -39,6 +39,37 @@ enum Snapshots {
         render(PanelRoot(model: troubled, state: PanelState(), actions: PanelActions()), appearance: .aqua,
                to: directory.appendingPathComponent("banners-light-\(language).png"))
 
+        func shot(_ library: Library, _ name: String, quiet: Bool = true, appearance: NSAppearance.Name = .aqua) {
+            let state = PanelState()
+            state.notificationsBannerDismissed = quiet
+            render(PanelRoot(model: model(library, in: directory), state: state, actions: PanelActions()),
+                   appearance: appearance, to: directory.appendingPathComponent("\(name)-\(language).png"))
+        }
+        let base = PreviewSupport.demoLibrary(today: today)
+        /// The demo's first subscription (a trial) moved so its first charge falls `days` from today.
+        func trial(in days: Int, name: String? = nil) -> Library {
+            var library = base
+            library.subscriptions[0].trialEndDate = today.adding(days: days)
+            if let name { library.subscriptions[0].name = name }
+            return library
+        }
+        shot(trial(in: 0), "next-today-light")
+        shot(trial(in: 0), "next-today-dark", appearance: .darkAqua)
+        shot(trial(in: 1), "next-tomorrow-light")
+        shot(trial(in: 3, name: "Яндекс Практикум — курс «Продуктовый дизайнер»"), "longname-light")
+        shot(base, "notifications-light", quiet: false)
+
+        var paused = base
+        for i in paused.subscriptions.indices { paused.subscriptions[i].isActive = false }
+        shot(paused, "paused-light")
+
+        var distant = Library.initial(categoryNames: AppModel.defaultCategoryNames())
+        var yearly = Subscription(name: "1Password", price: Money(Decimal(string: "35.88")!, "USD"), cycle: .yearly,
+                                  startDate: today.adding(days: 100).adding(months: -12))
+        yearly.categoryID = distant.categories[0].id
+        distant.subscriptions = [yearly]
+        shot(distant, "quiet-light")
+
         print(directory.path)
     }
 

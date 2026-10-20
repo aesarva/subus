@@ -26,7 +26,11 @@ final class PanelState {
     /// The screen's visible height − 80, set on every opening.
     var maxHeight: CGFloat = 640
 
-    /// What is lifted in the strip map: a hovered station first, then a hovered row, then the selection.
+    /// After a key moves the selection, hover is ignored until the pointer really moves:
+    /// rows scrolling under a resting pointer must not steal the lift back.
+    private var pointerQuiet = false
+
+    /// What is lifted: the most recent input wins. Keys clear hover; a moved pointer hovers again.
     var focus: Set<ChargeKey> {
         if !stationHover.isEmpty { return stationHover }
         if let rowHover { return [rowHover] }
@@ -34,11 +38,18 @@ final class PanelState {
     }
 
     func hoverStation(_ keys: Set<ChargeKey>, inside: Bool) {
-        if inside { stationHover = keys } else if stationHover == keys { stationHover = [] }
+        guard !pointerQuiet else { return }
+        if inside { if stationHover != keys { stationHover = keys } } else if stationHover == keys { stationHover = [] }
     }
 
     func hoverRow(_ key: ChargeKey, inside: Bool) {
-        if inside { rowHover = key } else if rowHover == key { rowHover = nil }
+        guard !pointerQuiet else { return }
+        if inside { if rowHover != key { rowHover = key } } else if rowHover == key { rowHover = nil }
+    }
+
+    /// Called for real mouse movement (not for content scrolling under the pointer).
+    func pointerMoved() {
+        pointerQuiet = false
     }
 
     func moveSelection(by step: Int, in keys: [ChargeKey]) {
@@ -46,6 +57,8 @@ final class PanelState {
         let current = selection.flatMap { keys.firstIndex(of: $0) }
         let next = current.map { min(max($0 + step, 0), keys.count - 1) } ?? (step > 0 ? 0 : keys.count - 1)
         selection = keys[next]
+        clearPointer()
+        pointerQuiet = true
     }
 
     func clearPointer() {

@@ -116,13 +116,13 @@ private struct StripCanvas: View {
                     var spine = Path()
                     spine.move(to: CGPoint(x: x, y: first.rect.midY))
                     spine.addLine(to: CGPoint(x: x, y: last.rect.midY))
-                    layer.opacity = anyLifted ? 0.45 : 1
+                    layer.opacity = anyLifted ? LinePalette.recede : 1
                     layer.stroke(spine, with: .color(LinePalette.rail(scheme)),
                                  style: StrokeStyle(lineWidth: stroke, lineCap: .round))
                 }
                 for s in stations {
                     let lifted = focus.contains(s.key)
-                    layer.opacity = !anyLifted || lifted ? 1 : 0.45
+                    layer.opacity = !anyLifted || lifted ? 1 : LinePalette.recede
                     let r = (lifted ? 17 : 13) / 2 - stroke / 2
                     let ring = Path(ellipseIn: CGRect(x: x - r, y: s.rect.midY - r, width: r * 2, height: r * 2))
                     layer.blendMode = .clear
@@ -175,7 +175,12 @@ private struct StripRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(StripRowButtonStyle())
-        .onHover { inside in onHover(item.id, inside) }
+        .onContinuousHover { phase in
+            switch phase {
+            case .active: onHover(item.id, true)
+            case .ended: onHover(item.id, false)
+            }
+        }
         .anchorPreference(key: StationAnchors.self, value: .bounds) {
             [StationAnchor(key: item.id, bounds: $0, lineIndex: item.lineIndex)]
         }
