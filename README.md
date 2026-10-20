@@ -32,7 +32,7 @@
 
 If you pay for a dozen services, you lose count: a forgotten trial, a service you stopped using, a charge on the day the card is empty. Subus lives next to the clock and keeps the answer one click away.
 
-- **Nothing comes as a surprise.** Reminders 5, 3 and 1 day before every charge (configurable) and before every trial ends, with a "Manage subscription" button.
+- **Nothing comes as a surprise.** Reminders 5, 3 and 1 day before every charge (configurable) and before every trial ends, with a "Manage subscription" action (shown when the subscription has a manage link).
 - **Honest totals.** Monthly and yearly spend in your base currency, converted at the Central Bank of Russia rate. A currency the bank does not list is left out and flagged, never silently miscounted.
 - **At a glance.** The menu bar can show the days until the next charge.
 - **Private by construction.** No account, no server, no bank access. Your data stays on your Mac.
@@ -66,7 +66,7 @@ If you pay for a dozen services, you lose count: a forgotten trial, a service yo
 
 1. Download `Subus.dmg` from [Releases](https://github.com/aesarva/subus/releases) and open it.
 2. Drag **Subus** onto the **Applications** shortcut, then launch it. It lives only in the menu bar (no Dock icon).
-3. Releases are not yet notarized, so Gatekeeper blocks the first launch. Right-click the app and choose **Open**, or open **System Settings → Privacy & Security** and click **Open Anyway**.
+3. Releases are not yet notarized, so Gatekeeper blocks the first launch. On macOS 15–26: open the app and dismiss the warning, then go to **System Settings → Privacy & Security**, scroll to **Security**, click **Open Anyway** and confirm. On macOS 14, right-click the app and choose **Open**.
 
 Requires macOS 14 Sonoma or later. Liquid Glass on macOS 26+, a plain material on 14–15.
 
