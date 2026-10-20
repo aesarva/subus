@@ -204,3 +204,13 @@ import Testing
         #expect(r[0].id.hasSuffix("|trialEnd"))
     }
 }
+
+@Test func plannedReminderRoundTrip() throws {
+    let reminder = PlannedReminder(subscriptionID: UUID(), fireDate: Date(timeIntervalSince1970: 1_792_000_000.5),
+                                   chargeDate: d("2026-10-21"), daysBefore: 1, kind: .trialEnd,
+                                   amount: Money(Decimal(string: "1199.99")!, "RUB"), isCatchUp: true)
+    let data = try JSONEncoder().encode([reminder])
+    let decoded = try JSONDecoder().decode([PlannedReminder].self, from: data)
+    #expect(decoded == [reminder])
+    #expect(decoded[0].id == reminder.id)
+}

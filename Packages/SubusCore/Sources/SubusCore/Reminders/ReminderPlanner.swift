@@ -1,8 +1,8 @@
 import Foundation
 
-public enum ReminderKind: String, Sendable { case charge, trialEnd }
+public enum ReminderKind: String, Codable, Sendable { case charge, trialEnd }
 
-public struct PlannedReminder: Equatable, Sendable {
+public struct PlannedReminder: Equatable, Codable, Sendable {
     public var subscriptionID: UUID
     public var fireDate: Date
     public var chargeDate: LocalDate

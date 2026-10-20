@@ -210,3 +210,73 @@ private func validDraft() -> SubscriptionDraft {
         #expect(result.websiteURL == nil && result.manageURL == nil && result.notes == "")
     }
 }
+
+/// The editor saves `current.merging(edited: draft.apply(to: baseline), baseline: baseline)`.
+@Suite struct MergeTests {
+    let baseline: Subscription = {
+        var s = Subscription(name: "Netflix", price: rub(100), cycle: .monthly, startDate: d("2026-01-10"))
+        s.notes = "old"
+        return s
+    }()
+
+    func edited(_ change: (inout SubscriptionDraft) -> Void) -> Subscription {
+        var draft = SubscriptionDraft(editing: baseline, today: d("2026-10-20"), locale: en)
+        change(&draft)
+        return draft.apply(to: baseline, locale: en, now: Date())
+    }
+
+    @Test func untouchedFieldTakesConcurrentValue() {
+        var current = baseline
+        current.name = "Netflix Premium"
+        current.cycle = .yearly
+        current.logo = .image(fileName: "imported.png")
+        current.manageURL = URL(string: "https://netflix.com/account")
+        current.isActive = false
+        let merged = current.merging(edited: edited { $0.notes = "family plan" }, baseline: baseline)
+        #expect(merged.name == "Netflix Premium")
+        #expect(merged.cycle == .yearly)
+        #expect(merged.logo == .image(fileName: "imported.png"))
+        #expect(merged.manageURL == URL(string: "https://netflix.com/account"))
+        #expect(merged.isActive == false)
+        #expect(merged.notes == "family plan")
+    }
+
+    @Test func touchedFieldKeepsUserValue() {
+        var current = baseline
+        current.name = "Imported name"
+        current.notes = "imported notes"
+        let merged = current.merging(edited: edited { $0.name = "Netflix 4K"; $0.logo = .monogram(colorIndex: 3) },
+                                     baseline: baseline)
+        #expect(merged.name == "Netflix 4K")
+        #expect(merged.logo == .monogram(colorIndex: 3))
+        #expect(merged.notes == "imported notes")
+    }
+
+    @Test func priceEditOnTopOfConcurrentPriceChange() {
+        var current = baseline
+        current.changePrice(to: rub(150), effectiveFrom: d("2026-11-01"))
+        let merged = current.merging(edited: edited { $0.priceText = "200"; $0.priceEffectiveFrom = d("2026-12-01") },
+                                     baseline: baseline)
+        #expect(merged.price == rub(200))
+        #expect(merged.priceHistory == [PriceChange(effectiveFrom: d("2026-01-10"), price: rub(100)),
+                                        PriceChange(effectiveFrom: d("2026-11-01"), price: rub(150)),
+                                        PriceChange(effectiveFrom: d("2026-12-01"), price: rub(200))])
+    }
+
+    @Test func untouchedPriceKeepsConcurrentPriceChange() {
+        var current = baseline
+        current.changePrice(to: rub(150), effectiveFrom: d("2026-11-01"))
+        let merged = current.merging(edited: edited { $0.name = "N" }, baseline: baseline)
+        #expect(merged.price == rub(150))
+        #expect(merged.priceHistory == current.priceHistory)
+    }
+
+    @Test func earlierStartReanchorsConcurrentHistory() {
+        var current = baseline
+        current.changePrice(to: rub(150), effectiveFrom: d("2026-11-01"))
+        let merged = current.merging(edited: edited { $0.startDate = d("2026-01-01") }, baseline: baseline)
+        #expect(merged.startDate == d("2026-01-01"))
+        #expect(merged.price(on: d("2026-01-01")) == rub(100))
+        #expect(merged.price(on: d("2026-11-01")) == rub(150))
+    }
+}

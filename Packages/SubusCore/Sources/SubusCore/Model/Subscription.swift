@@ -80,6 +80,26 @@ public struct Subscription: Identifiable, Hashable, Codable, Sendable {
         price = priceHistory.last!.price
     }
 
+    /// A three-way merge of an edit made against `baseline` while this record changed meanwhile (e.g. by an import):
+    /// fields where `edited` differs from `baseline` come from `edited`, the rest keep this record's values.
+    /// A price edit is replayed on this record's history, so a concurrent price change survives it.
+    public func merging(edited: Subscription, baseline: Subscription) -> Subscription {
+        var merged = self
+        func take<T: Equatable>(_ field: WritableKeyPath<Subscription, T>) {
+            if edited[keyPath: field] != baseline[keyPath: field] { merged[keyPath: field] = edited[keyPath: field] }
+        }
+        take(\.name); take(\.logo); take(\.cycle); take(\.startDate); take(\.endDate); take(\.trialEndDate)
+        take(\.isActive); take(\.categoryID); take(\.paymentMethodID); take(\.websiteURL); take(\.manageURL)
+        take(\.notificationsEnabled); take(\.notes)
+        if edited.price != baseline.price, let change = edited.priceHistory.last {
+            merged.changePrice(to: edited.price, effectiveFrom: change.effectiveFrom)
+        }
+        if let first = merged.priceHistory.first, merged.anchor < first.effectiveFrom {
+            merged.priceHistory[0].effectiveFrom = merged.anchor
+        }
+        return merged
+    }
+
     private enum CodingKeys: String, CodingKey {
         case id, name, logo, price, cycle, startDate, endDate, trialEndDate, isActive, categoryID,
              paymentMethodID, websiteURL, manageURL, priceHistory, notificationsEnabled, notes, createdAt
