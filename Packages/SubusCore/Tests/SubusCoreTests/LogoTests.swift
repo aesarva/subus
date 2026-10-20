@@ -80,7 +80,25 @@ private func fill(_ ctx: CGContext, _ r: CGFloat, _ g: CGFloat, _ b: CGFloat, _ 
     @Test func rejectsOversizedDimensions() throws {
         let wide = try image(width: 9000, height: 10) { fill($0, 1, 0, 0, CGRect(x: 0, y: 0, width: 9000, height: 10)) }
         let data = try encode([wide], type: .png)
-        #expect(throws: (any Error).self) { try ImageNormalizer.pngThumbnail(from: data) }
+        #expect(throws: ImageNormalizer.Failure.tooLarge) { try ImageNormalizer.pngThumbnail(from: data) }
+    }
+
+    @Test func maxPixelSizeKeepsShortSide() {
+        #expect(ImageNormalizer.thumbnailMaxPixelSize(width: 1000, height: 100, side: 128) == 1280)
+        #expect(ImageNormalizer.thumbnailMaxPixelSize(width: 100, height: 100, side: 128) == 256)
+        #expect(ImageNormalizer.thumbnailMaxPixelSize(width: 8000, height: 10, side: 128) == 8192)
+    }
+
+    @Test func wideSourceKeepsResolution() throws {
+        let src = try image(width: 1000, height: 100) { ctx in
+            fill(ctx, 1, 1, 1, CGRect(x: 0, y: 0, width: 1000, height: 100))
+            for x in stride(from: 0, to: 1000, by: 2) { fill(ctx, 0, 0, 0, CGRect(x: x, y: 0, width: 1, height: 100)) }
+        }
+        let out = try ImageNormalizer.pngThumbnail(from: encode([src], type: .png))
+        let (w, h) = try pixelSize(out)
+        #expect(w == 128 && h == 128)
+        let a = try rgba(out, x: 60, y: 64), b = try rgba(out, x: 61, y: 64)
+        #expect(abs(Int(a[0]) - Int(b[0])) > 20)
     }
 
     @Test func thumbnailCropsCentre() throws {

@@ -8,6 +8,11 @@ public enum ImageNormalizer {
     private static let maxSide = 8192
     private static let maxPixels = 40_000_000
 
+    static func thumbnailMaxPixelSize(width: Int, height: Int, side: Int) -> Int {
+        let ratio = Double(max(width, height)) / Double(max(1, min(width, height)))
+        return min(8192, max(side * 2, Int((Double(side) * ratio).rounded(.up))))
+    }
+
     public static func pngThumbnail(from data: Data, side: Int = 128) throws -> Data {
         guard side > 0, let source = CGImageSourceCreateWithData(data as CFData, nil) else { throw Failure.undecodable }
         var best: (index: Int, width: Int, height: Int)?
@@ -22,7 +27,7 @@ public enum ImageNormalizer {
             throw Failure.tooLarge
         }
         let options: [CFString: Any] = [
-            kCGImageSourceThumbnailMaxPixelSize: max(side * 2, 256),
+            kCGImageSourceThumbnailMaxPixelSize: thumbnailMaxPixelSize(width: best.width, height: best.height, side: side),
             kCGImageSourceCreateThumbnailFromImageAlways: true,
             kCGImageSourceCreateThumbnailWithTransform: true,
         ]
