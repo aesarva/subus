@@ -3,8 +3,8 @@ import AppKit
 import SubusCore
 import SwiftUI
 
-/// `-Snapshots`: renders every panel/editor/settings state with demo data, in light and dark, to PNGs at 2×
-/// (`<state>-<light|dark>-<en|ru>.png`) and prints the folder. The language follows the launch
+/// `-Snapshots`: renders every panel/editor/settings state and the status item with demo data, in light and dark,
+/// to PNGs at 2× (`<state>-<light|dark>-<en|ru>.png`) and prints the folder. The language follows the launch
 /// (`-AppleLanguages "(ru)"`); `make snapshots` runs both languages and collects the files.
 @MainActor
 enum Snapshots {
@@ -67,7 +67,10 @@ enum Snapshots {
         yearly.categoryID = distant.categories[0].id
         distant.subscriptions = [yearly]
         panel("quiet", distant)
-        panel("longname", trial(in: 3, name: "Яндекс Практикум — курс «Продуктовый дизайнер»"))
+        // A long name, and a payment label too long for the date line: the label gives way first.
+        var long = trial(in: 3, name: "Яндекс Практикум — курс «Продуктовый дизайнер»")
+        long.paymentMethods[1].label = "Revolut Metal •• 0815 (рабочая, общая с семьёй)"
+        panel("longname", long)
 
         // All
         panel("all", base) { _, s in s.tab = .all }
@@ -126,6 +129,7 @@ enum Snapshots {
         settingsShot("settings-general", .general)
         settingsShot("settings-notifications", .notifications)
         settingsShot("settings-categories", .categories)
+        settingsShot("settings-payment", .paymentMethods)
         settingsShot("settings-data", .data)
         settingsShot("settings-about", .about)
         var imported = ImportPreview(library: base)
@@ -133,6 +137,16 @@ enum Snapshots {
         each("import-preview") { appearance, url in
             renderWindow(ImportPreviewView(preview: imported, onAdd: {}, onReplace: {}, onCancel: {}),
                          width: 520, appearance: appearance, to: url)
+        }
+
+        // Status item: the glyph alone, "3d", and the accent "1d" and "0d", on a light and a dark menu bar.
+        for (theme, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+            let strip = StatusItemStrip(states: [(nil, false), (Formatters.counter(3), false),
+                                                 (Formatters.counter(1), true), (Formatters.counter(0), true)])
+            strip.appearance = NSAppearance(named: appearance)
+            strip.background = appearance == .darkAqua ? NSColor(white: 0x1E / 255, alpha: 1) : NSColor(white: 0xF6 / 255, alpha: 1)
+            strip.frame.size = strip.fittingSize
+            write(strip, to: directory.appendingPathComponent("statusitem-\(theme)-\(language).png"))
         }
 
         print(directory.path)
@@ -224,6 +238,58 @@ enum Snapshots {
         rep.size = size
         view.cacheDisplay(in: view.bounds, to: rep)
         try? rep.representation(using: .png, properties: [:])?.write(to: url)
+    }
+}
+
+/// A menu-bar strip with the status item's content (glyph + counter) in each state, drawn as the button lays
+/// it out: the 18 pt glyph, then the counter title, both centred on the 24 pt bar.
+private final class StatusItemStrip: NSView {
+    private let states: [(text: String?, accent: Bool)]
+    var background = NSColor.windowBackgroundColor
+
+    private static let barHeight: CGFloat = 24
+    private static let padding: CGFloat = 12
+    private static let gap: CGFloat = 28
+
+    init(states: [(text: String?, accent: Bool)]) {
+        self.states = states
+        super.init(frame: .zero)
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    override var isFlipped: Bool { true }
+
+    override var fittingSize: NSSize {
+        let content = states.reduce(CGFloat(0)) { sum, state in
+            sum + 18 + (state.text.map { Self.title($0, state.accent).size().width } ?? 0)
+        }
+        return NSSize(width: ceil(content + Self.gap * CGFloat(states.count - 1) + Self.padding * 2), height: Self.barHeight)
+    }
+
+    private static func title(_ text: String, _ accent: Bool) -> NSAttributedString {
+        StatusItemController.title(text, accent: accent)
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        effectiveAppearance.performAsCurrentDrawingAppearance {
+            background.setFill()
+            bounds.fill()
+            let icon = MenuBarIcon.image()
+            var x = Self.padding
+            for state in states {
+                icon.draw(in: NSRect(x: x, y: (Self.barHeight - 18) / 2, width: 18, height: 18), from: .zero,
+                          operation: .sourceOver, fraction: 1, respectFlipped: true, hints: nil)
+                x += 18
+                if let text = state.text {
+                    let title = Self.title(text, state.accent)
+                    let size = title.size()
+                    title.draw(at: NSPoint(x: x, y: ((Self.barHeight - size.height) / 2).rounded()))
+                    x += size.width
+                }
+                x += Self.gap
+            }
+        }
     }
 }
 

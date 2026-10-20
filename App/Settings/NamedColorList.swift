@@ -15,7 +15,8 @@ struct NamedColorList: View {
     let deleteMessage: (Int) -> String
     let error: String?
     let onRename: (UUID, String) -> Bool
-    let onRecolor: (UUID, Int) -> Void
+    /// nil hides the colour column: payment methods carry no line colour in the UI.
+    let onRecolor: ((UUID, Int) -> Void)?
     let onDelete: (UUID) -> Void
     let onAdd: () -> Void
 
@@ -26,7 +27,9 @@ struct NamedColorList: View {
             List {
                 ForEach(items) { item in
                     HStack(spacing: 10) {
-                        SwatchButton(index: item.colorIndex) { onRecolor(item.id, $0) }
+                        if let onRecolor {
+                            SwatchButton(index: item.colorIndex) { onRecolor(item.id, $0) }
+                        }
                         NameField(name: item.name) { onRename(item.id, $0) }
                         Button {
                             if usage(item.id) == 0 { onDelete(item.id) } else { confirming = item.id }
@@ -130,7 +133,7 @@ private struct SwatchButton: View {
     }
 
     static func colorName(_ i: Int) -> String {
-        [String(localized: "Red"), String(localized: "Green"), String(localized: "Blue"), String(localized: "Orange"),
+        [String(localized: "Magenta"), String(localized: "Green"), String(localized: "Blue"), String(localized: "Orange"),
          String(localized: "Violet"), String(localized: "Cyan"), String(localized: "Brown"),
          String(localized: "Yellow")][((i % Category.paletteCount) + Category.paletteCount) % Category.paletteCount]
     }

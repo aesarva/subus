@@ -34,7 +34,6 @@ struct SubscriptionCard: View {
 
     /// Bumped when a toggle could not be saved, so the switch is rebuilt from the model's value.
     @State private var activeRevision = 0
-    @Environment(\.colorScheme) private var scheme
 
     private var today: LocalDate { model.today }
     private var category: SubusCore.Category? { model.category(subscription.categoryID) }
@@ -185,10 +184,7 @@ struct SubscriptionCard: View {
         }
         if let category {
             rows.append(Fact(label: String(localized: "Category"), value: AnyView(HStack(spacing: 6) {
-                Circle()
-                    .fill(LinePalette.line(category.colorIndex, scheme))
-                    .frame(width: 8, height: 8)
-                    .accessibilityHidden(true)
+                StationRing(lineIndex: category.colorIndex)
                 Text(verbatim: category.name)
             })))
         }
@@ -329,10 +325,10 @@ private struct ChargeStop: View {
         .accessibilityLabel(accessibilityText(days: days))
     }
 
-    /// "in 22 days · Wed, Nov 11"; past the 60-day horizon the date alone. A date never breaks across lines.
+    /// "in 22 days · Wed, Nov 11", past the 60-day horizon too ("in 83 days · Mon, Jan 11, 2027").
+    /// A date never breaks across lines.
     private func dateLine(days: Int, soon: Bool) -> Text {
         let date = Formatters.shortDate(charge.date, today: today).replacingOccurrences(of: " ", with: "\u{00A0}")
-        guard days <= Upcoming.horizonDays else { return Text(verbatim: date).font(.system(size: 13)) }
         let relative = Text(verbatim: Formatters.relativeDays(days))
             .font(.system(size: 13, weight: soon ? .semibold : .regular))
         let rest = Text(verbatim: " · " + date)
@@ -368,8 +364,7 @@ private struct ChargeStop: View {
 
     private func accessibilityText(days: Int) -> String {
         let date = Formatters.shortDate(charge.date, today: today), amount = Formatters.money(charge.amount)
-        let parts = days <= Upcoming.horizonDays ? [Formatters.relativeDays(days), date, amount] : [date, amount]
-        return parts.joined(separator: ", ")
+        return [Formatters.relativeDays(days), date, amount].joined(separator: ", ")
     }
 }
 

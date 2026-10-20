@@ -133,7 +133,8 @@ private struct StripCanvas: View {
     }
 }
 
-/// One charge: logo tile, name with an optional Trial tag, relative date line, amount tight to the margin.
+/// One charge, two lines: the name (with an optional Trial tag) and the amount tight to the margin; under them,
+/// across the full width, "relative · date · payment label".
 private struct StripRow: View {
     let item: UpcomingItem
     let logosDirectory: URL
@@ -146,24 +147,18 @@ private struct StripRow: View {
             HStack(spacing: 10) {
                 LogoView(subscription: item.subscription, size: 24, logosDirectory: logosDirectory)
                 VStack(alignment: .leading, spacing: 2) {
-                    name
-                    // When the payment label does not fit after the date, it takes its own line whole.
-                    ViewThatFits(in: .horizontal) {
-                        dateLine(withPayment: true).lineLimit(1)
-                        VStack(alignment: .leading, spacing: 1) {
-                            dateLine(withPayment: false).lineLimit(1)
-                            if let label = item.paymentLabel { Text(verbatim: label).lineLimit(1) }
-                        }
-                        dateLine(withPayment: true).lineLimit(3).fixedSize(horizontal: false, vertical: true)
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        name
+                        Spacer(minLength: 0)
+                        Text(verbatim: Formatters.money(item.charge.amount))
+                            .font(.system(size: 13, weight: .semibold).monospacedDigit())
+                            .fixedSize()
+                            .layoutPriority(1)
                     }
-                    .font(.system(size: 11).monospacedDigit())
-                    .foregroundStyle(.secondary)
+                    dateLine
+                        .font(.system(size: 11).monospacedDigit())
+                        .foregroundStyle(.secondary)
                 }
-                Spacer(minLength: 8)
-                Text(verbatim: Formatters.money(item.charge.amount))
-                    .font(.system(size: 13, weight: .semibold).monospacedDigit())
-                    .fixedSize()
-                    .layoutPriority(1)
             }
             .padding(.leading, StripMap.textLeading)
             .padding(.trailing, 16)
@@ -202,12 +197,36 @@ private struct StripRow: View {
         }
     }
 
-    private func dateLine(withPayment: Bool) -> Text {
-        let relative = Text(verbatim: Formatters.relativeDays(item.days))
-        var rest = " · " + Formatters.shortDate(item.charge.date)
-        if withPayment, let label = item.paymentLabel { rest += " · " + label }
-        let soon = item.days <= 1
-        return (soon ? relative.foregroundStyle(LinePalette.accentText).fontWeight(.semibold) : relative) + Text(verbatim: rest)
+    /// One line. When it does not fit, the payment label gives way first (tail-truncated, then left out),
+    /// then the date's weekday; the relative text never truncates.
+    private var dateLine: some View {
+        let full = Formatters.shortDate(item.charge.date), bare = Formatters.dayMonth(item.charge.date)
+        return ViewThatFits(in: .horizontal) {
+            (relative + Text(verbatim: " · " + full + (item.paymentLabel.map { " · " + $0 } ?? "")))
+                .fixedSize()
+            if let label = item.paymentLabel {
+                HStack(spacing: 0) {
+                    (relative + Text(verbatim: " · " + full)).fixedSize()
+                    Text(verbatim: " · " + label)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .frame(minWidth: 0, idealWidth: Self.shortestLabel, maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            (relative + Text(verbatim: " · " + full)).fixedSize()
+            HStack(spacing: 0) {
+                relative.fixedSize()
+                Text(verbatim: " · " + bare).lineLimit(1).truncationMode(.tail)
+            }
+        }
+    }
+
+    /// The least of a payment label worth showing ("· Т-Ба…"); below it the label is left out.
+    private static let shortestLabel: CGFloat = 48
+
+    private var relative: Text {
+        let text = Text(verbatim: Formatters.relativeDays(item.days))
+        return item.days <= 1 ? text.foregroundStyle(LinePalette.accentText).fontWeight(.semibold) : text
     }
 
     private var accessibilityText: String {

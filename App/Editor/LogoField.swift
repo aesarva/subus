@@ -10,7 +10,7 @@ struct LogoField: View {
     @Environment(\.colorScheme) private var scheme
 
     private static let colorNames: [LocalizedStringResource] = [
-        "Red", "Green", "Blue", "Orange", "Violet", "Cyan", "Brown", "Yellow",
+        "Magenta", "Green", "Blue", "Orange", "Violet", "Cyan", "Brown", "Yellow",
     ]
 
     var body: some View {

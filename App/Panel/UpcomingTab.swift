@@ -14,11 +14,11 @@ struct UpcomingTab: View {
         let today = model.today
         let live = model.library.subscriptions.filter { $0.isLive(today: today) }
         if model.library.subscriptions.isEmpty {
-            PanelEmptyState(systemImage: "calendar.badge.plus", title: String(localized: "No subscriptions yet"),
+            PanelEmptyState(title: String(localized: "No subscriptions yet"),
                             message: String(localized: "Add one and Subus shows how many days are left until each charge."),
                             actionTitle: String(localized: "Add your first subscription"), action: actions.onAdd)
         } else if live.isEmpty {
-            PanelEmptyState(systemImage: "pause.circle", title: String(localized: "All subscriptions are paused"),
+            PanelEmptyState(title: String(localized: "All subscriptions are paused"),
                             message: nil, actionTitle: String(localized: "Show all"),
                             action: { state.tab = .all })
         } else {

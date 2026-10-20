@@ -26,20 +26,24 @@ final class StatusItemController {
         guard let button = item.button else { return }
         button.image = MenuBarIcon.image()
         if let counterText {
-            button.attributedTitle = NSAttributedString(
-                string: " " + counterText,
-                attributes: [
-                    .font: NSFont.monospacedDigitSystemFont(
-                        ofSize: NSFont.systemFontSize, weight: accent ? .semibold : .regular),
-                    .foregroundColor: accent ? Brand.accentText : NSColor.labelColor,
-                ]
-            )
+            button.attributedTitle = Self.title(counterText, accent: accent)
             button.imagePosition = .imageLeading
         } else {
             button.title = ""
             button.imagePosition = .imageOnly
         }
         button.setAccessibilityLabel(accessibilityLabel ?? "Subus")
+    }
+
+    /// The counter after the glyph: label colour, or the accent in semibold for today and tomorrow.
+    static func title(_ counterText: String, accent: Bool) -> NSAttributedString {
+        NSAttributedString(
+            string: " " + counterText,
+            attributes: [
+                .font: NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: accent ? .semibold : .regular),
+                .foregroundColor: accent ? Brand.accentText : NSColor.labelColor,
+            ]
+        )
     }
 
     @objc private func clicked() {

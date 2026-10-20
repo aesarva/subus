@@ -2166,12 +2166,12 @@
         }
       }
     },
-    "Red": {
+    "Magenta": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Красный"
+            "value": "Малиновый"
           }
         }
       }

@@ -34,7 +34,7 @@ struct AllTab: View {
 
     var body: some View {
         if model.library.subscriptions.isEmpty {
-            PanelEmptyState(systemImage: "calendar.badge.plus", title: String(localized: "No subscriptions yet"),
+            PanelEmptyState(title: String(localized: "No subscriptions yet"),
                             message: String(localized: "Add one and Subus shows how many days are left until each charge."),
                             actionTitle: String(localized: "Add your first subscription"), action: actions.onAdd)
         } else {
@@ -264,10 +264,7 @@ private struct AllRow: View {
     private var secondary: some View {
         HStack(spacing: 5) {
             if let name = item.categoryName {
-                Circle()
-                    .fill(LinePalette.line(item.lineIndex, scheme))
-                    .frame(width: 7, height: 7)
-                    .accessibilityHidden(true)
+                StationRing(lineIndex: item.lineIndex)
                 Text(verbatim: name)
                     .lineLimit(1)
             }

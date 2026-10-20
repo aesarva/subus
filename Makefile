@@ -21,7 +21,7 @@ run: build
 # Renders the full state matrix (light/dark x en/ru) into build/snapshots/.
 SNAPSHOT_BIN = build/Build/Products/Debug/Subus.app/Contents/MacOS/Subus
 SNAPSHOT_SRC = $(HOME)/Library/Containers/io.github.aesarva.Subus/Data/tmp/Snapshots
-SNAPSHOT_EXPECTED = 108
+SNAPSHOT_EXPECTED = 116
 
 .PHONY: snapshots
 snapshots: build

@@ -9,17 +9,21 @@ struct IncreaseKey: Hashable {
 
 /// One bar: a category or a payment method and its share of the month total.
 struct SpendingBar: Identifiable {
+    /// A category rides its line colour behind a station ring; a payment method is neutral, behind a card mark.
+    enum Kind { case category, paymentMethod }
+
     /// nil — no category or no payment method.
     let id: UUID?
     let name: String
-    /// The line colour index; nil rides the rail colour.
+    let kind: Kind
+    /// The category's line colour index; nil rides the rail colour. Always nil for a payment method.
     let lineIndex: Int?
     let monthly: Money
     let share: Double
 }
 
-/// "Spending": the month total with its notes, the month split by category and by payment method
-/// in line-colour bars, and the price increases of the past year. Only the sections scroll.
+/// "Spending": the month total with its notes, the month split by category in line-colour bars and by
+/// payment method in neutral ones, and the price increases of the past year. Only the sections scroll.
 struct SpendingTab: View {
     let model: AppModel
     let state: PanelState
@@ -29,11 +33,11 @@ struct SpendingTab: View {
         let today = model.today
         let live = model.library.subscriptions.filter { $0.isLive(today: today) }
         if model.library.subscriptions.isEmpty {
-            PanelEmptyState(systemImage: "calendar.badge.plus", title: String(localized: "No subscriptions yet"),
+            PanelEmptyState(title: String(localized: "No subscriptions yet"),
                             message: String(localized: "Add one and Subus shows how many days are left until each charge."),
                             actionTitle: String(localized: "Add your first subscription"), action: actions.onAdd)
         } else if live.isEmpty {
-            PanelEmptyState(systemImage: "pause.circle", title: String(localized: "All subscriptions are paused"),
+            PanelEmptyState(title: String(localized: "All subscriptions are paused"),
                             message: nil, actionTitle: String(localized: "Show all"),
                             action: { state.tab = .all })
         } else {
@@ -95,21 +99,22 @@ struct SpendingTab: View {
     }
 
     static func categoryBars(_ model: AppModel, _ summary: SpendingSummary) -> [SpendingBar] {
-        bars(summary.byCategory, total: summary.monthly) { id in
+        bars(summary.byCategory, total: summary.monthly, kind: .category) { id in
             model.category(id).map { ($0.name, $0.colorIndex) }
         } unassigned: { String(localized: "No category") }
     }
 
     /// Hidden while no live subscription has a payment method: one "No payment method" bar says nothing.
+    /// Line colours belong to categories, so a method's own colour index is not shown.
     static func methodBars(_ model: AppModel, _ summary: SpendingSummary) -> [SpendingBar] {
-        let result = bars(summary.byPaymentMethod, total: summary.monthly) { id in
-            model.paymentMethod(id).map { ($0.label, $0.colorIndex) }
+        let result = bars(summary.byPaymentMethod, total: summary.monthly, kind: .paymentMethod) { id in
+            model.paymentMethod(id).map { ($0.label, nil) }
         } unassigned: { String(localized: "No payment method") }
         return result.contains { $0.id != nil } ? result : []
     }
 
     /// Slices whose category or method no longer exists join the unassigned one.
-    private static func bars(_ slices: [Slice], total: Money, resolve: (UUID?) -> (String, Int)?,
+    private static func bars(_ slices: [Slice], total: Money, kind: SpendingBar.Kind, resolve: (UUID?) -> (String, Int?)?,
                              unassigned: () -> String) -> [SpendingBar] {
         guard total.amount > 0 else { return [] }
         var amounts: [UUID?: Decimal] = [:], names: [UUID?: (String, Int?)] = [:], order: [UUID?] = []
@@ -126,7 +131,7 @@ struct SpendingTab: View {
         return order
             .map { id in
                 let amount = amounts[id] ?? 0
-                return SpendingBar(id: id, name: names[id]?.0 ?? unassigned(), lineIndex: names[id]?.1,
+                return SpendingBar(id: id, name: names[id]?.0 ?? unassigned(), kind: kind, lineIndex: names[id]?.1,
                                    monthly: Money(amount, total.currency),
                                    share: NSDecimalNumber(decimal: amount).doubleValue / totalValue)
             }
@@ -174,25 +179,22 @@ private struct SpendingSectionHead: View {
     }
 }
 
-/// A station in the line colour, the name, the monthly amount and its share; under them a line
-/// as long as the share, drawn over the quiet rail.
+/// A marker, the name, the monthly amount and its share; under them a line as long as the share, drawn over
+/// the quiet rail. A category: a station ring and a line in its colour. A payment method: a card mark and a
+/// neutral line, since line colours belong to categories.
 private struct SpendingBarRow: View {
     let bar: SpendingBar
 
     @Environment(\.colorScheme) private var scheme
     @Environment(\.colorSchemeContrast) private var contrast
 
-    static let station: CGFloat = 13
     static let gap: CGFloat = 9
 
     var body: some View {
-        let color = LinePalette.line(bar.lineIndex, scheme)
-        let stroke = LinePalette.stroke(contrast)
+        let neutral = Color(nsColor: .secondaryLabelColor)
         VStack(alignment: .leading, spacing: 5) {
             HStack(alignment: .firstTextBaseline, spacing: Self.gap) {
-                Circle()
-                    .strokeBorder(color, lineWidth: stroke)
-                    .frame(width: Self.station, height: Self.station)
+                marker
                     .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 4 }
                 Text(verbatim: bar.name)
                     .font(.system(size: 13))
@@ -211,15 +213,29 @@ private struct SpendingBarRow: View {
                     .fixedSize()
                     .layoutPriority(1)
             }
-            ShareLine(share: bar.share, color: color, track: LinePalette.rail(scheme),
-                      trackOpacity: contrast == .increased ? 0.45 : 0.28)
-                .padding(.leading, Self.station + Self.gap)
+            ShareLine(share: bar.share,
+                      color: bar.kind == .category ? LinePalette.line(bar.lineIndex, scheme) : neutral,
+                      track: LinePalette.rail(scheme), trackOpacity: contrast == .increased ? 0.45 : 0.28)
+                .padding(.leading, StationRing.diameter + Self.gap)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 6)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel([bar.name, Formatters.total(bar.monthly) + " " + Formatters.spokenCycle(.monthly),
                              SpendingTab.spokenShare(bar.share)].joined(separator: ", "))
+    }
+
+    @ViewBuilder private var marker: some View {
+        switch bar.kind {
+        case .category:
+            StationRing(lineIndex: bar.lineIndex)
+        case .paymentMethod:
+            RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                .strokeBorder(Color(nsColor: .secondaryLabelColor), lineWidth: contrast == .increased ? 2 : 1.5)
+                .frame(width: 10, height: 7)
+                .frame(width: StationRing.diameter, height: StationRing.diameter)
+                .accessibilityHidden(true)
+        }
     }
 }
 

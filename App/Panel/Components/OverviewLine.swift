@@ -132,11 +132,11 @@ struct OverviewLine: View {
             }
         }
 
-        // Text keeps its size and full opacity, whatever recedes.
+        // Text keeps its size and full opacity, whatever recedes; the count is secondary ink, never the reserved one.
         for cluster in layout.stations where !cluster.isSingle {
             let count = context.resolve(Text(verbatim: "\(cluster.items.count)")
                 .font(.system(size: 11, weight: .semibold).monospacedDigit())
-                .foregroundStyle(Color.primary))
+                .foregroundStyle(Color.secondary))
             context.draw(count, at: CGPoint(x: cluster.midX, y: y), anchor: .center)
         }
         drawMonthLabels(in: &context, dayWidth: dw, end: end)
@@ -145,12 +145,14 @@ struct OverviewLine: View {
         }
     }
 
-    /// A single charge is a station ring; a cluster is a capsule around its count, which keeps its size when
-    /// it recedes (only its stroke thins) so the count stays legible.
+    /// A single charge is a station ring; a cluster is an interchange capsule around its count, knocked out of
+    /// the rail, in its line colour when all its charges share one, otherwise in the rail colour. It keeps its
+    /// size when it recedes (only its stroke thins) so the count stays legible. Full ink stays reserved for
+    /// today's ring, the leg and the next station's label.
     private func drawStation(_ cluster: Cluster, _ state: StationState, in context: inout GraphicsContext) {
         let y = Self.railY
         let indices = Set(cluster.items.map(\.lineIndex))
-        let color = indices.count == 1 ? LinePalette.line(cluster.items[0].lineIndex, scheme) : Color.primary
+        let color = indices.count == 1 ? LinePalette.line(cluster.items[0].lineIndex, scheme) : LinePalette.rail(scheme)
         if cluster.isSingle {
             context.drawStation(at: CGPoint(x: cluster.x0, y: y), color: color, state, contrast: contrast)
             return

@@ -15,9 +15,7 @@ struct PaymentMethodsTab: View {
             onRename: { id, name in edit { l in
                 if let i = l.paymentMethods.firstIndex(where: { $0.id == id }) { l.paymentMethods[i].label = name }
             } },
-            onRecolor: { id, color in _ = edit { l in
-                if let i = l.paymentMethods.firstIndex(where: { $0.id == id }) { l.paymentMethods[i].colorIndex = color }
-            } },
+            onRecolor: nil,
             onDelete: { id in _ = edit { $0.removePaymentMethod(id) } },
             onAdd: {
                 _ = edit { l in
