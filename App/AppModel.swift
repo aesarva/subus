@@ -27,7 +27,7 @@ final class AppModel {
     @ObservationIgnored private let rateProvider: RateProvider
     @ObservationIgnored private let rateCache: RateCache
     @ObservationIgnored private let notifier: UserNotifier
-    @ObservationIgnored private let logosDirectory: URL?
+    @ObservationIgnored let logosDirectory: URL?
     @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private let log = Logger(subsystem: "io.github.aesarva.Subus", category: "store")
     @ObservationIgnored private let ratesLog = Logger(subsystem: "io.github.aesarva.Subus", category: "rates")
@@ -87,6 +87,9 @@ final class AppModel {
             .compactMap { s in BillingSchedule.nextCharge(for: s, onOrAfter: today).map { (s, $0) } }
             .min { ($0.1.date, $0.0.name) < ($1.1.date, $1.0.name) }
     }
+
+    /// The data folder: the logos directory lives inside it.
+    var dataDirectory: URL? { logosDirectory?.deletingLastPathComponent() }
 
     func category(_ id: UUID?) -> SubusCore.Category? {
         id.flatMap { id in library.categories.first { $0.id == id } }

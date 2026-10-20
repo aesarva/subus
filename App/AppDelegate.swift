@@ -11,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let notifier = UserNotifier()
     private var model: AppModel!
     private var statusItem: StatusItemController!
+    private var panel: PanelController!
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         guard Bundle.main.bundleIdentifier != nil else { return }
@@ -19,14 +20,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        #if DEBUG
+        if Self.launchArgs.contains("-Snapshots") {
+            Snapshots.run()
+            exit(0)
+        }
+        #endif
+
         model = makeModel()
         notifier.onOpen = { [weak model] id in model?.openSubscriptionRequest = id }
 
+        let onAdd = { [log] in log.info("add subscription") }
+        let onSettings = { [log] in log.info("open settings") }
         statusItem = StatusItemController(
-            onTogglePanel: { [log] in log.info("toggle panel") },
-            onAdd: { [log] in log.info("add subscription") },
-            onSettings: { [log] in log.info("open settings") }
+            onTogglePanel: { [weak self] in self?.panel.toggle() },
+            onAdd: onAdd,
+            onSettings: onSettings
         )
+        panel = PanelController(model: model, anchor: { [weak self] in self?.statusItem.button },
+                                onAdd: onAdd, onSettings: onSettings)
         refreshStatusItem()
 
         #if DEBUG
@@ -37,6 +49,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #endif
         model.start()
         #if DEBUG
+        if args.contains("-OpenPanelOnLaunch") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in self?.panel.toggle() }
+        }
         if args.contains("-SendTestNotification") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [notifier] in notifier.sendTest() }
         }
