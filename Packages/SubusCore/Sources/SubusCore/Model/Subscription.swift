@@ -100,9 +100,14 @@ public struct Subscription: Identifiable, Hashable, Codable, Sendable {
         take(\.name); take(\.logo); take(\.cycle); take(\.startDate); take(\.endDate); take(\.trialEndDate)
         take(\.isActive); take(\.categoryID); take(\.paymentMethodID); take(\.websiteURL); take(\.manageURL)
         take(\.notificationsEnabled); take(\.notes)
-        // A price set equal to a later scheduled price leaves `price` unchanged, so the date of the edit is checked too.
+        // A price set equal to a later scheduled price leaves `price` unchanged, so the history at the edit date is
+        // compared too. Before the first entry the first entry applies, never the latest `price`.
+        func historyPrice(_ s: Subscription, _ date: LocalDate) -> Money? {
+            (s.priceHistory.last(where: { $0.effectiveFrom <= date }) ?? s.priceHistory.first)?.price
+        }
         if let change = edited.priceHistory.last,
-           edited.price != baseline.price || edited.price(on: change.effectiveFrom) != baseline.price(on: change.effectiveFrom) {
+           edited.price != baseline.price
+            || historyPrice(edited, change.effectiveFrom) != historyPrice(baseline, change.effectiveFrom) {
             merged.changePrice(to: edited.price, effectiveFrom: change.effectiveFrom)
         }
         if let first = merged.priceHistory.first, merged.anchor < first.effectiveFrom {

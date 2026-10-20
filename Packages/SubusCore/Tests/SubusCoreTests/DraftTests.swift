@@ -294,6 +294,27 @@ private func validDraft() -> SubscriptionDraft {
                                         PriceChange(effectiveFrom: d("2026-10-20"), price: rub(150))])
     }
 
+    @Test func trialEditEqualToLaterScheduledPriceIsKept() {
+        var base = Subscription(name: "Trial", price: rub(100), cycle: .monthly, startDate: d("2026-10-01"),
+                                trialEndDate: d("2026-10-31"))
+        base.changePrice(to: rub(150), effectiveFrom: d("2026-12-01"))
+        var draft = SubscriptionDraft(editing: base, today: d("2026-10-20"), locale: en)
+        draft.priceText = "150"
+        draft.priceEffectiveFrom = d("2026-10-20")
+        let merged = base.merging(edited: draft.apply(to: base, locale: en, now: Date()), baseline: base)
+        #expect(merged.price(on: d("2026-10-31")) == rub(150))
+    }
+
+    @Test func editDatedBeforeFirstEntryIsKept() {
+        var base = baseline
+        base.changePrice(to: rub(150), effectiveFrom: d("2026-12-01"))
+        var draft = SubscriptionDraft(editing: base, today: d("2026-10-20"), locale: en)
+        draft.priceText = "150"
+        draft.priceEffectiveFrom = d("2026-01-01")
+        let merged = base.merging(edited: draft.apply(to: base, locale: en, now: Date()), baseline: base)
+        #expect(merged.price(on: d("2026-01-10")) == rub(150))
+    }
+
     @Test func earlierStartReanchorsConcurrentHistory() {
         var current = baseline
         current.changePrice(to: rub(150), effectiveFrom: d("2026-11-01"))
