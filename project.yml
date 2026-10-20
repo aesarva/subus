@@ -1,0 +1,31 @@
+name: Subus
+options:
+  bundleIdPrefix: io.github.aesarva
+  deploymentTarget:
+    macOS: "14.0"
+packages:
+  SubusCore:
+    path: Packages/SubusCore
+targets:
+  Subus:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: App
+    dependencies:
+      - package: SubusCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.aesarva.Subus
+        PRODUCT_NAME: Subus
+        SWIFT_VERSION: "6.0"
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_ENTITLEMENTS: App/Resources/Subus.entitlements
+        ENABLE_APP_SANDBOX: YES
+        INFOPLIST_FILE: App/Resources/Info.plist
+        SWIFT_EMIT_LOC_STRINGS: YES
+        LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+        ENABLE_HARDENED_RUNTIME: YES
+        CURRENT_PROJECT_VERSION: "1"
+        MARKETING_VERSION: "0.1.0"
