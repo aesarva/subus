@@ -77,3 +77,20 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
 
     override func stopLoading() {}
 }
+
+final class InMemorySettingsStorage: SettingsStorage, @unchecked Sendable {
+    private let lock = NSLock()
+    private var values: [String: Data] = [:]
+
+    init(_ initial: [String: Data] = [:]) { values = initial }
+
+    func data(forKey key: String) -> Data? {
+        lock.lock(); defer { lock.unlock() }
+        return values[key]
+    }
+
+    func set(_ data: Data, forKey key: String) {
+        lock.lock(); defer { lock.unlock() }
+        values[key] = data
+    }
+}
