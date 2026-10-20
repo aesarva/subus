@@ -161,4 +161,42 @@ private func validDraft() -> SubscriptionDraft {
         #expect(SubscriptionDraft(editing: s, today: d("2026-10-20"), locale: ru).priceText == "169,5")
         #expect(SubscriptionDraft(editing: s, today: d("2026-10-20"), locale: en).priceText == "169.5")
     }
+
+    @Test func anchorMovedEarlierKeepsOriginalPrice() {
+        var s = Subscription(name: "A", price: rub(100), cycle: .monthly, startDate: d("2026-10-01"),
+                             trialEndDate: d("2026-10-15"))
+        s.changePrice(to: rub(150), effectiveFrom: d("2026-12-15"))
+        var draft = SubscriptionDraft(editing: s, today: d("2026-10-20"), locale: en)
+        draft.hasTrial = false
+        let result = draft.apply(to: s, locale: en, now: Date())
+        #expect(result.price(on: d("2026-10-01")) == rub(100))
+        #expect(result.price(on: d("2026-12-15")) == rub(150))
+    }
+
+    @Test func startDateMovedEarlier() {
+        var s = Subscription(name: "A", price: rub(100), cycle: .monthly, startDate: d("2026-10-15"))
+        s.changePrice(to: rub(150), effectiveFrom: d("2026-12-15"))
+        var draft = SubscriptionDraft(editing: s, today: d("2026-10-20"), locale: en)
+        draft.startDate = d("2026-10-01")
+        let result = draft.apply(to: s, locale: en, now: Date())
+        #expect(result.price(on: d("2026-10-01")) == rub(100))
+        #expect(result.price(on: d("2026-12-15")) == rub(150))
+    }
+
+    @Test func threeFractionDigitsAreTreatedAsGrouping() {
+        #expect(PriceParser.parse("1,199", locale: ru) == 1199)
+    }
+
+    @Test func clearingOptionalFields() {
+        var s = Subscription(name: "A", price: rub(10), cycle: .monthly, startDate: d("2026-01-01"))
+        s.websiteURL = URL(string: "https://a.com")
+        s.manageURL = URL(string: "https://a.com/m")
+        s.notes = "n"
+        var draft = SubscriptionDraft(editing: s, today: d("2026-10-20"), locale: en)
+        draft.websiteText = ""
+        draft.manageText = "  "
+        draft.notes = ""
+        let result = draft.apply(to: s, locale: en, now: Date())
+        #expect(result.websiteURL == nil && result.manageURL == nil && result.notes == "")
+    }
 }

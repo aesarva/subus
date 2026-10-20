@@ -144,22 +144,23 @@ public struct SubscriptionDraft: Equatable, Sendable {
 
     /// Предусловие: `validate(locale:)` вернул пустой массив.
     public func apply(to existing: Subscription?, locale: Locale, now: Date) -> Subscription {
+        assert(validate(locale: locale).isEmpty, "apply called with an invalid draft")
         let money = Money(PriceParser.parse(priceText, locale: locale) ?? 0, currency)
         let trial = hasTrial ? trialEndDate : nil
         let end = hasEndDate ? endDate : nil
-        var s: Subscription
-        if var current = existing {
-            if current.price != money { current.changePrice(to: money, effectiveFrom: priceEffectiveFrom) }
-            s = current
-        } else {
-            s = Subscription(name: name, price: money, cycle: cycle, startDate: startDate,
-                             trialEndDate: trial, endDate: end, createdAt: now)
-        }
+        var s = existing ?? Subscription(name: name, price: money, cycle: cycle, startDate: startDate,
+                                         trialEndDate: trial, endDate: end, createdAt: now)
         s.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
         s.cycle = cycle
         s.startDate = startDate
         s.trialEndDate = trial
         s.endDate = end
+        if existing != nil {
+            if let first = s.priceHistory.first, s.anchor < first.effectiveFrom {
+                s.priceHistory[0].effectiveFrom = s.anchor
+            }
+            if s.price != money { s.changePrice(to: money, effectiveFrom: priceEffectiveFrom) }
+        }
         s.categoryID = categoryID
         s.paymentMethodID = paymentMethodID
         s.websiteURL = URLNormalizer.normalize(websiteText)
