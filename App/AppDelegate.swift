@@ -12,6 +12,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var model: AppModel!
     private var statusItem: StatusItemController!
     private var panel: PanelController!
+    private var editor: EditorWindowController!
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         guard Bundle.main.bundleIdentifier != nil else { return }
@@ -30,7 +31,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         model = makeModel()
         notifier.onOpen = { [weak model] id in model?.openSubscriptionRequest = id }
 
-        let onAdd = { [log] in log.info("add subscription") }
+        editor = EditorWindowController(model: model, closePanel: { [weak self] in self?.panel.close() })
+        let onAdd: () -> Void = { [weak self] in self?.editor.open(editing: nil) }
         let onSettings = { [log] in log.info("open settings") }
         statusItem = StatusItemController(
             onTogglePanel: { [weak self] in self?.panel.toggle() },
@@ -39,7 +41,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         panel = PanelController(model: model, anchor: { [weak self] in self?.statusItem.button },
                                 onAdd: onAdd, onSettings: onSettings,
-                                onEdit: { [log] id in log.info("edit subscription \(id, privacy: .private)") })
+                                onEdit: { [weak self] id in
+                                    guard let self, let s = model.library.subscriptions.first(where: { $0.id == id })
+                                    else { return }
+                                    editor.open(editing: s)
+                                })
         refreshStatusItem()
         observeOpenRequests()
 

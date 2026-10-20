@@ -113,7 +113,46 @@ enum Snapshots {
         refusing.setActive(id(refusing, "Spotify"), false)
         panel(refusing, "card-toggle-failed-light", maxHeight: 900) { $0.card = id(refusing, "Spotify") }
 
+        // Editor
+        func editorShot(_ name: String, editing: Subscription? = nil, appearance: NSAppearance.Name = .aqua,
+                        height: CGFloat = 900, _ configure: (EditorState) -> Void = { _ in }) {
+            let editorModel = model(PreviewSupport.demoLibrary(today: today), in: directory)
+            let subscription = editing.flatMap { e in editorModel.library.subscriptions.first { $0.name == e.name } }
+            let state = EditorState(model: editorModel, editing: subscription)
+            configure(state)
+            renderEditor(state, appearance: appearance, height: height,
+                         to: directory.appendingPathComponent("\(name)-\(language).png"))
+        }
+        editorShot("editor-new-light") { $0.draft.name = "Spotify"; $0.draft.priceText = "169,00" }
+        editorShot("editor-new-dark", appearance: .darkAqua)
+        editorShot("editor-edit-light", editing: demo.library.subscriptions.first { $0.name == "Яндекс Плюс" }) {
+            $0.draft.priceText = "449"
+        }
+        editorShot("editor-errors-light") {
+            $0.draft.priceText = "abc"
+            $0.draft.websiteText = "not a url"
+            $0.setTrial(true)
+            $0.draft.trialEndDate = $0.draft.startDate.adding(days: -3)
+            $0.save()
+        }
+
         print(directory.path)
+    }
+
+    private static func renderEditor(_ state: EditorState, appearance: NSAppearance.Name, height: CGFloat, to url: URL) {
+        let host = NSHostingView(rootView: EditorView(state: state))
+        host.appearance = NSAppearance(named: appearance)
+        let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: EditorView.width, height: height),
+                              styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
+        window.appearance = NSAppearance(named: appearance)
+        window.contentView = host
+        window.orderFrontRegardless()
+        for _ in 0..<3 {
+            host.layoutSubtreeIfNeeded()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.2))
+        }
+        write(host, to: url)
+        window.orderOut(nil)
     }
 
     private static func model(_ library: Library, in directory: URL, recovery: Recovery? = nil,
