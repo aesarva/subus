@@ -3,7 +3,7 @@ import Foundation
 public enum IconHTMLParser {
     public static func candidates(html: String, baseURL: URL) -> [URL] {
         var found: [(priority: Int, size: Int, url: URL)] = []
-        for tag in matches(#"<link\b[^>]*>"#, in: html) {
+        for tag in linkTags(in: html) {
             let attrs = attributes(of: tag)
             guard let rel = attrs["rel"], let href = attrs["href"], !href.isEmpty else { continue }
             let tokens = rel.lowercased().split(whereSeparator: \.isWhitespace).map(String.init)
@@ -61,9 +61,38 @@ public enum IconHTMLParser {
         return result
     }
 
-    private static func matches(_ pattern: String, in text: String) -> [String] {
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else { return [] }
-        let ns = text as NSString
-        return regex.matches(in: text, range: NSRange(location: 0, length: ns.length)).map { ns.substring(with: $0.range) }
+    private static let maxInputBytes = 512 * 1024
+
+    /// Один линейный проход: пропускает комментарии, обрывается на незакрытом теге.
+    private static func linkTags(in html: String) -> [String] {
+        let bytes = Array(html.utf8.prefix(maxInputBytes))
+        let lt = UInt8(ascii: "<"), gt = UInt8(ascii: ">")
+        func lower(_ b: UInt8) -> UInt8 { (65...90).contains(b) ? b + 32 : b }
+        func matches(_ word: String, at i: Int) -> Bool {
+            let w = Array(word.utf8)
+            guard i + w.count <= bytes.count else { return false }
+            return (0..<w.count).allSatisfy { lower(bytes[i + $0]) == w[$0] }
+        }
+        var tags: [String] = []
+        var i = 0
+        while i < bytes.count {
+            guard bytes[i] == lt else { i += 1; continue }
+            if matches("<!--", at: i) {
+                var j = i + 4
+                while j + 2 < bytes.count, !(bytes[j] == 45 && bytes[j + 1] == 45 && bytes[j + 2] == gt) { j += 1 }
+                if j + 2 >= bytes.count { break }
+                i = j + 3
+            } else if matches("<link", at: i), i + 5 < bytes.count,
+                      bytes[i + 5] == gt || bytes[i + 5] == 47 || bytes[i + 5] <= 32 {
+                guard let end = bytes[i...].firstIndex(of: gt) else { break }
+                var tag = bytes[i...end]
+                if tag.count > 2, tag[tag.endIndex - 2] == 47 { tag.remove(at: tag.endIndex - 2) }
+                tags.append(String(decoding: tag, as: UTF8.self))
+                i = end + 1
+            } else {
+                i += 1
+            }
+        }
+        return tags
     }
 }

@@ -8,6 +8,7 @@ public enum Monogram {
 
     /// FNV-1a 64 по UTF-8 нормализованного имени: стабильно между запусками (в отличие от `hashValue`).
     public static func colorIndex(for name: String, paletteCount: Int) -> Int {
+        guard paletteCount > 0 else { return 0 }
         var hash: UInt64 = 0xcbf2_9ce4_8422_2325
         for byte in name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased().utf8 {
             hash ^= UInt64(byte)
