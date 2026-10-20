@@ -63,6 +63,8 @@ import Testing
         #expect(RateRefreshPolicy.needsRefresh(cached: nil, now: now))
         #expect(!RateRefreshPolicy.needsRefresh(cached: try table(age: 23), now: now))
         #expect(RateRefreshPolicy.needsRefresh(cached: try table(age: 25), now: now))
+        #expect(!RateRefreshPolicy.needsRefresh(cached: try table(age: 24), now: now))
+        #expect(RateRefreshPolicy.needsRefresh(cached: try table(age: -1), now: now))
     }
 
     @Test func providerUsesHTTP() async throws {

@@ -47,6 +47,7 @@ public enum RateRefreshPolicy {
 
     public static func needsRefresh(cached: RateTable?, now: Date) -> Bool {
         guard let cached else { return true }
-        return now.timeIntervalSince(cached.fetchedAt) > maxAge
+        let age = now.timeIntervalSince(cached.fetchedAt)
+        return age < 0 || age > maxAge
     }
 }
