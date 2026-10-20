@@ -207,7 +207,7 @@ private struct AllRow: View {
                         .lineLimit(2)
                         .truncationMode(.tail)
                         .fixedSize(horizontal: false, vertical: true)
-                    if item.categoryName != nil || item.endedOn != nil {
+                    if item.categoryName != nil || status != nil {
                         secondary
                     }
                 }
@@ -256,9 +256,9 @@ private struct AllRow: View {
                 Text(verbatim: name)
                     .lineLimit(1)
             }
-            if let ended = item.endedOn {
+            if let status {
                 if item.categoryName != nil { Text(verbatim: "·") }
-                Text(verbatim: String(localized: "Ended \(Formatters.date(ended, today: today))"))
+                Text(verbatim: status)
                     .lineLimit(1)
             }
         }
@@ -266,15 +266,19 @@ private struct AllRow: View {
         .foregroundStyle(.secondary)
     }
 
+    /// "Ended <date>", or "Inactive" for one switched off: the same word as the card's tag and toggle.
+    private var status: String? {
+        if let ended = item.endedOn { return String(localized: "Ended \(Formatters.date(ended, today: today))") }
+        if !item.subscription.isActive { return String(localized: "status.inactive", defaultValue: "Inactive") }
+        return nil
+    }
+
     private var accessibilityText: String {
         let s = item.subscription
         var parts = [s.name, Formatters.money(s.price) + " " + Formatters.spokenCycle(s.cycle)]
         if let category = item.categoryName { parts.append(category) }
-        if let ended = item.endedOn {
-            parts.append(String(localized: "Ended \(Formatters.date(ended, today: today))"))
-        } else if !s.isActive {
-            parts.append(String(localized: "inactive"))
-        }
+        if let status { parts.append(status) }
         return parts.joined(separator: ", ")
     }
+
 }

@@ -79,6 +79,8 @@ final class PanelController: NSObject, NSPopoverDelegate {
 
     func close() {
         guard popover.isShown else { return }
+        // A click elsewhere while the delete confirmation is up dismisses it with the panel: nothing is deleted.
+        state.confirmingDelete = false
         popover.performClose(nil)
     }
 
@@ -113,6 +115,7 @@ final class PanelController: NSObject, NSPopoverDelegate {
         // The next opening starts on the tab, with an empty search.
         state.closeCard()
         state.search = ""
+        state.allSelection = nil
         popover.behavior = .transient
         removeMonitors()
     }
@@ -125,7 +128,7 @@ final class PanelController: NSObject, NSPopoverDelegate {
                           modifiers: event.modifierFlags.intersection([.command, .shift, .option, .control]),
                           characters: event.characters,
                           windowNumber: event.windowNumber)
-            let consumed = MainActor.assumeIsolated { self?.handle(key) ?? false }
+            let consumed = MainActor.assumeIsolated { self?.handle(key, event: event) ?? false }
             return consumed ? nil : event
         }
         moveMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { [weak self] event in
@@ -155,7 +158,7 @@ final class PanelController: NSObject, NSPopoverDelegate {
     }
 
     /// true when the key was handled here.
-    private func handle(_ key: Key) -> Bool {
+    private func handle(_ key: Key, event: NSEvent) -> Bool {
         guard let window = host.view.window, key.windowNumber == window.windowNumber else { return false }
         // Physical keys, so the shortcuts work on any layout (Russian included).
         if key.modifiers == .command {
@@ -173,7 +176,13 @@ final class PanelController: NSObject, NSPopoverDelegate {
         if key.modifiers.isEmpty {
             switch key.code {
             case 53: // Escape
-                if state.card != nil { back() } else { close() }
+                if state.card != nil {
+                    back()
+                } else if state.tab == .all, !state.search.isEmpty {
+                    state.search = ""
+                } else {
+                    close()
+                }
                 return true
             case 125, 126: // ↓ ↑
                 return moveSelection(by: key.code == 125 ? 1 : -1)
@@ -184,15 +193,18 @@ final class PanelController: NSObject, NSPopoverDelegate {
             }
         }
         // Typing on All goes to the search field, starting with the key just pressed.
+        // An empty `characters` is a dead key: it starts a composed character in the field.
         if state.tab == .all, state.card == nil, key.modifiers.isSubset(of: [.shift, .option]),
-           let text = key.characters, Self.isPrintable(text) {
-            return type(text)
+           let text = key.characters, text.isEmpty || Self.isPrintable(text) {
+            return type(event)
         }
         return false
     }
 
     /// In the search field ↑/↓ and Return reach the list; Esc clears the search, and on an empty one closes the panel.
     private func handleInSearch(_ key: Key, field: NSSearchField) -> Bool {
+        // While an input method or a dead key composes, its keys are its own.
+        if let editor = field.currentEditor() as? NSTextView, editor.hasMarkedText() { return false }
         guard key.modifiers.isEmpty else { return false }
         switch key.code {
         case 53:
@@ -208,7 +220,9 @@ final class PanelController: NSObject, NSPopoverDelegate {
         case 125, 126:
             return moveSelection(by: key.code == 125 ? 1 : -1)
         case 36, 76:
-            if state.allSelection == nil { state.allSelection = AllTab.rows(model, state).order.first }
+            // Nothing selected among the results: Return opens the first one.
+            let order = AllTab.rows(model, state).order
+            if state.allSelection.map({ !order.contains($0) }) ?? true { state.allSelection = order.first }
             return openSelection()
         default:
             return false
@@ -237,12 +251,12 @@ final class PanelController: NSObject, NSPopoverDelegate {
         return true
     }
 
-    private func type(_ text: String) -> Bool {
+    /// The key goes through the field editor's input context, so dead keys and input methods compose as usual.
+    private func type(_ event: NSEvent) -> Bool {
         guard let field = state.searchField, let window = host.view.window, window.makeFirstResponder(field),
               let editor = field.currentEditor() as? NSTextView else { return false }
-        let end = NSRange(location: (editor.string as NSString).length, length: 0)
-        editor.setSelectedRange(end)
-        editor.insertText(text, replacementRange: end)
+        editor.setSelectedRange(NSRange(location: (editor.string as NSString).length, length: 0))
+        editor.interpretKeyEvents([event])
         return true
     }
 

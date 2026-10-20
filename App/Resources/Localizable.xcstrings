@@ -1361,7 +1361,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Завершена"
+            "value": "Завершилась"
           }
         }
       }
@@ -1371,7 +1371,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Завершена %@"
+            "value": "Завершилась %@"
           }
         }
       }
@@ -1436,16 +1436,6 @@
         }
       }
     },
-    "Paused": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "На паузе"
-          }
-        }
-      }
-    },
     "Payment": {
       "localizations": {
         "ru": {
@@ -1506,16 +1496,6 @@
         }
       }
     },
-    "This can't be undone.": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Это действие нельзя отменить."
-          }
-        }
-      }
-    },
     "Trial ended": {
       "localizations": {
         "ru": {
@@ -1552,16 +1532,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "развёрнуто"
-          }
-        }
-      }
-    },
-    "inactive": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "неактивна"
           }
         }
       }
@@ -1820,6 +1790,108 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "This can’t be undone.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Это действие нельзя отменить."
+          }
+        }
+      }
+    },
+    "status.inactive": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inactive"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Неактивна"
+          }
+        }
+      }
+    },
+    "menu.edit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Правка"
+          }
+        }
+      }
+    },
+    "Undo": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отменить"
+          }
+        }
+      }
+    },
+    "Redo": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторить"
+          }
+        }
+      }
+    },
+    "Cut": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вырезать"
+          }
+        }
+      }
+    },
+    "Copy": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скопировать"
+          }
+        }
+      }
+    },
+    "Paste": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставить"
+          }
+        }
+      }
+    },
+    "Select All": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать все"
           }
         }
       }

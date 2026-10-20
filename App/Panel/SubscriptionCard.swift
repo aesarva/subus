@@ -114,11 +114,13 @@ struct SubscriptionCard: View {
         }
     }
 
-    /// Ended, paused, or in its trial: carried by text, the outline only frames it.
+    /// Ended, inactive, or in its trial: carried by text, the outline only frames it.
     private var tag: AnyView? {
         let s = subscription
         if s.isEnded(today: today) { return AnyView(OutlineTag(text: String(localized: "Ended"), color: .secondary)) }
-        if !s.isActive { return AnyView(OutlineTag(text: String(localized: "Paused"), color: .secondary)) }
+        if !s.isActive {
+            return AnyView(OutlineTag(text: String(localized: "status.inactive", defaultValue: "Inactive"), color: .secondary))
+        }
         if let trial = s.trialEndDate, trial >= today { return AnyView(TrialTag()) }
         return nil
     }
@@ -266,7 +268,7 @@ struct SubscriptionCard: View {
             }
             Button(String(localized: "Cancel"), role: .cancel) {}
         } message: {
-            Text("This can't be undone.")
+            Text("This can’t be undone.")
         }
     }
 }
@@ -327,13 +329,16 @@ private struct ChargeStop: View {
         .accessibilityLabel(accessibilityText(days: days))
     }
 
+    /// "in 22 days · Wed, Nov 11"; past the 60-day horizon the date alone. A date never breaks across lines.
     private func dateLine(days: Int, soon: Bool) -> Text {
+        let date = Formatters.shortDate(charge.date, today: today).replacingOccurrences(of: " ", with: "\u{00A0}")
+        guard days <= Upcoming.horizonDays else { return Text(verbatim: date).font(.system(size: 13)) }
         let relative = Text(verbatim: Formatters.relativeDays(days))
             .font(.system(size: 13, weight: soon ? .semibold : .regular))
-        let date = Text(verbatim: " · " + Formatters.shortDate(charge.date, today: today))
+        let rest = Text(verbatim: " · " + date)
             .font(.system(size: 13))
             .foregroundStyle(.secondary)
-        return (soon ? relative.foregroundStyle(LinePalette.accent) : relative) + date
+        return (soon ? relative.foregroundStyle(LinePalette.accent) : relative) + rest
     }
 
     private func draw(in context: inout GraphicsContext, size: CGSize, accent: Bool) {
@@ -362,12 +367,13 @@ private struct ChargeStop: View {
     }
 
     private func accessibilityText(days: Int) -> String {
-        [Formatters.relativeDays(days), Formatters.shortDate(charge.date, today: today),
-         Formatters.money(charge.amount)].joined(separator: ", ")
+        let date = Formatters.shortDate(charge.date, today: today), amount = Formatters.money(charge.amount)
+        let parts = days <= Upcoming.horizonDays ? [Formatters.relativeDays(days), date, amount] : [date, amount]
+        return parts.joined(separator: ", ")
     }
 }
 
-/// An outline tag in the Trial tag's form, for states that are not a line colour: Ended, Paused.
+/// An outline tag in the Trial tag's form, for states that are not a line colour: Ended, Inactive.
 private struct OutlineTag: View {
     let text: String
     let color: Color

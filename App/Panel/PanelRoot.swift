@@ -27,10 +27,14 @@ final class PanelState {
     /// The screen's visible height − 80, set on every opening.
     var maxHeight: CGFloat = 640
 
-    // All tab
-    var search = ""
+    // All tab; a new search or filter starts the selection over.
+    var search = "" {
+        didSet { if search != oldValue { allSelection = nil } }
+    }
     /// nil shows every category.
-    var categoryFilter: UUID?
+    var categoryFilter: UUID? {
+        didSet { if categoryFilter != oldValue { allSelection = nil } }
+    }
     var inactiveExpanded = false
     var allSelection: UUID?
     var allHover: UUID?
