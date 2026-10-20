@@ -56,7 +56,7 @@ final class DataController {
     func exportCSV() {
         savePanel(ext: "csv", type: .commaSeparatedText) { [self] url in
             do {
-                try Data(Transfer.exportCSV(model.library).utf8).write(to: url, options: .atomic)
+                try Data(Transfer.exportCSV(model.library, today: model.today).utf8).write(to: url, options: .atomic)
                 report(String(localized: "Exported to “\(url.lastPathComponent)”."))
             } catch {
                 fail(String(localized: "Couldn't export: \(error.localizedDescription)"), error)

@@ -78,8 +78,17 @@ public struct Library: Equatable, Codable, Sendable {
             case .monogram(nil):
                 break
             }
-            lib.subscriptions[i].priceHistory.sort { $0.effectiveFrom < $1.effectiveFrom }
-            if let last = lib.subscriptions[i].priceHistory.last { lib.subscriptions[i].price = last.price }
+            if let url = lib.subscriptions[i].websiteURL, !URLNormalizer.isWeb(url) { lib.subscriptions[i].websiteURL = nil }
+            if let url = lib.subscriptions[i].manageURL, !URLNormalizer.isWeb(url) { lib.subscriptions[i].manageURL = nil }
+            // One entry per date (the last one wins), sorted; an empty history starts at the anchor.
+            var byDate: [LocalDate: PriceChange] = [:]
+            for change in lib.subscriptions[i].priceHistory { byDate[change.effectiveFrom] = change }
+            lib.subscriptions[i].priceHistory = byDate.values.sorted { $0.effectiveFrom < $1.effectiveFrom }
+            if lib.subscriptions[i].priceHistory.isEmpty {
+                lib.subscriptions[i].priceHistory = [PriceChange(effectiveFrom: lib.subscriptions[i].anchor,
+                                                                 price: lib.subscriptions[i].price)]
+            }
+            lib.subscriptions[i].price = lib.subscriptions[i].priceHistory.last!.price
         }
         return lib
     }

@@ -193,6 +193,17 @@ private func validDraft() -> SubscriptionDraft {
         #expect(result.price(on: d("2026-12-15")) == rub(150))
     }
 
+    @Test func editingSeedsTodaysPriceAndKeepsScheduledChange() {
+        var s = Subscription(name: "A", price: rub(100), cycle: .monthly, startDate: d("2026-01-01"))
+        s.changePrice(to: rub(150), effectiveFrom: d("2026-12-01"))
+        var draft = SubscriptionDraft(editing: s, today: d("2026-10-20"), locale: en)
+        #expect(draft.priceText == "100")
+        draft.name = "B"
+        let renamed = draft.apply(to: s, locale: en, now: Date())
+        #expect(renamed.priceHistory == s.priceHistory)
+        #expect(renamed.price == rub(150))
+    }
+
     @Test func threeFractionDigitsAreTreatedAsGrouping() {
         #expect(PriceParser.parse("1,199", locale: ru) == 1199)
     }
@@ -269,6 +280,18 @@ private func validDraft() -> SubscriptionDraft {
         let merged = current.merging(edited: edited { $0.name = "N" }, baseline: baseline)
         #expect(merged.price == rub(150))
         #expect(merged.priceHistory == current.priceHistory)
+    }
+
+    @Test func priceEditEqualToScheduledPriceIsReplayed() {
+        var base = baseline
+        base.changePrice(to: rub(150), effectiveFrom: d("2026-12-01"))
+        var draft = SubscriptionDraft(editing: base, today: d("2026-10-20"), locale: en)
+        draft.priceText = "150"
+        draft.priceEffectiveFrom = d("2026-10-20")
+        let merged = base.merging(edited: draft.apply(to: base, locale: en, now: Date()), baseline: base)
+        #expect(merged.price(on: d("2026-10-20")) == rub(150))
+        #expect(merged.priceHistory == [PriceChange(effectiveFrom: d("2026-01-10"), price: rub(100)),
+                                        PriceChange(effectiveFrom: d("2026-10-20"), price: rub(150))])
     }
 
     @Test func earlierStartReanchorsConcurrentHistory() {

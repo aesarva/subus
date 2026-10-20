@@ -98,15 +98,17 @@ public enum Transfer {
 
     // MARK: CSV export
 
-    public static func exportCSV(_ l: Library) -> String {
+    /// One row per subscription at today's price; the price history is only in the JSON export.
+    public static func exportCSV(_ l: Library, today: LocalDate) -> String {
         let categories = Dictionary(l.categories.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a })
         let methods = Dictionary(l.paymentMethods.map { ($0.id, $0.label) }, uniquingKeysWith: { a, _ in a })
         var lines = [CSV.row(csvColumns)]
         for s in l.subscriptions {
+            let price = s.currentPrice(today: today)
             lines.append(CSV.row([
                 s.name,
-                "\(s.price.amount)",
-                s.price.currency,
+                "\(price.amount)",
+                price.currency,
                 String(s.cycle.count),
                 s.cycle.unit.rawValue,
                 s.startDate.iso,

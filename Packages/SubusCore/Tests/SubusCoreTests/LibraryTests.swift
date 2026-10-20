@@ -139,3 +139,53 @@ private func sub(_ name: String = "X", id: UUID = UUID()) -> Subscription {
     #expect(lib.schemaVersion == 1)
     #expect(Library.empty == Library(schemaVersion: 1, subscriptions: [], categories: [], paymentMethods: []))
 }
+
+@Test func currentPriceBeforeAndAfterChange() {
+    var s = sub()
+    s.changePrice(to: rub(150), effectiveFrom: d("2026-11-01"))
+    #expect(s.currentPrice(today: d("2026-10-31")) == rub(100))
+    #expect(s.currentPrice(today: d("2026-11-01")) == rub(150))
+    #expect(s.nextPriceChange(today: d("2026-10-31")) == PriceChange(effectiveFrom: d("2026-11-01"), price: rub(150)))
+    #expect(s.nextPriceChange(today: d("2026-11-01")) == nil)
+}
+
+@Test func currentPriceDuringTrialIsFirstChargePrice() {
+    var s = Subscription(name: "X", price: rub(100), cycle: .monthly, startDate: d("2026-10-01"), trialEndDate: d("2026-10-31"))
+    s.changePrice(to: rub(150), effectiveFrom: d("2026-12-01"))
+    #expect(s.currentPrice(today: d("2026-10-20")) == rub(100))
+    #expect(s.nextPriceChange(today: d("2026-10-20")) == PriceChange(effectiveFrom: d("2026-12-01"), price: rub(150)))
+}
+
+@Test func sanitizedDropsNonWebURLs() {
+    var a = sub("a"), b = sub("b"), c = sub("c")
+    a.websiteURL = URL(string: "file:///Applications/Calculator.app")
+    a.manageURL = URL(string: "javascript:alert(1)")
+    b.websiteURL = URL(string: "https://example.com/a")
+    b.manageURL = URL(string: "http://example.com/manage")
+    c.websiteURL = URL(string: "https://")
+    c.manageURL = URL(string: "mailto:a@example.com")
+    let out = Library(subscriptions: [a, b, c]).sanitized().subscriptions
+    #expect(out[0].websiteURL == nil && out[0].manageURL == nil)
+    #expect(out[1].websiteURL == URL(string: "https://example.com/a"))
+    #expect(out[1].manageURL == URL(string: "http://example.com/manage"))
+    #expect(out[2].websiteURL == nil && out[2].manageURL == nil)
+}
+
+@Test func sanitizedCollapsesSameDateHistory() {
+    var s = sub()
+    s.priceHistory = [PriceChange(effectiveFrom: d("2026-06-01"), price: rub(150)),
+                      PriceChange(effectiveFrom: d("2026-01-10"), price: rub(100)),
+                      PriceChange(effectiveFrom: d("2026-06-01"), price: rub(170))]
+    let out = Library(subscriptions: [s]).sanitized().subscriptions[0]
+    #expect(out.priceHistory == [PriceChange(effectiveFrom: d("2026-01-10"), price: rub(100)),
+                                 PriceChange(effectiveFrom: d("2026-06-01"), price: rub(170))])
+    #expect(out.price == rub(170))
+}
+
+@Test func sanitizedSeedsEmptyHistory() {
+    var s = Subscription(name: "X", price: rub(100), cycle: .monthly, startDate: d("2026-01-10"), trialEndDate: d("2026-01-24"))
+    s.priceHistory = []
+    let out = Library(subscriptions: [s]).sanitized().subscriptions[0]
+    #expect(out.priceHistory == [PriceChange(effectiveFrom: d("2026-01-24"), price: rub(100))])
+    #expect(out.price == rub(100))
+}

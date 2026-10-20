@@ -73,6 +73,15 @@ public struct Subscription: Identifiable, Hashable, Codable, Sendable {
         priceHistory.last(where: { $0.effectiveFrom <= date })?.price ?? price
     }
 
+    /// The price in effect today; during a trial, the price of the first charge. `price` is the latest scheduled one.
+    public func currentPrice(today: LocalDate) -> Money { price(on: max(today, anchor)) }
+
+    /// The next scheduled change after the current price, if any.
+    public func nextPriceChange(today: LocalDate) -> PriceChange? {
+        let from = max(today, anchor)
+        return priceHistory.first { $0.effectiveFrom > from }
+    }
+
     public mutating func changePrice(to newPrice: Money, effectiveFrom: LocalDate) {
         priceHistory.removeAll { $0.effectiveFrom >= effectiveFrom }
         priceHistory.append(PriceChange(effectiveFrom: effectiveFrom, price: newPrice))
@@ -91,7 +100,9 @@ public struct Subscription: Identifiable, Hashable, Codable, Sendable {
         take(\.name); take(\.logo); take(\.cycle); take(\.startDate); take(\.endDate); take(\.trialEndDate)
         take(\.isActive); take(\.categoryID); take(\.paymentMethodID); take(\.websiteURL); take(\.manageURL)
         take(\.notificationsEnabled); take(\.notes)
-        if edited.price != baseline.price, let change = edited.priceHistory.last {
+        // A price set equal to a later scheduled price leaves `price` unchanged, so the date of the edit is checked too.
+        if let change = edited.priceHistory.last,
+           edited.price != baseline.price || edited.price(on: change.effectiveFrom) != baseline.price(on: change.effectiveFrom) {
             merged.changePrice(to: edited.price, effectiveFrom: change.effectiveFrom)
         }
         if let first = merged.priceHistory.first, merged.anchor < first.effectiveFrom {

@@ -54,7 +54,7 @@ struct TransferTests {
         s.notes = "line1\nline2; \"q\""
         lib.subscriptions = [s]
 
-        let csv = Transfer.exportCSV(lib)
+        let csv = Transfer.exportCSV(lib, today: d("2026-10-20"))
         #expect(csv.hasPrefix("\u{FEFF}name,price"))
         #expect(csv.contains("\r\n"))
         let p = Transfer.parseCSV(csv, now: now)
@@ -69,6 +69,17 @@ struct TransferTests {
         #expect(t.notificationsEnabled)
         #expect(t.priceHistory.count == 1)
         #expect(t.logo == .monogram(colorIndex: nil))
+    }
+
+    @Test func csvExportsTodaysPrice() throws {
+        var lib = Library()
+        var s = Subscription(name: "A", price: usd(10), cycle: .monthly, startDate: d("2026-01-01"))
+        s.changePrice(to: usd(15), effectiveFrom: d("2026-11-01"))
+        lib.subscriptions = [s]
+        let before = try #require(Transfer.parseCSV(Transfer.exportCSV(lib, today: d("2026-10-31")), now: now).library.subscriptions.first)
+        #expect(before.price == usd(10))
+        let after = try #require(Transfer.parseCSV(Transfer.exportCSV(lib, today: d("2026-11-01")), now: now).library.subscriptions.first)
+        #expect(after.price == usd(15))
     }
 
     @Test func csvRejectsZeroCycle() {

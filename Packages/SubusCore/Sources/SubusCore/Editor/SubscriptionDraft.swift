@@ -72,10 +72,15 @@ public enum URLNormalizer {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !trimmed.contains(where: \.isWhitespace) else { return nil }
         let full = trimmed.contains("://") ? trimmed : "https://" + trimmed
-        guard let url = URL(string: full), let scheme = url.scheme?.lowercased(),
-              scheme == "http" || scheme == "https",
-              let host = url.host(percentEncoded: false), !host.isEmpty else { return nil }
+        guard let url = URL(string: full), isWeb(url) else { return nil }
         return url
+    }
+
+    /// An http or https URL with a host: the only kind the app stores or opens.
+    public static func isWeb(_ url: URL) -> Bool {
+        guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https",
+              let host = url.host(percentEncoded: false) else { return false }
+        return !host.isEmpty
     }
 }
 
@@ -107,9 +112,10 @@ public struct SubscriptionDraft: Equatable, Sendable {
     }
 
     public init(editing s: Subscription, today: LocalDate, locale: Locale) {
-        self.init(currency: s.price.currency, today: today)
+        let price = s.currentPrice(today: today)
+        self.init(currency: price.currency, today: today)
         name = s.name
-        priceText = "\(s.price.amount)".replacingOccurrences(of: ".", with: locale.decimalSeparator ?? ".")
+        priceText = "\(price.amount)".replacingOccurrences(of: ".", with: locale.decimalSeparator ?? ".")
         cycle = s.cycle
         startDate = s.startDate
         hasTrial = s.trialEndDate != nil
@@ -124,7 +130,7 @@ public struct SubscriptionDraft: Equatable, Sendable {
         notificationsEnabled = s.notificationsEnabled
         logo = s.logo
         originalPriceText = priceText
-        originalPrice = s.price
+        originalPrice = price
     }
 
     public func validate(locale: Locale) -> [DraftError] {
@@ -164,7 +170,7 @@ public struct SubscriptionDraft: Equatable, Sendable {
             if let first = s.priceHistory.first, s.anchor < first.effectiveFrom {
                 s.priceHistory[0].effectiveFrom = s.anchor
             }
-            if s.price != money { s.changePrice(to: money, effectiveFrom: priceEffectiveFrom) }
+            if money != (originalPrice ?? s.price) { s.changePrice(to: money, effectiveFrom: priceEffectiveFrom) }
         }
         s.categoryID = categoryID
         s.paymentMethodID = paymentMethodID
