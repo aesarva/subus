@@ -1,10 +1,14 @@
 import Foundation
 
 public struct LocalDate: Hashable, Comparable, Codable, Sendable, CustomStringConvertible {
+    public static let minYear = 1900, maxYear = 2999
+    public static let min = LocalDate(year: minYear, month: 1, day: 1)!
+    public static let max = LocalDate(year: maxYear, month: 12, day: 31)!
+
     public let year: Int, month: Int, day: Int
 
     public init?(year: Int, month: Int, day: Int) {
-        guard (1...9999).contains(year), (1...12).contains(month),
+        guard (Self.minYear...Self.maxYear).contains(year), (1...12).contains(month),
               (1...Self.daysInMonth(year: year, month: month)).contains(day) else { return nil }
         self.year = year; self.month = month; self.day = day
     }
@@ -65,13 +69,18 @@ public struct LocalDate: Hashable, Comparable, Codable, Sendable, CustomStringCo
     }
 
     public func adding(days: Int) -> LocalDate {
-        Self.from(Self.utc.date(byAdding: .day, value: days, to: utcDate)!)
+        guard (-1_000_000...1_000_000).contains(days) else { return days < 0 ? .min : .max }
+        guard let shifted = Self.utc.date(byAdding: .day, value: days, to: utcDate) else { return days < 0 ? .min : .max }
+        return Self.from(shifted)
     }
 
     public func adding(months: Int) -> LocalDate {
+        guard (-100_000...100_000).contains(months) else { return months < 0 ? .min : .max }
         let index = year * 12 + (month - 1) + months
         let y = Int((Double(index) / 12).rounded(.down)), m = index - y * 12 + 1
-        return LocalDate(year: y, month: m, day: min(day, Self.daysInMonth(year: y, month: m)))!
+        guard y >= Self.minYear else { return .min }
+        guard y <= Self.maxYear else { return .max }
+        return LocalDate(year: y, month: m, day: Swift.min(day, Self.daysInMonth(year: y, month: m)))!
     }
 
     public func days(until other: LocalDate) -> Int {
@@ -88,7 +97,8 @@ public struct LocalDate: Hashable, Comparable, Codable, Sendable, CustomStringCo
 
     private static func from(_ date: Date) -> LocalDate {
         let c = utc.dateComponents([.year, .month, .day], from: date)
-        return LocalDate(year: c.year!, month: c.month!, day: c.day!)!
+        let r = LocalDate(year: c.year!, month: c.month!, day: c.day!)
+        return r ?? (c.year! < minYear ? .min : .max)
     }
 }
 

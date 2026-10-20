@@ -39,3 +39,21 @@ import Testing
     #expect(c.timeZone.identifier == "Asia/Tokyo")
     #expect(Calendar.subus(locale: Locale(identifier: "ru_RU")).firstWeekday == 2)
 }
+
+@Test func yearRangeEnforced() {
+    #expect(LocalDate(iso: "1899-12-31") == nil)
+    #expect(LocalDate(iso: "3000-01-01") == nil)
+    #expect(LocalDate(iso: "1900-01-01") != nil)
+    #expect(LocalDate(iso: "2999-12-31") != nil)
+    #expect(LocalDate(year: 1899, month: 1, day: 1) == nil)
+    #expect(throws: DecodingError.self) { try JSONDecoder().decode(LocalDate.self, from: Data("\"3000-01-01\"".utf8)) }
+}
+
+@Test func addingClampsAtBounds() {
+    #expect(d("2999-12-31").adding(months: 1) == d("2999-12-31"))
+    #expect(d("1900-01-01").adding(days: -1) == d("1900-01-01"))
+    #expect(d("2999-12-31").adding(days: 1) == d("2999-12-31"))
+    #expect(d("1900-01-01").adding(months: -1) == d("1900-01-01"))
+    #expect(d("2026-01-01").adding(days: Int.max) == d("2999-12-31"))
+    #expect(d("2026-01-01").adding(months: Int.min) == d("1900-01-01"))
+}
