@@ -129,6 +129,14 @@ These bind the UI tasks together with the direction contract. Where they differ 
       - failure to toggle Active (saveError banner).
 16. **Text.** Use system text styles: body 13, subheadline 12, caption 11. Group heads are caption semibold with tracking. Nothing below 11 pt. macOS has no Dynamic Type, so rows must grow with content rather than clip.
 
+17. **Menu-bar glyph (user decision, 2026-10-20, option A).** This replaces the rail/ring/dot glyph.
+    - A renewal ring: an open circle of radius 6 pt with a 2 pt round-capped stroke, plus an arrow head at the top-right. The ring and arrow use the menu-bar label colour, drawn non-template with a dynamic `labelColor`, so they read black on a light menu bar and white on a dark one.
+    - A filled centre dot, Ø 5.2 pt, in the accent red `#E5352B`.
+    - The glyph is 18×18 pt, using the SVG geometry of option A in `.impeccable/mocks/icon/glyphs.html`.
+    - Counter text uses the label colour. When the next charge is 0–1 days away, the counter turns accent red and semibold.
+    - The accessibility label is unchanged.
+    - The accent red `#E5352B` is the brand accent from now on: the status item, the "today/tomorrow" accent in the panel, and the app icon direction.
+
 ## Unresolved
 - The exact panel height cap and the scroll behaviour on long lists. This is set at build time, but the first viewport must hold as above.
 - The All and Spending tabs inherit the world: spine-less rows for All, and line-colour bars for Spending. They are composed at build time.
