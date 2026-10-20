@@ -3,7 +3,7 @@ import AppKit
 @MainActor
 enum MenuBarIcon {
     static func image(accent: Bool) -> NSImage {
-        let image = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { _ in
+        let image = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { @Sendable _ in
             NSColor.black.setFill()
             NSColor.black.setStroke()
             NSBezierPath(rect: NSRect(x: 2, y: 8, width: 14, height: 2)).fill()

@@ -1,23 +1,78 @@
 import AppKit
 import OSLog
 import SubusCore
+import UserNotifications
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    static let launchArgs = ProcessInfo.processInfo.arguments
+
     private let log = Logger(subsystem: "io.github.aesarva.Subus", category: "ui")
+    private let notifier = UserNotifier()
+    private var model: AppModel!
     private var statusItem: StatusItemController!
 
     func applicationWillFinishLaunching(_ notification: Notification) {
-        // The notification center delegate is set here, before launch finishes.
+        guard Bundle.main.bundleIdentifier != nil else { return }
+        UNUserNotificationCenter.current().delegate = notifier
+        notifier.registerCategories()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        log.debug("Library schema version \(Library.currentSchemaVersion)")
+        model = makeModel()
+        notifier.onOpen = { [model] id in model?.openSubscriptionRequest = id }
+
         statusItem = StatusItemController(
             onTogglePanel: { [log] in log.info("toggle panel") },
             onAdd: { [log] in log.info("add subscription") },
             onSettings: { [log] in log.info("open settings") }
         )
-        statusItem.update(counterText: nil, accent: false)
+        refreshStatusItem()
+
+        #if DEBUG
+        let args = Self.launchArgs
+        if args.contains("-SeedDemoData"), model.library.subscriptions.isEmpty {
+            model.replaceLibrary(PreviewSupport.demoLibrary(today: model.today))
+        }
+        #endif
+        model.start()
+        #if DEBUG
+        if args.contains("-SendTestNotification") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [notifier] in notifier.sendTest() }
+        }
+        #endif
+    }
+
+    private func makeModel() -> AppModel {
+        let base = (try? FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
+                                                 appropriateFor: nil, create: true))
+            ?? FileManager.default.temporaryDirectory
+        let directory = base.appendingPathComponent("Subus", isDirectory: true)
+        let logos = directory.appendingPathComponent("Logos", isDirectory: true)
+        try? FileManager.default.createDirectory(at: logos, withIntermediateDirectories: true)
+        return AppModel(
+            store: JSONFileStore(directory: directory,
+                                 initial: { Library.initial(categoryNames: AppModel.defaultCategoryNames()) }),
+            settingsStore: SettingsStore(storage: UserDefaultsSettingsStorage(), locale: .current),
+            rateProvider: CBRRateProvider(http: URLSessionHTTPClient()),
+            rateCache: RateCache(fileURL: directory.appendingPathComponent("rates.json")),
+            notifier: notifier,
+            logosDirectory: logos
+        )
+    }
+
+    /// Re-runs whenever the observed model state changes.
+    private func refreshStatusItem() {
+        let state = withObservationTracking {
+            (model.settings.showMenuBarCounter ? model.daysToNearest : nil, model.nearestCharge?.0.name)
+        } onChange: { [weak self] in
+            Task { @MainActor in self?.refreshStatusItem() }
+        }
+        guard let days = state.0 else {
+            statusItem.update(counterText: nil, accent: false)
+            return
+        }
+        let label = String(localized: "Subus, next charge \(Formatters.relativeDays(days)): \(state.1 ?? "")")
+        statusItem.update(counterText: Formatters.counter(days), accent: days <= 1, accessibilityLabel: label)
     }
 }
