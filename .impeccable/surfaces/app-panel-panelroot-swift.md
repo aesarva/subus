@@ -137,6 +137,8 @@ These bind the UI tasks together with the direction contract. Where they differ 
     - The accessibility label is unchanged.
     - The accent red `#E5352B` is the brand accent from now on: the status item, the "today/tomorrow" accent in the panel, and the app icon direction.
 
+18. **Accent exclusivity (user decision, 2026-10-20, after the finish review).** Red is reserved for the brand accent: the menu-bar dot, today/tomorrow, the days figure at 0–1, and price-increase % text. Category palette index 0 changes from red to magenta: tile/light line `#AD1457`, dark line `#F06292`. Payment methods no longer use line colours. Their bars are neutral (secondary label colour) and their marker is card-shaped, so line colour means category only. Mixed-category clusters on the overview are interchange capsules in the rail colour. Full ink is reserved for the today ring, the leg and the next-station emphasis.
+
 ## Unresolved
 - The exact panel height cap and the scroll behaviour on long lists. This is set at build time, but the first viewport must hold as above.
 - The All and Spending tabs inherit the world: spine-less rows for All, and line-colour bars for Spending. They are composed at build time.
