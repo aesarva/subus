@@ -24,6 +24,7 @@ Subus — нативное приложение для строки меню mac
 
 - Swift 6 (`SWIFT_VERSION 6.0`), SwiftUI + AppKit (`NSStatusItem` + панель с SwiftUI через `NSHostingView`). `MenuBarExtra` не используется.
 - Минимальная ОС: macOS 14 Sonoma. На macOS 26 — Liquid Glass через `#available`; на 14–15 — визуальный фолбэк по DESIGN.md.
+  - Amended 2026-10-21 after review: стекло даёт системный `NSPopover` (Liquid Glass на 26, вибрация popover на 14–15, непрозрачный фон при Reduce Transparency); своих вызовов glass-API под `#available` в приложении нет.
 - Проект Xcode генерируется XcodeGen из `project.yml`; `.xcodeproj` не коммитится. Логика — в локальном SwiftPM-пакете `SubusCore`.
 - Bundle ID: `io.github.aesarva.Subus`.
 - App Sandbox включён. Entitlements: `com.apple.security.network.client`, `com.apple.security.files.user-selected.read-write`. Hardened runtime включён.
@@ -31,6 +32,7 @@ Subus — нативное приложение для строки меню mac
 - Локализация: английский (исходный) и русский, String Catalog `Localizable.xcstrings`, `String(localized:)`. Переключатель языка в настройках: Системный / Русский / English (пишет `AppleLanguages` в домен приложения, применяется после перезапуска) — как в Lidless.
 - Сторонних зависимостей нет.
 - Календарь приложения — всегда григорианский (`Calendar(identifier: .gregorian)`) с текущим часовым поясом и первым днём недели из локали; `Calendar.current` напрямую не используется (у пользователя может быть, например, японский или буддийский календарь).
+  - Amended 2026-10-21 after review: исключение — триггеры уведомлений. `UNCalendarNotificationTrigger` сопоставляется с системным календарём, поэтому его компоненты берутся из `Calendar.current` (см. §6.4).
 - Сборка требует Xcode 26+ (Liquid Glass API, формат иконки `.icon`).
 - Лицензия: GPL-3.0.
 
@@ -184,6 +186,7 @@ subus/
 ### 6.4. `UserNotifier` (App/Services)
 
 - `replaceAll(_ reminders)`: снимает все ожидающие уведомления Subus и ставит новые: обычные — `UNCalendarNotificationTrigger` по компонентам год/месяц/день/час/минута григорианского календаря, без повторов; догоняющие — `UNTimeIntervalNotificationTrigger` на оставшиеся секунды.
+  - Amended 2026-10-21 after review: компоненты обычного триггера (эра/год/месяц/день/час/минута) берутся из системного календаря (`Calendar.current`), по которому система сопоставляет триггер, и не содержат ни календаря, ни часового пояса — это плавающее локальное время: 10:00 остаётся 10:00 после смены пояса, даже пока приложение закрыто. Прогоны `replaceAll` выполняются последовательно (цепочка задач), более новый план вытесняет незавершённый, а в конце прогона снимаются наши ожидающие запросы, которых нет в плане.
 - Делегат центра уведомлений устанавливается до завершения запуска, чтобы клик по уведомлению при холодном старте открывал карточку; методы делегата — `nonisolated` с явным переходом на главный actor.
 - Перепланирование вызывается из `AppModel` при: изменении данных (с `justSaved` = изменённые подписки), изменении настроек уведомлений/языка/валюты, `NSCalendarDayChanged`, `NSWorkspace.didWakeNotification`, запуске приложения.
 - Защита от запуска без бандла (`Bundle.main.bundleIdentifier == nil`) — как в ochre.

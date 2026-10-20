@@ -232,7 +232,7 @@ Each of the eight category indices has a colour pair: a **tile** colour that is 
 ### Named Rules
 **The One Reserved Ink Rule.** Full label colour on graphics appears in only three places: the today ring, the leg from today to the next station (5 pt, or 6 pt under Increase Contrast), and the next station's label. Cluster counts, ticks and month labels are secondary ink.
 
-**The Red Is the Accent Rule.** No custom red exists apart from #E5352B and its text variant. Line index 0 is magenta. The panel's custom red means "now": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises. A new surface does not get red for emphasis, errors or decoration.
+**The Red Is the Accent Rule.** No custom red exists apart from #E5352B and its text variant. Line index 0 is magenta. The panel's custom red means "now": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises. A new surface does not get red for emphasis, errors or decoration. Errors (the save-error banner, the editor's field and logo messages) use system red, `NSColor.systemRed`, never the accent or a line colour.
 
 **The Line Means Category Rule.** A line colour on a station, spine, ring or bar always means the subscription's category. A subscription without a category rides the rail grey. Payment methods never take a line colour; their bars are secondary-label grey behind a card-shaped mark. Monogram tiles are the one separate use: a tile's colour is the subscription's own `colorIndex` (or a hash of its name), and two subscriptions may share one.
 
@@ -329,7 +329,7 @@ A one-line notice under the tabs:
 - **Layout:** a 12 pt semibold SF Symbol in the banner's tint, a 12 pt message, one link-style action, and a divider inset 16 pt.
 - **Order:** save error, then data recovered, then notifications off. At most two show.
 - **Dismiss:** only "notifications off" has a dismiss ×, which hides it for the session.
-- **Tints as built:** save error uses the accent, recovery uses system orange, notifications off uses secondary.
+- **Tints as built:** save error uses system red (`systemRed`), recovery uses system orange, notifications off uses secondary.
 
 ### Empty State: "You Are Here"
 A centred calm state with 32 × 36 pt padding: a 13 pt semibold title, a 12 pt secondary message, and one large prominent native button. With no symbol, it carries the world's own mark: today's ring in ink on a short bare rail (64 × 20 pt), with no station after it. Search and filter misses use an SF Symbol instead. "All subscriptions are paused" links to All.
@@ -344,7 +344,7 @@ A centred calm state with 32 × 36 pt padding: a 13 pt semibold title, a 12 pt s
 ### Subscription Card
 Pushed inside the panel, never a separate surface:
 - **Back bar:** "‹ Back", or Esc.
-- **Header:** a 40 pt tile, the 17 pt semibold name with a Trial, Ended or Inactive outline tag, the price per cycle, "≈ … / month" for other cycles, and "Manage subscription ↗" as a link.
+- **Header:** a 40 pt tile, the 17 pt semibold name with a Trial, Ended or Inactive outline tag, today's price per cycle, "≈ … / month" for other cycles, "→ <amount> from <date>" in 11 pt secondary when a later price is scheduled, and "Manage subscription ↗" as a link.
 - **Sections:** "Next charges" shows up to three stops on a short spine in the category colour; a stop due today or tomorrow gets an accent dot and accent text. "Details" is a grid with the category as a station ring and name. "Price history" shows only when there is more than one entry.
 - **Action bar:** pinned. A small Active switch, Edit, and "Delete…" in system red, which opens a confirmation dialog.
 
@@ -366,7 +366,7 @@ The dark Dock/Finder rendition is unverified; no capture of it exists.
 
 ### Native Windows (Editor, Settings)
 These stay standard SwiftUI `Form` / `TabView` in system appearance and inherit only palette tokens:
-- the editor's 56 pt logo preview with the eight tile swatches (18 pt circles, 2 pt primary ring when selected);
+- the editor's 56 pt logo preview with the eight tile swatches (18 pt circles, 2 pt primary ring when selected); its drop-target ring is a 3 pt `controlAccentColor` border;
 - the category swatches in Settings (line colours);
 - monogram tiles.
 

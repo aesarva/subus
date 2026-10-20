@@ -16,6 +16,8 @@ People with a dozen+ subscriptions in mixed ₽/$/€ who glance at the menu bar
 ## Constraints
 macOS 14+; Liquid Glass on 26+ via `#available`, fallback on 14–15. Native controls only (segmented control for tabs, standard buttons, search field, toggle). ru + en; amounts in tabular figures. Reduce Motion, Increase Contrast, Reduce Transparency respected. No bundled brand logos (monogram / user image / site icon).
 
+Amended 2026-10-21 after review: the glass comes from the system-rendered `NSPopover` (Liquid Glass on 26, popover vibrancy on 14–15, an opaque popover under Reduce Transparency), not from an `#available` branch in the app; the app makes no glass call of its own.
+
 ## Direction contract
 
 THESIS: Upcoming charges ride one transit line and today is the station you're at. It refuses the category default of a stack of rounded cards with brand-coloured logo tiles under a big total.
