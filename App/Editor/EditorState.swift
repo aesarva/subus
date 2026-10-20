@@ -19,6 +19,7 @@ final class EditorState {
     private(set) var fetching = false
     private(set) var fetchFailed = false
     private(set) var imageFailed = false
+    private(set) var saveMessage: String?
 
     let existing: Subscription?
     let model: AppModel
@@ -169,18 +170,14 @@ final class EditorState {
     private nonisolated static let maxFileBytes = 30 * 1024 * 1024
 
     private nonisolated static func readImage(_ url: URL) async throws -> Data {
-        if url.isFileURL {
-            return try await Task.detached {
-                let scoped = url.startAccessingSecurityScopedResource()
-                defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-                let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
-                guard size <= maxFileBytes else { throw ImageNormalizer.Failure.tooLarge }
-                return try ImageNormalizer.pngThumbnail(from: Data(contentsOf: url))
-            }.value
-        }
-        guard url.scheme?.lowercased() == "https" else { throw HTTPError.insecureRedirect }
-        let reply = try await URLSessionHTTPClient().get(url, timeout: 5, maxBytes: 2 * 1024 * 1024)
-        return try ImageNormalizer.pngThumbnail(from: reply.data)
+        guard url.isFileURL else { throw CocoaError(.fileReadUnsupportedScheme) }
+        return try await Task.detached {
+            let scoped = url.startAccessingSecurityScopedResource()
+            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+            let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
+            guard size <= maxFileBytes else { throw ImageNormalizer.Failure.tooLarge }
+            return try ImageNormalizer.pngThumbnail(from: Data(contentsOf: url))
+        }.value
     }
 
     private func adopt(_ png: Data, siteIcon: Bool) {
@@ -195,12 +192,32 @@ final class EditorState {
     @discardableResult
     func save() -> Bool {
         attempted = true
+        saveMessage = nil
         guard draft.validate(locale: locale).isEmpty else { return false }
-        var subscription = draft.apply(to: existing, locale: locale, now: Date())
+
+        var current: Subscription?
+        if let existing {
+            guard let found = model.library.subscriptions.first(where: { $0.id == existing.id }) else {
+                saveMessage = String(localized: "This subscription was deleted.")
+                return false
+            }
+            current = found
+        }
+        let directory = model.logosDirectory
+        if pendingLogo != nil, directory == nil {
+            saveMessage = String(localized: "Couldn't save the logo")
+            return false
+        }
+
+        var subscription = draft.apply(to: current, locale: locale, now: Date())
         subscription.id = id
+        if let existing, let current, !priceChanged, current.price != existing.price {
+            subscription.price = current.price
+            subscription.priceHistory = current.priceHistory
+        }
 
         var written: URL?
-        if let pendingLogo, let directory = model.logosDirectory {
+        if let pendingLogo, let directory {
             let url = directory.appendingPathComponent(pendingLogo.fileName)
             do {
                 try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -208,12 +225,13 @@ final class EditorState {
                 written = url
             } catch {
                 log.error("Logo write failed: \(error.localizedDescription, privacy: .public)")
-                imageFailed = true
+                saveMessage = String(localized: "Couldn't save the logo")
                 return false
             }
         }
         guard model.save(subscription) else {
             if let written { try? FileManager.default.removeItem(at: written) }
+            saveMessage = model.saveError
             return false
         }
         onSaved()

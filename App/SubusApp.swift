@@ -7,7 +7,7 @@ enum SubusApp {
         let delegate = AppDelegate()
         app.delegate = delegate
         app.setActivationPolicy(.accessory)
-        app.mainMenu = MainMenu.make()
+        app.mainMenu = MainMenu.make(newSubscription: #selector(AppDelegate.newSubscription), target: delegate)
         withExtendedLifetime(delegate) { app.run() }
     }
 }

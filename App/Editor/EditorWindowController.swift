@@ -1,4 +1,5 @@
 import AppKit
+import Observation
 import SubusCore
 import SwiftUI
 
@@ -8,10 +9,32 @@ final class EditorWindowController: NSObject, NSWindowDelegate {
     private let model: AppModel
     private let closePanel: () -> Void
     private var windows: [UUID?: NSWindow] = [:]
+    private var cascadePoint = NSPoint.zero
 
     init(model: AppModel, closePanel: @escaping () -> Void) {
         self.model = model
         self.closePanel = closePanel
+        super.init()
+        observeLibrary()
+    }
+
+    /// An editor whose subscription is deleted meanwhile closes.
+    private func observeLibrary() {
+        withObservationTracking {
+            _ = model.library
+        } onChange: { [weak self] in
+            Task { @MainActor in
+                self?.closeDeletedEditors()
+                self?.observeLibrary()
+            }
+        }
+    }
+
+    private func closeDeletedEditors() {
+        let ids = Set(model.library.subscriptions.map(\.id))
+        for (key, window) in windows {
+            if let key, !ids.contains(key) { window.close() }
+        }
     }
 
     func open(editing subscription: Subscription?) {
@@ -34,7 +57,8 @@ final class EditorWindowController: NSObject, NSWindowDelegate {
         window.contentMinSize = NSSize(width: EditorView.width, height: 420)
         window.contentMaxSize = NSSize(width: EditorView.width, height: 1100)
         state.onSaved = { [weak window] in window?.close() }
-        window.center()
+        if windows.isEmpty { window.center() }
+        cascadePoint = window.cascadeTopLeft(from: cascadePoint)
         windows[key] = window
         bringForward(window)
     }

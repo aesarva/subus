@@ -10,19 +10,15 @@ struct EditorView: View {
     @Environment(\.colorScheme) private var scheme
 
     static let width: CGFloat = 520
-    static var errorColor: Color { LinePalette.tile(0) }
     private var errorColor: Color { LinePalette.line(0, scheme) }
     private let calendar = Calendar.subus()
 
     var body: some View {
         VStack(spacing: 0) {
             Form {
-                if let message = state.model.saveError {
-                    Section { Text(message).foregroundStyle(errorColor) }
-                }
                 Section {
                     LogoField(state: state)
-                    TextField("Name", text: $state.draft.name)
+                    TextField("Name", text: $state.draft.name, prompt: Text(verbatim: "Netflix"))
                         .focused($focus, equals: .name)
                         .invalid(messages(.name))
                     errorRows(.name)
@@ -30,7 +26,7 @@ struct EditorView: View {
                 Section {
                     LabeledContent("Price") {
                         HStack(spacing: 8) {
-                            TextField("Price", text: $state.draft.priceText, prompt: Text("0"))
+                            TextField("Price", text: $state.draft.priceText, prompt: Text(verbatim: "0"))
                                 .labelsHidden()
                                 .multilineTextAlignment(.trailing)
                                 .monospacedDigit()
@@ -79,7 +75,7 @@ struct EditorView: View {
                 Section {
                     LabeledContent("Website") {
                         HStack(spacing: 8) {
-                            TextField("Website", text: $state.draft.websiteText, prompt: Text("example.com"))
+                            TextField("Website", text: $state.draft.websiteText, prompt: Text(verbatim: "example.com"))
                                 .labelsHidden()
                                 .multilineTextAlignment(.trailing)
                                 .focused($focus, equals: .website)
@@ -91,7 +87,7 @@ struct EditorView: View {
                     if state.fetchFailed {
                         Text("Couldn't load the icon").font(.caption).foregroundStyle(errorColor)
                     }
-                    TextField("Manage or cancel link", text: $state.draft.manageText, prompt: Text("example.com/account"))
+                    TextField("Manage or cancel link", text: $state.draft.manageText, prompt: Text(verbatim: "example.com/account"))
                         .focused($focus, equals: .manage)
                         .invalid(messages(.manage))
                     errorRows(.manage)
@@ -120,10 +116,8 @@ struct EditorView: View {
         }
         .frame(width: Self.width)
         .background {
-            // Return saves everywhere except in the Notes editor, where it starts a new line.
             Button("") { save() }
-                .keyboardShortcut(.return, modifiers: [])
-                .disabled(focus == .notes)
+                .keyboardShortcut("s", modifiers: .command)
                 .opacity(0)
                 .accessibilityHidden(true)
         }
@@ -133,12 +127,19 @@ struct EditorView: View {
 
     private var bottomBar: some View {
         HStack {
+            if let message = state.saveMessage {
+                Text(message).font(.callout).foregroundStyle(errorColor)
+            }
             Spacer()
             Button("Cancel", action: onCancel)
                 .keyboardShortcut(.cancelAction)
-            Button("Save") { save() }
-                .keyboardShortcut("s", modifiers: .command)
-                .buttonStyle(.borderedProminent)
+            // Return saves everywhere except in the Notes editor, where it starts a new line.
+            if focus == .notes {
+                Button("Save") { save() }
+            } else {
+                Button("Save") { save() }
+                    .keyboardShortcut(.defaultAction)
+            }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
@@ -167,9 +168,16 @@ struct EditorView: View {
         }
     }
 
-    /// "month", "3 months" without the number, in the language's own plural form.
-    private static func unitName(_ unit: BillingCycle.Unit, count: Int) -> String {
-        String(Formatters.cycle(BillingCycle(count, unit)).drop { $0.isNumber || $0.isWhitespace })
+    /// "month" / "months" (ru: месяц, месяца, месяцев) for the number next to it.
+    private static func unitName(_ unit: BillingCycle.Unit, count n: Int) -> String {
+        let category: String
+        if Bundle.main.preferredLocalizations.first == "ru" {
+            let (m10, m100) = (n % 10, n % 100)
+            category = m10 == 1 && m100 != 11 ? "one" : (2...4).contains(m10) && !(12...14).contains(m100) ? "few" : "many"
+        } else {
+            category = n == 1 ? "one" : "many"
+        }
+        return Bundle.main.localizedString(forKey: "billing.unit.\(unit.rawValue).\(category)", value: nil, table: nil)
     }
 
     private var currencyPicker: some View {
@@ -219,6 +227,8 @@ struct EditorView: View {
     }
 
     private func save() {
+        // Commits a count still being typed.
+        NSApp.keyWindow?.makeFirstResponder(nil)
         if !state.save(), let field = state.firstErrorField { focus = field }
     }
 
@@ -242,15 +252,13 @@ struct EditorView: View {
     // MARK: Currencies
 
     private static let popularCurrencies = ["RUB", "USD", "EUR", "GBP", "KZT", "TRY", "AMD", "GEL", "UAH", "BYN", "CNY"]
+    private static let otherCurrencies = Set(Locale.commonISOCurrencyCodes).subtracting(popularCurrencies).sorted()
 
     private static func currencies(including current: String) -> (popular: [String], others: [String]) {
-        let popular = Set(popularCurrencies)
-        var rest = Set(Locale.commonISOCurrencyCodes).subtracting(popular)
-        if !popular.contains(current) { rest.insert(current) }
-        let others = rest.sorted {
-            currencyName($0).localizedCaseInsensitiveCompare(currencyName($1)) == .orderedAscending
+        guard !popularCurrencies.contains(current), !otherCurrencies.contains(current) else {
+            return (popularCurrencies, otherCurrencies)
         }
-        return (popularCurrencies, others)
+        return (popularCurrencies, (otherCurrencies + [current]).sorted())
     }
 
     private static func currencyName(_ code: String) -> String { Locale.current.localizedString(forCurrencyCode: code) ?? code }

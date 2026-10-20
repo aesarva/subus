@@ -7,6 +7,7 @@ import UniformTypeIdentifiers
 struct LogoField: View {
     @Bindable var state: EditorState
     @State private var targeted = false
+    @Environment(\.colorScheme) private var scheme
 
     private static let colorNames: [LocalizedStringResource] = [
         "Red", "Green", "Blue", "Orange", "Violet", "Cyan", "Brown", "Yellow",
@@ -22,7 +23,7 @@ struct LogoField: View {
                         .opacity(targeted ? 1 : 0)
                 }
                 .dropDestination(for: URL.self, action: { urls, _ in
-                    guard let url = urls.first else { return false }
+                    guard let url = urls.first(where: \.isFileURL) else { return false }
                     state.loadImage(from: url)
                     return true
                 }, isTargeted: { targeted = $0 })
@@ -41,7 +42,7 @@ struct LogoField: View {
                 if state.imageFailed {
                     Text("Couldn't read this image")
                         .font(.caption)
-                        .foregroundStyle(EditorView.errorColor)
+                        .foregroundStyle(LinePalette.line(0, scheme))
                 }
             }
         }
@@ -86,6 +87,13 @@ struct LogoField: View {
         panel.allowedContentTypes = [.image]
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
-        if panel.runModal() == .OK, let url = panel.url { state.loadImage(from: url) }
+        let finish: (NSApplication.ModalResponse) -> Void = { response in
+            if response == .OK, let url = panel.url { state.loadImage(from: url) }
+        }
+        if let window = NSApp.keyWindow {
+            panel.beginSheetModal(for: window, completionHandler: finish)
+        } else {
+            finish(panel.runModal())
+        }
     }
 }

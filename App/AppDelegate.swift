@@ -14,6 +14,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panel: PanelController!
     private var editor: EditorWindowController!
 
+    @objc func newSubscription() { editor?.open(editing: nil) }
+
     func applicationWillFinishLaunching(_ notification: Notification) {
         guard Bundle.main.bundleIdentifier != nil else { return }
         UNUserNotificationCenter.current().delegate = notifier
