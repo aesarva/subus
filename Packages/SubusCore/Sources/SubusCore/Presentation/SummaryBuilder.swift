@@ -47,8 +47,9 @@ public enum SummaryBuilder {
         var categories: [UUID?: Decimal] = [:], methods: [UUID?: Decimal] = [:]
 
         for s in library.subscriptions where s.isLive(today: today) {
-            let inTrial = s.trialEndDate.map { $0 > today } ?? false
-            let price = s.price(on: inTrial ? s.trialEndDate! : today)
+            let trialEnd = s.trialEndDate.flatMap { $0 > today ? $0 : nil }
+            let inTrial = trialEnd != nil
+            let price = s.price(on: trialEnd ?? today)
             guard let m = converter.convert(CostNormalizer.monthly(price, cycle: s.cycle), to: base),
                   let y = converter.convert(CostNormalizer.yearly(price, cycle: s.cycle), to: base) else {
                 excluded += 1
@@ -71,7 +72,7 @@ public enum SummaryBuilder {
     public static func priceIncreases(library: Library, today: LocalDate) -> [PriceIncrease] {
         let windowStart = today.adding(days: -365)
         var result: [PriceIncrease] = []
-        for s in library.subscriptions {
+        for s in library.subscriptions where s.isLive(today: today) {
             let history = s.priceHistory.sorted { $0.effectiveFrom < $1.effectiveFrom }
             for (previous, change) in zip(history, history.dropFirst()) {
                 guard change.effectiveFrom > windowStart, change.effectiveFrom <= today,

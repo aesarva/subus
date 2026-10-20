@@ -106,6 +106,19 @@ struct SummaryTests {
         #expect(inc.map(\.subscriptionID) == [newest.id, inside.id])
     }
 
+    @Test func increasesOnlyForLiveSubscriptions() {
+        func rising(_ name: String) -> Subscription {
+            var s = sub(name, rub(100)); s.priceHistory = [PriceChange(effectiveFrom: d("2024-01-01"), price: rub(100))]
+            s.changePrice(to: rub(150), effectiveFrom: d("2026-03-01"))
+            return s
+        }
+        var off = rising("Off"); off.isActive = false
+        var ended = rising("Ended"); ended.endDate = d("2026-10-01")
+        let live = rising("Live")
+        let inc = SummaryBuilder.priceIncreases(library: Library(subscriptions: [off, ended, live]), today: today)
+        #expect(inc.map(\.subscriptionID) == [live.id])
+    }
+
     @Test func currencyChangeIsNotAnIncrease() {
         var s = sub("S", usd(10))
         s.changePrice(to: eur(9), effectiveFrom: d("2026-06-01"))
