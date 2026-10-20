@@ -81,6 +81,7 @@ struct SpendingTab: View {
                 if let key { proxy.scrollTo(key) }
             }
             .onAppear {
+                state.restoreRowFocus = false
                 if let key = state.spendingSelection { proxy.scrollTo(key) }
             }
         }

@@ -3485,6 +3485,160 @@
           }
         }
       }
+    },
+    "Selected": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрана"
+          }
+        }
+      }
+    },
+    "Popular": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Популярные"
+          }
+        }
+      }
+    },
+    "All currencies": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Все валюты"
+          }
+        }
+      }
+    },
+    "Search currencies": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поиск валюты"
+          }
+        }
+      }
+    },
+    "No currencies match “%@”": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет валют по запросу «%@»"
+          }
+        }
+      }
+    },
+    "Exported. %lld logos couldn't be included.": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Exported. %lld logo couldn't be included."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Exported. %lld logos couldn't be included."
+                }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Экспортировано. %lld логотип не удалось включить."
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Экспортировано. %lld логотипа не удалось включить."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Экспортировано. %lld логотипов не удалось включить."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Экспортировано. %lld логотипа не удалось включить."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Imported. %lld logos couldn't be saved and were replaced with letters.": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Imported. %lld logo couldn't be saved and was replaced with letters."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Imported. %lld logos couldn't be saved and were replaced with letters."
+                }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Импортировано. %lld логотип не удалось сохранить, вместо него — буквы."
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Импортировано. %lld логотипа не удалось сохранить, вместо них — буквы."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Импортировано. %lld логотипов не удалось сохранить, вместо них — буквы."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Импортировано. %lld логотипа не удалось сохранить, вместо них — буквы."
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "version": "1.0"

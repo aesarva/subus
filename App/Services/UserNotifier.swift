@@ -72,7 +72,6 @@ final class UserNotifier: NSObject, UNUserNotificationCenterDelegate {
         center.removePendingNotificationRequests(
             withIdentifiers: pending.map(\.identifier).filter { $0.contains(Self.ourMarker) })
 
-        let calendar = Calendar.subus()
         for reminder in reminders {
             guard let subscription = library.subscriptions.first(where: { $0.id == reminder.subscriptionID }) else { continue }
             let content = UNMutableNotificationContent()
@@ -95,9 +94,11 @@ final class UserNotifier: NSObject, UNUserNotificationCenterDelegate {
                 trigger = UNTimeIntervalNotificationTrigger(
                     timeInterval: max(1, reminder.fireDate.timeIntervalSince(now)), repeats: false)
             } else {
-                var components = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: reminder.fireDate)
-                components.calendar = calendar
-                components.timeZone = calendar.timeZone
+                // Floating local time: no calendar and no time zone in the components, so 10:00 stays 10:00 after a
+                // zone change, even while the app is closed (a calendar in the components pins its zone with it).
+                // They are read in the system calendar, the one the trigger is matched against.
+                let components = Calendar.current.dateComponents([.era, .year, .month, .day, .hour, .minute],
+                                                                 from: reminder.fireDate)
                 trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
             }
             let request = UNNotificationRequest(identifier: reminder.id, content: content, trigger: trigger)

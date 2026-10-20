@@ -125,14 +125,14 @@ struct OverviewLine: View {
                            with: .color(LinePalette.accent))
             }
 
+            let anyLifted = layout.all.contains { !focus.isDisjoint(with: $0.keys) }
             for cluster in layout.stations {
                 let lifted = !focus.isDisjoint(with: cluster.keys)
-                layer.opacity = focus.isEmpty || lifted ? 1 : LinePalette.recede
-                drawStation(cluster, lifted: lifted, in: &layer, stroke: stroke)
+                drawStation(cluster, StationState(lifted: lifted, anyLifted: anyLifted), in: &layer)
             }
         }
 
-        // Text stays at full opacity, whatever recedes.
+        // Text keeps its size and full opacity, whatever recedes.
         for cluster in layout.stations where !cluster.isSingle {
             let count = context.resolve(Text(verbatim: "\(cluster.items.count)")
                 .font(.system(size: 11, weight: .semibold).monospacedDigit())
@@ -145,25 +145,30 @@ struct OverviewLine: View {
         }
     }
 
-    private func drawStation(_ cluster: Cluster, lifted: Bool, in context: inout GraphicsContext, stroke: CGFloat) {
+    /// A single charge is a station ring; a cluster is a capsule around its count, which keeps its size when
+    /// it recedes (only its stroke thins) so the count stays legible.
+    private func drawStation(_ cluster: Cluster, _ state: StationState, in context: inout GraphicsContext) {
         let y = Self.railY
         let indices = Set(cluster.items.map(\.lineIndex))
         let color = indices.count == 1 ? LinePalette.line(cluster.items[0].lineIndex, scheme) : Color.primary
-        let path: Path
         if cluster.isSingle {
-            let r = (lifted ? 17 : 13) / 2 - stroke / 2
-            path = Path(ellipseIn: CGRect(x: cluster.x0 - r, y: y - r, width: r * 2, height: r * 2))
-        } else {
-            let h: CGFloat = lifted ? 21 : 18
-            let r = h / 2 - stroke / 2
-            let w = max(cluster.x1 - cluster.x0 + r * 2, h + 2 - stroke)
-            let rect = CGRect(x: cluster.midX - w / 2, y: y - r, width: w, height: r * 2)
-            path = Path(roundedRect: rect, cornerRadius: r)
+            context.drawStation(at: CGPoint(x: cluster.x0, y: y), color: color, state, contrast: contrast)
+            return
         }
+        let stroke = state.stroke(contrast)
+        func capsule(height h: CGFloat, inset: CGFloat) -> Path {
+            let r = h / 2 - inset
+            let w = max(cluster.x1 - cluster.x0 + r * 2, h + 2 - inset * 2)
+            return Path(roundedRect: CGRect(x: cluster.midX - w / 2, y: y - r, width: w, height: r * 2), cornerRadius: r)
+        }
+        let h: CGFloat = state == .lifted ? 21 : 18
         context.blendMode = .clear
-        context.fill(path, with: .color(.black))
+        context.fill(capsule(height: h + (state == .lifted ? 4 : 0), inset: 0), with: .color(.black))
         context.blendMode = .normal
-        context.stroke(path, with: .color(color), lineWidth: stroke)
+        context.stroke(capsule(height: h, inset: stroke / 2), with: .color(color), lineWidth: stroke)
+        if state == .lifted {
+            context.stroke(capsule(height: h + 4, inset: 0.5), with: .color(Color(nsColor: .labelColor)), lineWidth: 1)
+        }
     }
 
     private var weekStarts: [(day: Int, isMonthStart: Bool)] {

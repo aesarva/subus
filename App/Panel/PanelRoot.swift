@@ -47,6 +47,8 @@ final class PanelState {
     /// The subscription whose card is pushed over the tab.
     var card: UUID?
     var confirmingDelete = false
+    /// Set when a card is popped: the tab's list hands keyboard focus back to the selected row as it appears.
+    @ObservationIgnored var restoreRowFocus = false
 
     /// After a key moves the selection, hover is ignored until the pointer really moves:
     /// rows scrolling under a resting pointer must not steal the lift back.
@@ -141,6 +143,7 @@ final class PanelState {
             if allSelection == id { allSelection = nil }
             if spendingSelection?.subscriptionID == id { spendingSelection = nil }
         }
+        restoreRowFocus = card != nil && !deleted
         confirmingDelete = false
         card = nil
         quietPointer()

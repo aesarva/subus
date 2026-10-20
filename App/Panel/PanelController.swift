@@ -114,6 +114,7 @@ final class PanelController: NSObject, NSPopoverDelegate {
         state.clearPointer()
         // The next opening starts on the tab, with an empty search.
         state.closeCard()
+        state.restoreRowFocus = false
         state.search = ""
         state.allSelection = nil
         popover.behavior = .transient
@@ -185,9 +186,9 @@ final class PanelController: NSObject, NSPopoverDelegate {
                 }
                 return true
             case 125, 126: // ↓ ↑
-                return moveSelection(by: key.code == 125 ? 1 : -1)
-            case 36, 76: // Return, Enter
-                return openSelection()
+                return contentHasKeyboard(window) && moveSelection(by: key.code == 125 ? 1 : -1)
+            case 36, 76, 49: // Return, Enter, Space
+                return contentHasKeyboard(window) && openSelection()
             default:
                 break
             }
@@ -199,6 +200,14 @@ final class PanelController: NSObject, NSPopoverDelegate {
             return type(event)
         }
         return false
+    }
+
+    /// The list's keys belong to the panel only while its own content has the keyboard: the hosting view, or a
+    /// plain view inside it (the strip and All rows are SwiftUI-drawn, not AppKit controls). A focused control
+    /// (segmented control, button, switch) keeps its native Return, Space and arrows.
+    private func contentHasKeyboard(_ window: NSWindow) -> Bool {
+        guard let responder = window.firstResponder as? NSView else { return false }
+        return responder === host.view || (responder.isDescendant(of: host.view) && !(responder is NSControl))
     }
 
     /// In the search field ↑/↓ and Return reach the list; Esc clears the search, and on an empty one closes the panel.

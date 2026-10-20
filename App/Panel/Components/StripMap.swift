@@ -16,6 +16,7 @@ struct StripMap: View {
     let groups: [StripGroup]
     let logosDirectory: URL
     let focus: Set<ChargeKey>
+    let focusedRow: FocusState<ChargeKey?>.Binding
     let onHover: (ChargeKey, Bool) -> Void
     let onOpen: (UUID) -> Void
 
@@ -37,6 +38,7 @@ struct StripMap: View {
                 ForEach(group.items) { item in
                     StripRow(item: item, logosDirectory: logosDirectory, lifted: focus.contains(item.id),
                              onHover: onHover, onOpen: onOpen)
+                        .focused(focusedRow, equals: item.id)
                         .id(item.id)
                 }
                 if let sum = Self.sumText(group) {
@@ -116,19 +118,14 @@ private struct StripCanvas: View {
                     var spine = Path()
                     spine.move(to: CGPoint(x: x, y: first.rect.midY))
                     spine.addLine(to: CGPoint(x: x, y: last.rect.midY))
-                    layer.opacity = anyLifted ? LinePalette.recede : 1
                     layer.stroke(spine, with: .color(LinePalette.rail(scheme)),
-                                 style: StrokeStyle(lineWidth: stroke, lineCap: .round))
+                                 style: StrokeStyle(lineWidth: anyLifted ? LinePalette.recededStroke(contrast) : stroke,
+                                                    lineCap: .round))
                 }
                 for s in stations {
-                    let lifted = focus.contains(s.key)
-                    layer.opacity = !anyLifted || lifted ? 1 : LinePalette.recede
-                    let r = (lifted ? 17 : 13) / 2 - stroke / 2
-                    let ring = Path(ellipseIn: CGRect(x: x - r, y: s.rect.midY - r, width: r * 2, height: r * 2))
-                    layer.blendMode = .clear
-                    layer.fill(ring, with: .color(.black))
-                    layer.blendMode = .normal
-                    layer.stroke(ring, with: .color(LinePalette.line(s.lineIndex, scheme)), lineWidth: stroke)
+                    layer.drawStation(at: CGPoint(x: x, y: s.rect.midY), color: LinePalette.line(s.lineIndex, scheme),
+                                      StationState(lifted: focus.contains(s.key), anyLifted: anyLifted),
+                                      contrast: contrast)
                 }
             }
         }

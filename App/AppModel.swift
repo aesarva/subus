@@ -17,6 +17,8 @@ final class AppModel {
     private var clock = 0
     @ObservationIgnored private var unreadableMessage: String?
     @ObservationIgnored private var carriedCatchUps: [PlannedReminder] = []
+    /// Logo files the previous save dropped: the backup file still references them until the next save.
+    @ObservationIgnored private var pendingLogoDeletions: Set<String> = []
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var rateTimer: Timer?
     @ObservationIgnored private var ratesRefreshing = false
@@ -27,6 +29,8 @@ final class AppModel {
     @ObservationIgnored private let rateProvider: RateProvider
     @ObservationIgnored private let rateCache: RateCache
     @ObservationIgnored private let notifier: UserNotifier
+    /// Small app state that outlives a launch: catch-up reminders not yet delivered, logo files awaiting deletion.
+    @ObservationIgnored private let stateStorage: SettingsStorage
     @ObservationIgnored let logosDirectory: URL?
     @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private let log = Logger(subsystem: "io.github.aesarva.Subus", category: "store")
@@ -34,15 +38,18 @@ final class AppModel {
     @ObservationIgnored private let remindersLog = Logger(subsystem: "io.github.aesarva.Subus", category: "reminders")
 
     init(store: SubscriptionStore, settingsStore: SettingsStore, rateProvider: RateProvider, rateCache: RateCache,
-         notifier: UserNotifier, logosDirectory: URL? = nil, now: @escaping () -> Date = Date.init) {
+         notifier: UserNotifier, logosDirectory: URL? = nil,
+         stateStorage: SettingsStorage = UserDefaultsSettingsStorage(), now: @escaping () -> Date = Date.init) {
         self.store = store
         self.settingsStore = settingsStore
         self.rateProvider = rateProvider
         self.rateCache = rateCache
         self.notifier = notifier
         self.logosDirectory = logosDirectory
+        self.stateStorage = stateStorage
         self.now = now
         settings = settingsStore.load()
+        pendingLogoDeletions = Set(Self.decode([String].self, stateStorage.data(forKey: Self.logoPurgeKey)) ?? [])
         rates = rateCache.load()
         do {
             let result = try store.load()
@@ -106,6 +113,12 @@ final class AppModel {
         observers.append(center.addObserver(forName: .NSCalendarDayChanged, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in self?.timeMayHaveChanged() }
         })
+        observers.append(center.addObserver(forName: .NSSystemTimeZoneDidChange, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                NSTimeZone.resetSystemTimeZone()
+                self?.timeMayHaveChanged()
+            }
+        })
         observers.append(NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in self?.timeMayHaveChanged() }
@@ -114,6 +127,10 @@ final class AppModel {
             Task { @MainActor in await self?.refreshRatesIfNeeded() }
         }
         rateTimer?.tolerance = 600
+        // A catch-up planned just before the last quit still fires: the first plan carries it over.
+        let date = now()
+        carriedCatchUps = (Self.decode([PlannedReminder].self, stateStorage.data(forKey: Self.catchUpsKey)) ?? [])
+            .filter { $0.isCatchUp && $0.fireDate > date }
         replan()
         Task {
             await refreshAuthorization()
@@ -130,21 +147,14 @@ final class AppModel {
 
     @discardableResult
     func save(_ s: Subscription) -> Bool {
-        let old = library
-        let ok = commit(justSaved: Self.changedIDs(from: old, to: library.upserting(s))) { $0.upsert(s) }
-        if ok {
-            removeLogoFiles(from: old)
-            Task { await requestAuthorizationIfNeeded() }
-        }
+        let ok = commit(justSaved: Self.changedIDs(from: library, to: library.upserting(s))) { $0.upsert(s) }
+        if ok { Task { await requestAuthorizationIfNeeded() } }
         return ok
     }
 
     @discardableResult
     func delete(_ id: UUID) -> Bool {
-        let old = library
-        guard commit(mutating: { $0.remove(subscriptionID: id) }) else { return false }
-        removeLogoFiles(from: old)
-        return true
+        commit(mutating: { $0.remove(subscriptionID: id) })
     }
 
     @discardableResult
@@ -164,7 +174,10 @@ final class AppModel {
     func replaceLibrary(_ l: Library, justSaved: Set<UUID>? = nil) -> Bool {
         let old = library
         let ok = commit(justSaved: justSaved ?? Self.changedIDs(from: old, to: l)) { $0 = l }
-        if ok { removeLogoFiles(from: old) }
+        // An import that brings subscriptions asks for notifications, as the first save does.
+        if ok, !Set(l.subscriptions.map(\.id)).isSubset(of: old.subscriptions.map(\.id)) {
+            Task { await requestAuthorizationIfNeeded() }
+        }
         return ok
     }
 
@@ -182,8 +195,10 @@ final class AppModel {
             log.error("Save failed: \(error.localizedDescription, privacy: .public)")
             return false
         }
+        let old = library
         library = copy
         saveError = nil
+        purgeLogoFiles(replaced: old)
         replan(justSaved: justSaved)
         return true
     }
@@ -197,13 +212,33 @@ final class AppModel {
         })
     }
 
-    /// Deletes logo files the old library referenced and the current one no longer does.
-    private func removeLogoFiles(from old: Library) {
-        guard let logosDirectory else { return }
-        let stale = Self.logoFileNames(old).subtracting(Self.logoFileNames(library))
-        for name in stale where Logo.isSafeFileName(name) {
-            try? FileManager.default.removeItem(at: logosDirectory.appendingPathComponent(name))
+    /// Deletes logo files one save late: what a save drops is still referenced by the backup it wrote,
+    /// so a file goes only once neither the main file nor the backup (the library just replaced) names it.
+    private func purgeLogoFiles(replaced old: Library) {
+        let oldNames = Self.logoFileNames(old), newNames = Self.logoFileNames(library)
+        if let logosDirectory {
+            for name in pendingLogoDeletions where !oldNames.contains(name) && !newNames.contains(name)
+                && Logo.isSafeFileName(name) {
+                try? FileManager.default.removeItem(at: logosDirectory.appendingPathComponent(name))
+            }
         }
+        pendingLogoDeletions = oldNames.subtracting(newNames)
+        persist(pendingLogoDeletions.sorted(), key: Self.logoPurgeKey)
+    }
+
+    private static let catchUpsKey = "catchups.v1"
+    private static let logoPurgeKey = "logoPurge.v1"
+
+    private func persist<T: Encodable>(_ value: T, key: String) {
+        do {
+            stateStorage.set(try JSONEncoder().encode(value), forKey: key)
+        } catch {
+            log.error("State write failed for \(key, privacy: .public): \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    private static func decode<T: Decodable>(_ type: T.Type, _ data: Data?) -> T? {
+        data.flatMap { try? JSONDecoder().decode(type, from: $0) }
     }
 
     private static func changedIDs(from old: Library, to new: Library) -> Set<UUID> {
@@ -221,6 +256,7 @@ final class AppModel {
         let plan = ReminderPlanner.plan(library: library, settings: settings, now: now(), calendar: .subus(),
                                         justSaved: justSaved, carriedCatchUps: carriedCatchUps)
         carriedCatchUps = plan.filter(\.isCatchUp)
+        persist(carriedCatchUps, key: Self.catchUpsKey)
         replanCount += 1
         remindersLog.info("Replan #\(self.replanCount): \(plan.count) reminders")
         let library = library

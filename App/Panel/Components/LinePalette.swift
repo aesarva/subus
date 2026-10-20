@@ -26,14 +26,55 @@ enum LinePalette {
     /// Rails and strokes thicken from 3 to 4 pt under Increase Contrast.
     static func stroke(_ contrast: ColorSchemeContrast) -> CGFloat { contrast == .increased ? 4 : 3 }
 
+    /// Rails and stations behind a lifted station recede by thinning, never by fading: the colour stays opaque,
+    /// so it keeps its 3:1 against the ground.
+    static func recededStroke(_ contrast: ColorSchemeContrast) -> CGFloat { contrast == .increased ? 2 : 1.5 }
+
     static let accent = Color(nsColor: Brand.accent)
     /// The accent for text, ≥ 4.5:1 in each theme.
     static let accentText = Color(nsColor: Brand.accentText)
 
-    /// The one opacity for rails and stations that recede behind a lifted station. Never applied to text.
-    static let recede = 0.45
-
     private static func wrap(_ i: Int) -> Int { ((i % count) + count) % count }
+}
+
+/// How a station shows: at rest, receded behind a lifted one, or lifted (hovered or selected).
+enum StationState {
+    case rest, receded, lifted
+
+    init(lifted: Bool, anyLifted: Bool) {
+        self = lifted ? .lifted : anyLifted ? .receded : .rest
+    }
+
+    var diameter: CGFloat {
+        switch self {
+        case .rest: 13
+        case .receded: 9
+        case .lifted: 16
+        }
+    }
+
+    func stroke(_ contrast: ColorSchemeContrast) -> CGFloat {
+        self == .receded ? LinePalette.recededStroke(contrast) : LinePalette.stroke(contrast)
+    }
+}
+
+extension GraphicsContext {
+    /// A hollow station ring in its line colour; it clears what is under it, so the rail stops at its edge.
+    /// A lifted station also gets a 1 pt ring in the label colour around it.
+    mutating func drawStation(at center: CGPoint, color: Color, _ state: StationState, contrast: ColorSchemeContrast) {
+        let stroke = state.stroke(contrast)
+        let outer = state.diameter / 2 + (state == .lifted ? 2 : 0)
+        func circle(_ r: CGFloat) -> Path {
+            Path(ellipseIn: CGRect(x: center.x - r, y: center.y - r, width: r * 2, height: r * 2))
+        }
+        blendMode = .clear
+        fill(circle(outer), with: .color(.black))
+        blendMode = .normal
+        self.stroke(circle(state.diameter / 2 - stroke / 2), with: .color(color), lineWidth: stroke)
+        if state == .lifted {
+            self.stroke(circle(outer - 0.5), with: .color(Color(nsColor: .labelColor)), lineWidth: 1)
+        }
+    }
 }
 
 extension Color {

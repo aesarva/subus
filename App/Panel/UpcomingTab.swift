@@ -7,6 +7,8 @@ struct UpcomingTab: View {
     let model: AppModel
     let state: PanelState
     let actions: PanelActions
+    /// The row with keyboard focus (Tab under full keyboard access); kept the same row as the selection.
+    @FocusState private var focusedRow: ChargeKey?
 
     var body: some View {
         let today = model.today
@@ -57,17 +59,28 @@ struct UpcomingTab: View {
         ScrollViewReader { proxy in
             ScrollView(.vertical) {
                 StripMap(groups: groups, logosDirectory: model.logosDirectory ?? FileManager.default.temporaryDirectory,
-                         focus: state.focus,
+                         focus: state.focus, focusedRow: $focusedRow,
                          onHover: { key, inside in state.hoverRow(key, inside: inside) },
                          onOpen: actions.onOpen)
             }
             .scrollIndicators(.automatic)
             .onChange(of: state.selection) { _, key in
                 if let key { proxy.scrollTo(key) }
+                if focusedRow != nil, focusedRow != key { focusedRow = key }
             }
-            // Back from a card: the row it was opened from comes into view again.
+            .onChange(of: focusedRow) { _, key in
+                if let key, state.selection != key { state.selection = key }
+            }
+            // Back from a card: the row it was opened from comes into view again, and takes the focus back.
             .onAppear {
-                if let key = state.selection { proxy.scrollTo(key) }
+                let restore = state.restoreRowFocus
+                state.restoreRowFocus = false
+                guard let key = state.selection else { return }
+                proxy.scrollTo(key)
+                Task { @MainActor in
+                    proxy.scrollTo(key)
+                    if restore { focusedRow = key }
+                }
             }
             .onChange(of: state.stationHover) { _, keys in
                 if let key = groups.lazy.flatMap(\.items).first(where: { keys.contains($0.id) })?.id {

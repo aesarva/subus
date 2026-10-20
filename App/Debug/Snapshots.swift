@@ -189,7 +189,8 @@ enum Snapshots {
             fetchedAt: Date()))
         return AppModel(store: MemoryStore(result: LoadResult(library: library, recovery: recovery), failing: failingSaves),
                         settingsStore: settingsStore, rateProvider: NoRates(), rateCache: RateCache(fileURL: ratesURL),
-                        notifier: UserNotifier(), logosDirectory: directory.appendingPathComponent("Logos"))
+                        notifier: UserNotifier(), logosDirectory: directory.appendingPathComponent("Logos"),
+                        stateStorage: storage)
     }
 
     /// Draws on the opaque ground the system gives the popover under Reduce Transparency.

@@ -29,6 +29,8 @@ struct AllTab: View {
     let model: AppModel
     @Bindable var state: PanelState
     let actions: PanelActions
+    /// The row with keyboard focus (Tab under full keyboard access); kept the same row as the selection.
+    @FocusState private var focusedRow: UUID?
 
     var body: some View {
         if model.library.subscriptions.isEmpty {
@@ -134,9 +136,21 @@ struct AllTab: View {
             .scrollIndicators(.automatic)
             .onChange(of: state.allSelection) { _, id in
                 if let id { proxy.scrollTo(id) }
+                if focusedRow != nil, focusedRow != id { focusedRow = id }
             }
+            .onChange(of: focusedRow) { _, id in
+                if let id, state.allSelection != id { state.allSelection = id }
+            }
+            // Back from a card: the row it was opened from comes into view again, and takes the focus back.
             .onAppear {
-                if let id = state.allSelection { proxy.scrollTo(id) }
+                let restore = state.restoreRowFocus
+                state.restoreRowFocus = false
+                guard let id = state.allSelection else { return }
+                proxy.scrollTo(id)
+                Task { @MainActor in
+                    proxy.scrollTo(id)
+                    if restore { focusedRow = id }
+                }
             }
         }
     }
@@ -144,6 +158,7 @@ struct AllTab: View {
     private func row(_ item: AllItem, logos: URL, today: LocalDate) -> some View {
         AllRow(item: item, logosDirectory: logos, today: today, lifted: state.allFocus == item.id,
                onHover: { id, inside in state.hoverAllRow(id, inside: inside) }, onOpen: actions.onOpen)
+            .focused($focusedRow, equals: item.id)
             .id(item.id)
     }
 

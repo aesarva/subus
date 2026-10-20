@@ -27,19 +27,26 @@ final class DataController {
         savePanel(ext: "json", type: .json) { [self] url in
             do {
                 var logos: [String: Data] = [:]
-                if let directory = model.logosDirectory {
-                    for s in model.library.subscriptions {
-                        switch s.logo {
-                        case .image(let name), .siteIcon(let name):
-                            if Logo.isSafeFileName(name), let data = try? Data(contentsOf: directory.appendingPathComponent(name)) {
-                                logos[name] = data
-                            }
-                        case .monogram: break
+                var missing = 0
+                for s in model.library.subscriptions {
+                    switch s.logo {
+                    case .image(let name), .siteIcon(let name):
+                        if let directory = model.logosDirectory, Logo.isSafeFileName(name),
+                           let data = try? Data(contentsOf: directory.appendingPathComponent(name)) {
+                            logos[name] = data
+                        } else {
+                            log.error("Logo not exported: \(name, privacy: .public)")
+                            missing += 1
                         }
+                    case .monogram: break
                     }
                 }
                 try Transfer.exportJSON(model.library, logos: logos).write(to: url, options: .atomic)
-                report(String(localized: "Exported to “\(url.lastPathComponent)”."))
+                if missing > 0 {
+                    fail(String(localized: "Exported. \(missing) logos couldn't be included."), nil)
+                } else {
+                    report(String(localized: "Exported to “\(url.lastPathComponent)”."))
+                }
             } catch {
                 fail(String(localized: "Couldn't export: \(error.localizedDescription)"), error)
             }
@@ -119,17 +126,26 @@ final class DataController {
         pending = nil
         var result = Transfer.apply(item.preview, to: model.library, mode: mode)
         let (written, failedNames) = writeLogos(result.logos)
+        var lettered: [String] = []
         if !failedNames.isEmpty {
             for i in result.library.subscriptions.indices {
                 switch result.library.subscriptions[i].logo {
                 case .image(let name), .siteIcon(let name):
-                    if failedNames.contains(name) { result.library.subscriptions[i].logo = .monogram(colorIndex: nil) }
+                    if failedNames.contains(name) {
+                        result.library.subscriptions[i].logo = .monogram(colorIndex: nil)
+                        lettered.append(result.library.subscriptions[i].name)
+                    }
                 case .monogram: break
                 }
             }
         }
         if model.replaceLibrary(result.library) {
-            report(String(localized: "Imported \(item.preview.library.subscriptions.count) subscriptions."))
+            if lettered.isEmpty {
+                report(String(localized: "Imported \(item.preview.library.subscriptions.count) subscriptions."))
+            } else {
+                fail(String(localized: "Imported. \(lettered.count) logos couldn't be saved and were replaced with letters.")
+                     + "\n" + Self.nameList(lettered), nil)
+            }
         } else {
             for file in written {
                 if let previous = file.previous {
@@ -169,6 +185,12 @@ final class DataController {
             }
         }
         return (written, failed)
+    }
+
+    /// Up to three names, then "+N".
+    static func nameList(_ names: [String]) -> String {
+        let shown = names.prefix(3).joined(separator: ", ")
+        return names.count > 3 ? "\(shown) +\(names.count - 3)" : shown
     }
 
     func showDataFolder() {

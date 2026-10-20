@@ -21,6 +21,7 @@ final class EditorState {
     private(set) var imageFailed = false
     private(set) var saveMessage: String?
 
+    /// The record as it was when the editor opened: the baseline of the merge on save.
     let existing: Subscription?
     let model: AppModel
     let locale: Locale
@@ -209,12 +210,10 @@ final class EditorState {
             return false
         }
 
-        var subscription = draft.apply(to: current, locale: locale, now: Date())
+        // Only the fields edited here replace the stored record's, so a change made meanwhile (an import) survives.
+        var subscription = draft.apply(to: existing, locale: locale, now: Date())
+        if let existing, let current { subscription = current.merging(edited: subscription, baseline: existing) }
         subscription.id = id
-        if let existing, let current, !priceChanged, current.price != existing.price {
-            subscription.price = current.price
-            subscription.priceHistory = current.priceHistory
-        }
 
         var written: URL?
         if let pendingLogo, let directory {

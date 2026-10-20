@@ -6,10 +6,15 @@ import SwiftUI
 struct SearchField: NSViewRepresentable {
     @Binding var text: String
     let prompt: String
-    let onRegister: (NSSearchField) -> Void
+    var onRegister: (NSSearchField) -> Void = { _ in }
+    /// Takes the keyboard as soon as it is in a window.
+    var autofocus = false
+    /// Field editor commands (`moveUp:`, `moveDown:`, `insertNewline:`, `cancelOperation:`); true when handled.
+    var onCommand: ((Selector) -> Bool)?
 
     func makeNSView(context: Context) -> NSSearchField {
-        let field = NSSearchField()
+        let field = FocusingSearchField()
+        field.autofocus = autofocus
         field.placeholderString = prompt
         field.sendsSearchStringImmediately = true
         field.delegate = context.coordinator
@@ -38,6 +43,10 @@ struct SearchField: NSViewRepresentable {
         var parent: SearchField
         init(parent: SearchField) { self.parent = parent }
 
+        func control(_ control: NSControl, textView: NSTextView, doCommandBy selector: Selector) -> Bool {
+            parent.onCommand?(selector) ?? false
+        }
+
         func controlTextDidChange(_ notification: Notification) {
             if let field = notification.object as? NSSearchField { update(field.stringValue) }
         }
@@ -47,6 +56,20 @@ struct SearchField: NSViewRepresentable {
 
         private func update(_ value: String) {
             if parent.text != value { parent.text = value }
+        }
+    }
+}
+
+private final class FocusingSearchField: NSSearchField {
+    var autofocus = false
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        guard autofocus, let window else { return }
+        // Next turn of the run loop: the popover or window is still being set up now.
+        Task { @MainActor [weak self] in
+            guard let self, self.window === window else { return }
+            window.makeFirstResponder(self)
         }
     }
 }
