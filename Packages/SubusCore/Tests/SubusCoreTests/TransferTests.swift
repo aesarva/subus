@@ -137,6 +137,32 @@ struct TransferTests {
         #expect(r.library.subscriptions[2...].allSatisfy { $0.logo == .monogram(colorIndex: nil) })
     }
 
+    @Test func replaceModeKeepsKindAndFirstOwnerThroughParseJSON() throws {
+        var (_, s) = library()
+        s.logo = .siteIcon(fileName: "shared.png")
+        var twin = s
+        twin.name = "Twin"
+        var squatter = s
+        squatter.id = UUID()
+        squatter.name = "Squatter"
+        squatter.logo = .image(fileName: "\(UUID()).png")
+        var lib = Library()
+        lib.subscriptions = [s, twin, squatter]
+        let data = try Transfer.exportJSON(lib, logos: ["shared.png": png])
+        var preview = try Transfer.parseJSON(data)
+        #expect(preview.library.subscriptions[0].id != preview.library.subscriptions[1].id)
+        let twinID = preview.library.subscriptions[1].id
+        // An earlier owner already holds the name the twin would be renamed to.
+        preview.library.subscriptions[2].logo = .image(fileName: "\(twinID).png")
+        preview.logos["\(twinID).png"] = png
+        let r = Transfer.apply(preview, to: Library(), mode: .replace)
+        #expect(r.library.subscriptions[0].logo == .siteIcon(fileName: "shared.png"))
+        guard case .siteIcon(let renamed) = r.library.subscriptions[1].logo else { Issue.record("kind lost"); return }
+        guard case .image(let squat) = r.library.subscriptions[2].logo else { Issue.record("no image"); return }
+        #expect(renamed != "shared.png" && renamed != squat)
+        #expect(r.logos[renamed] == png && r.logos[squat] == png)
+    }
+
     @Test func csvSemicolonAndErrors() {
         let text = "name;price;currency;cycle_count;cycle_unit;start_date\nA;9,99;USD;1;month;2026-01-01\nB;abc;USD;1;month;2026-01-01\nC;5;USD;1;fortnight;2026-01-01"
         let p = Transfer.parseCSV(text, now: now)

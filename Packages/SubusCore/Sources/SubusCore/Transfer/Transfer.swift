@@ -266,7 +266,7 @@ public enum Transfer {
                 if taken.insert(name).inserted {
                     logos[name] = bytes
                 } else {
-                    let renamed = "\(library.subscriptions[i].id).png"
+                    let renamed = freshLogoName(for: library.subscriptions[i].id, taken: taken)
                     if case .siteIcon = library.subscriptions[i].logo {
                         library.subscriptions[i].logo = .siteIcon(fileName: renamed)
                     } else {
@@ -321,7 +321,7 @@ public enum Transfer {
                 let bytes = preview.logos[name]
                 if idCollides || takenLogoNames.contains(name) {
                     if let bytes {
-                        let renamed = "\(s.id).png"
+                        let renamed = freshLogoName(for: s.id, taken: takenLogoNames)
                         if case .siteIcon = s.logo { s.logo = .siteIcon(fileName: renamed) } else { s.logo = .image(fileName: renamed) }
                         logos[renamed] = bytes
                         takenLogoNames.insert(renamed)
@@ -338,6 +338,16 @@ public enum Transfer {
             result.subscriptions.append(s)
         }
         return ImportResult(library: result.sanitized(), logos: logos)
+    }
+
+    private static func freshLogoName(for id: UUID, taken: Set<String>) -> String {
+        var name = "\(id).png"
+        var n = 2
+        while taken.contains(name) {
+            name = "\(id)-\(n).png"
+            n += 1
+        }
+        return name
     }
 
     private static func logoFileName(_ logo: Logo) -> String? {
