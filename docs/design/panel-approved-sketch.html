@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:360px;height:640px;overflow:hidden}
+body{background:#F6F6F3;color:#1D1D1F;font:13px/1.35 -apple-system,"SF Pro Text","Helvetica Neue",sans-serif;font-variant-numeric:tabular-nums}
+.tabs{display:flex;margin:12px 14px 0;background:#E7E7E2;border-radius:8px;padding:2px}
+.tabs span{flex:1;text-align:center;font-size:12px;font-weight:500;padding:4px 0;border-radius:6px;color:#4A4A44}
+.tabs .on{background:#fff;color:#1D1D1F;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.head{display:flex;justify-content:space-between;align-items:flex-end;padding:16px 16px 8px}
+.tot b{display:block;font-size:17px;font-weight:600}
+.tot small{font-size:11px;color:#62625B}
+.next{text-align:right}
+.next .n{font-size:44px;font-weight:600;line-height:.9;letter-spacing:-1px}
+.next small{display:block;font-size:11px;color:#62625B}
+.ov{position:relative;height:58px;margin:4px 16px 6px}
+.ov .rest{position:absolute;left:0;right:0;top:24px;height:3px;background:#CFCFC8;border-radius:2px}
+.ov .leg{position:absolute;left:0;width:15px;top:23px;height:5px;background:#1D1D1F;border-radius:3px}
+.ov .here{position:absolute;left:-5px;top:18px;width:15px;height:15px;border-radius:50%;background:#fff;border:3px solid #1D1D1F}
+.st{position:absolute;top:19px;width:13px;height:13px;border-radius:50%;background:#fff;border:3px solid}
+.tick{position:absolute;top:34px;width:1px;height:5px;background:#B9B9B2}
+.mo{position:absolute;top:42px;font-size:11px;font-weight:600;letter-spacing:.06em;color:#66665F;text-transform:uppercase}
+.lab{position:absolute;top:0;font-size:11px;font-weight:600;white-space:nowrap}
+.strip{position:relative;padding:0 16px 0 16px}
+.spine{position:absolute;left:26px;top:6px;bottom:0;width:3px;background:#CFCFC8}
+.g{position:relative;margin-top:10px}
+.gh{display:flex;justify-content:space-between;padding-left:28px;font-size:11px;font-weight:700;letter-spacing:.08em;color:#66665F;text-transform:uppercase;margin-bottom:2px}
+.row{position:relative;display:flex;align-items:center;height:42px;padding-left:28px}
+.row .dot{position:absolute;left:4px;top:14px;width:13px;height:13px;border-radius:50%;background:#fff;border:3px solid}
+.mono{width:24px;height:24px;border-radius:6px;color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;margin-right:10px;flex:none}
+.nm{flex:1;min-width:0}
+.nm b{display:block;font-size:13px;font-weight:600}
+.nm small{font-size:11px;color:#62625B}
+.amt{font-size:13px;font-weight:600;text-align:right}
+.trial{font-size:11px;font-weight:700;letter-spacing:.06em;color:#8E44AD;border:1px solid #8E44AD;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:1px}
+.sum{display:flex;justify-content:flex-end;padding:0 0 2px 28px;font-size:11px;color:#66665F}
+.foot{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;padding:10px 16px;border-top:1px solid #E2E2DC;background:#F6F6F3;font-size:12px;color:#4A4A44}
+.foot b{color:#1D1D1F;font-weight:600}
+</style></head><body>
+<div class="tabs"><span class="on">Скоро</span><span>Все</span><span>Траты</span></div>
+<div class="head">
+  <div class="tot"><b>6 870 ₽ в месяц</b><small>82 440 ₽ в год · курс ЦБ на 20 окт.</small></div>
+  <div class="next"><div class="n">3</div><small>дня до списания</small></div>
+</div>
+<div class="ov">
+  <div class="rest"></div><div class="leg"></div>
+  <div class="tick" style="left:30px"></div><div class="tick" style="left:79px"></div><div class="tick" style="left:128px"></div>
+  <div class="tick" style="left:177px"></div><div class="tick" style="left:226px"></div><div class="tick" style="left:275px"></div>
+  <div class="mo" style="left:0">окт</div><div class="mo" style="left:77px">ноя</div><div class="mo" style="left:226px">дек</div>
+  <div class="st" style="left:15px;border-color:#8E44AD"></div><div class="lab" style="left:4px">23 · ChatGPT</div>
+  <div class="st" style="left:30px;border-color:#D52B1E"></div>
+  <div class="st" style="left:51px;border-color:#1EBCEF"></div>
+  <div class="st" style="left:72px;border-color:#D52B1E"></div>
+  <div class="st" style="left:107px;border-color:#0072BA"></div>
+  <div class="st" style="left:156px;border-color:#4CB848"></div>
+  <div class="st" style="left:177px;border-color:#D52B1E"></div>
+  <div class="st" style="left:240px;border-color:#ED9121"></div>
+  <div class="st" style="left:288px;border-color:#8E44AD"></div>
+</div>
+<div class="strip"><div class="spine"></div>
+  <div class="g"><div class="gh"><span>На этой неделе</span></div>
+    <div class="row"><span class="dot" style="border-color:#8E44AD"></span><span class="mono" style="background:#8E44AD">C</span>
+      <div class="nm"><b>ChatGPT Plus<span class="trial">ПРОБНЫЙ</span></b><small>через 3 дня · пт, 23 окт.</small></div><div class="amt">20,00 $</div></div>
+    <div class="row"><span class="dot" style="border-color:#D52B1E"></span><span class="mono" style="background:#D52B1E">S</span>
+      <div class="nm"><b>Spotify</b><small>через 5 дней · вс, 25 окт.</small></div><div class="amt">169 ₽</div></div>
+    <div class="sum">≈ 1 789 ₽</div>
+  </div>
+  <div class="g"><div class="gh"><span>В этом месяце</span></div>
+    <div class="row"><span class="dot" style="border-color:#1EBCEF"></span><span class="mono" style="background:#0A78A8">i</span>
+      <div class="nm"><b>iCloud+ 200 ГБ</b><small>28 окт. · Т-Банк •• 4242</small></div><div class="amt">149 ₽</div></div>
+    <div class="row"><span class="dot" style="border-color:#D52B1E"></span><span class="mono" style="background:#D52B1E">N</span>
+      <div class="nm"><b>Netflix</b><small>31 окт. · Revolut •• 0815</small></div><div class="amt">11,99 €</div></div>
+    <div class="sum">≈ 1 271 ₽</div>
+  </div>
+  <div class="g"><div class="gh"><span>Позже</span></div>
+    <div class="row"><span class="dot" style="border-color:#0072BA"></span><span class="mono" style="background:#0072BA">J</span>
+      <div class="nm"><b>JetBrains All Products</b><small>5 нояб.</small></div><div class="amt">28,90 $</div></div>
+    <div class="row"><span class="dot" style="border-color:#4CB848"></span><span class="mono" style="background:#2E7D32">Я</span>
+      <div class="nm"><b>Яндекс Плюс</b><small>12 нояб.</small></div><div class="amt">399 ₽</div></div>
+  </div>
+</div>
+<div class="foot"><span><b>+</b> Добавить</span><span>12 подписок · 2 неактивны</span><span>⚙︎</span></div>
+</body></html>
