@@ -149,7 +149,7 @@ import Testing
         #expect(r.contains(c))
     }
 
-    @Test func dstTransition() throws {
+    @Test func dstTransition() {
         let iso = ISO8601DateFormatter()
         var st = settings; st.reminderDays = [1]
         let fall = plan([sub(anchor: "2026-11-02", cycle: BillingCycle(1, .year))], now: at("2026-10-30", 8, 0, ny),
@@ -158,5 +158,37 @@ import Testing
         let spring = plan([sub(anchor: "2026-03-09", cycle: BillingCycle(1, .year))], now: at("2026-03-05", 8, 0, ny),
                           settings: st, calendar: ny)
         #expect(spring.first?.fireDate == iso.date(from: "2026-03-08T14:00:00Z"))
+    }
+
+    @Test func carriedCatchUpDroppedWhenRemindersOff() {
+        let s = sub(cycle: BillingCycle(1, .year))
+        let now = at("2026-10-24", 15)
+        let c = plan([s], now: now, justSaved: [s.id])[0]
+        var st = settings; st.reminderDays = []
+        #expect(plan([s], now: now.addingTimeInterval(20), settings: st, carried: [c]).isEmpty)
+    }
+
+    @Test func carriedCatchUpReplacedOnKindChange() {
+        var s = sub(cycle: BillingCycle(1, .year))
+        let now = at("2026-10-24", 15)
+        let c = plan([s], now: now, justSaved: [s.id])[0]
+        s.trialEndDate = d("2026-10-25")
+        let r = plan([s], now: now.addingTimeInterval(20), justSaved: [s.id], carried: [c])
+        #expect(r.count == 1)
+        #expect(r[0].kind == .trialEnd)
+    }
+
+    @Test func horizonEdge() {
+        let now = at("2026-10-20", 8)
+        #expect(plan([sub(anchor: "2026-12-19", cycle: BillingCycle(1, .year))], now: now).count == 3)
+        #expect(plan([sub(anchor: "2026-12-20", cycle: BillingCycle(1, .year))], now: now).isEmpty)
+    }
+
+    @Test func catchUpForTrialEnd() {
+        let s = sub(anchor: "2026-10-01", cycle: BillingCycle(1, .year), trialEnd: "2026-10-25")
+        let r = plan([s], now: at("2026-10-24", 15), justSaved: [s.id])
+        #expect(r.count == 1)
+        #expect(r[0].kind == .trialEnd)
+        #expect(r[0].id.hasSuffix("|trialEnd"))
     }
 }

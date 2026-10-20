@@ -3,7 +3,6 @@ import Foundation
 public enum ReminderKind: String, Sendable { case charge, trialEnd }
 
 public struct PlannedReminder: Equatable, Sendable {
-    public var id: String
     public var subscriptionID: UUID
     public var fireDate: Date
     public var chargeDate: LocalDate
@@ -12,9 +11,10 @@ public struct PlannedReminder: Equatable, Sendable {
     public var amount: Money
     public var isCatchUp: Bool
 
+    public var id: String { "\(subscriptionID)|\(chargeDate.iso)|\(daysBefore)|\(kind.rawValue)" }
+
     public init(subscriptionID: UUID, fireDate: Date, chargeDate: LocalDate, daysBefore: Int,
                 kind: ReminderKind, amount: Money, isCatchUp: Bool) {
-        self.id = "\(subscriptionID)|\(chargeDate.iso)|\(daysBefore)|\(kind.rawValue)"
         self.subscriptionID = subscriptionID
         self.fireDate = fireDate
         self.chargeDate = chargeDate
@@ -28,6 +28,7 @@ public struct PlannedReminder: Equatable, Sendable {
 public enum ReminderPlanner {
     public static let maxCount = 60
     public static let horizonDays = 60
+    private struct CatchUpKey: Hashable { let subscriptionID: UUID; let chargeDate: LocalDate }
     static let catchUpDelay: TimeInterval = 60
 
     public static func plan(library: Library, settings: AppSettings, now: Date, calendar: Calendar,
@@ -60,10 +61,10 @@ public enum ReminderPlanner {
             }
         }
 
-        let newCatchUpIDs = Set(catchUps.map(\.id))
-        let carried = carriedCatchUps.filter {
+        let newCatchUpCharges = Set(catchUps.map { CatchUpKey(subscriptionID: $0.subscriptionID, chargeDate: $0.chargeDate) })
+        let carried = settings.reminderDays.isEmpty ? [] : carriedCatchUps.filter {
             $0.fireDate > now && liveCharges[$0.subscriptionID]?.contains($0.chargeDate) == true
-                && !newCatchUpIDs.contains($0.id)
+                && !newCatchUpCharges.contains(CatchUpKey(subscriptionID: $0.subscriptionID, chargeDate: $0.chargeDate))
         }
 
         var byID: [String: PlannedReminder] = [:]
