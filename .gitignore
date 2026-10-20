@@ -16,3 +16,4 @@ dist/
 .impeccable/config.local.json
 .impeccable/questions/*.log
 .playwright-mcp/
+.impeccable/questions/

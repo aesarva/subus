@@ -1,0 +1,48 @@
+{
+  "fill" : {
+    "solid" : "srgb:0.95686,0.95294,0.93725,1.00000"
+  },
+  "fill-specializations" : [
+    {
+      "appearance" : "dark",
+      "value" : {
+        "solid" : "srgb:0.10980,0.10980,0.11765,1.00000"
+      }
+    }
+  ],
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "glass" : false,
+          "image-name" : "dot.svg",
+          "name" : "dot"
+        },
+        {
+          "glass" : false,
+          "image-name" : "ring-light.svg",
+          "image-name-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : "ring-dark.svg"
+            }
+          ],
+          "name" : "ring"
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : false,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "squares" : [
+      "macOS"
+    ]
+  }
+}
