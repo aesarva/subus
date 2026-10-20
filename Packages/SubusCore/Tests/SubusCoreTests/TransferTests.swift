@@ -106,6 +106,37 @@ struct TransferTests {
         #expect(r.logos.count == 3)
     }
 
+    @Test func parseJSONRejectsNullSubscriptions() {
+        #expect(throws: TransferError.notSubusFile) { try Transfer.parseJSON(Data(#"{"subscriptions":null}"#.utf8)) }
+    }
+
+    @Test func replaceModeGivesDistinctLogos() {
+        let (_, s) = library()
+        var other = s
+        other.id = UUID()
+        other.name = "Other"
+        var bare = s
+        bare.id = UUID()
+        bare.name = "No bytes"
+        bare.logo = .image(fileName: "missing.png")
+        var twin = bare
+        twin.id = UUID()
+        var incoming = Library()
+        incoming.subscriptions = [s, other, bare, twin]
+        let shared = "\(s.id).png"
+        for i in [0, 1] { incoming.subscriptions[i].logo = .image(fileName: shared) }
+        let r = Transfer.apply(ImportPreview(library: incoming, logos: [shared: png]), to: Library(), mode: .replace)
+        let names = r.library.subscriptions.compactMap { sub -> String? in
+            if case .image(let n) = sub.logo { n } else { nil }
+        }
+        #expect(r.library.subscriptions.count == 4)
+        #expect(names.count == 2)
+        #expect(Set(names).count == 2)
+        #expect(names.allSatisfy { r.logos[$0] == png })
+        #expect(r.logos.count == 2)
+        #expect(r.library.subscriptions[2...].allSatisfy { $0.logo == .monogram(colorIndex: nil) })
+    }
+
     @Test func csvSemicolonAndErrors() {
         let text = "name;price;currency;cycle_count;cycle_unit;start_date\nA;9,99;USD;1;month;2026-01-01\nB;abc;USD;1;month;2026-01-01\nC;5;USD;1;fortnight;2026-01-01"
         let p = Transfer.parseCSV(text, now: now)

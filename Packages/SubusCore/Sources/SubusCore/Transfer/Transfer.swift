@@ -87,7 +87,7 @@ public enum Transfer {
         if let version = dict["schemaVersion"] as? Int, version > Library.currentSchemaVersion {
             throw TransferError.newerSchema(version)
         }
-        guard dict["subscriptions"] != nil else { throw TransferError.notSubusFile }
+        guard let subscriptions = dict["subscriptions"], !(subscriptions is NSNull) else { throw TransferError.notSubusFile }
         let file = try JSONDecoder().decode(ImportFile.self, from: data)
         var logos: [String: Data] = [:]
         for (name, encoded) in file.logos where Logo.isSafeFileName(name) {
@@ -253,7 +253,31 @@ public enum Transfer {
     // MARK: Apply
 
     public static func apply(_ preview: ImportPreview, to l: Library, mode: ImportMode) -> ImportResult {
-        if mode == .replace { return ImportResult(library: preview.library, logos: preview.logos) }
+        if mode == .replace {
+            var library = preview.library
+            var taken = Set<String>()
+            var logos: [String: Data] = [:]
+            for i in library.subscriptions.indices {
+                guard let name = logoFileName(library.subscriptions[i].logo) else { continue }
+                guard let bytes = preview.logos[name] else {
+                    library.subscriptions[i].logo = .monogram(colorIndex: nil)
+                    continue
+                }
+                if taken.insert(name).inserted {
+                    logos[name] = bytes
+                } else {
+                    let renamed = "\(library.subscriptions[i].id).png"
+                    if case .siteIcon = library.subscriptions[i].logo {
+                        library.subscriptions[i].logo = .siteIcon(fileName: renamed)
+                    } else {
+                        library.subscriptions[i].logo = .image(fileName: renamed)
+                    }
+                    taken.insert(renamed)
+                    logos[renamed] = bytes
+                }
+            }
+            return ImportResult(library: library, logos: logos)
+        }
 
         var result = l
         var categoryMap: [UUID: UUID] = [:]
