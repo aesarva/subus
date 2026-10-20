@@ -205,15 +205,15 @@ private struct StripRow: View {
             (relative + Text(verbatim: " · " + full + (item.paymentLabel.map { " · " + $0 } ?? "")))
                 .fixedSize()
             if let label = item.paymentLabel {
-                let (head, tail) = Self.splitPaymentLabel(label)
+                let (head, tail) = PaymentLabel.split(label)
                 HStack(spacing: 0) {
                     (relative + Text(verbatim: " · " + full)).fixedSize()
                     Text(verbatim: " · " + head)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .frame(minWidth: 0, idealWidth: Self.shortestLabel, maxWidth: .infinity, alignment: .leading)
-                    if !tail.isEmpty {
-                        Text(verbatim: tail).fixedSize().layoutPriority(1)
+                    if let tail {
+                        Text(verbatim: " " + tail).fixedSize().layoutPriority(1)
                     }
                 }
             }
@@ -223,22 +223,6 @@ private struct StripRow: View {
                 Text(verbatim: " · " + bare).lineLimit(1).truncationMode(.tail)
             }
         }
-    }
-
-    /// Splits "Bank •• 1234" into the truncatable bank name and the card tail that must never be cut.
-    /// The tail is the trailing "••"-token run, else the last token of 4+ digits; no tail leaves the label whole.
-    static func splitPaymentLabel(_ label: String) -> (head: String, tail: String) {
-        var tokens = label.split(separator: " ", omittingEmptySubsequences: true).map(String.init)
-        var tail: [String] = []
-        if let i = tokens.lastIndex(where: { $0.hasPrefix("••") }) {
-            tail = Array(tokens[i...])
-            tokens.removeSubrange(i...)
-        } else if let last = tokens.last, tokens.count > 1, last.count >= 4, last.allSatisfy(\.isNumber) {
-            tail = [last]
-            tokens.removeLast()
-        }
-        guard !tail.isEmpty, !tokens.isEmpty else { return (label, "") }
-        return (tokens.joined(separator: " "), " " + tail.joined(separator: " "))
     }
 
     /// The least of a payment label worth showing ("· Т-Ба…"); below it the label is left out.

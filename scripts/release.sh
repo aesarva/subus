@@ -12,7 +12,13 @@ cd "$(dirname "$0")/.."
 
 VERSION="${1:?Использование: scripts/release.sh <версия> [--unsigned]}"
 UNSIGNED=false
-[ "${2:-}" = "--unsigned" ] && UNSIGNED=true
+case "${2:-}" in
+    "") ;;
+    --unsigned) UNSIGNED=true ;;
+    *) echo "Неизвестный аргумент: $2" >&2
+       echo "Использование: scripts/release.sh <версия> [--unsigned]" >&2
+       exit 2 ;;
+esac
 NOTARY_PROFILE="${NOTARY_PROFILE:-Subus}"
 
 if [ -z "${DEVELOPER_DIR:-}" ] && [ -d /Applications/Xcode.app ]; then
@@ -32,6 +38,9 @@ elif [ -z "${SIGN_IDENTITY:-}" ]; then
 fi
 echo "==> Подпись: $SIGN_IDENTITY"
 
+TEMP_DIRS=()
+trap 'rm -rf ${TEMP_DIRS[@]+"${TEMP_DIRS[@]}"}' EXIT
+
 notarize() {
     echo "==> Нотаризация $(basename "$1")…"
     xcrun notarytool submit "$1" --keychain-profile "$NOTARY_PROFILE" --wait
@@ -44,21 +53,20 @@ APP=build/Subus.app
 if ! $UNSIGNED; then
     # Приложение нотаризуем отдельно, чтобы скрепить билет с ним самим: тогда оно
     # открывается без сети, даже если пользователь скопирует его куда-то из DMG.
-    ZIP="$(mktemp -d)/Subus.zip"
+    ZIP_DIR="$(mktemp -d)"; TEMP_DIRS+=("$ZIP_DIR")
+    ZIP="$ZIP_DIR/Subus.zip"
     ditto -c -k --keepParent "$APP" "$ZIP"
     notarize "$ZIP"
     xcrun stapler staple "$APP"
-    rm -rf "$(dirname "$ZIP")"
 fi
 
 mkdir -p dist
 DMG="dist/Subus-$VERSION.dmg"
-STAGING="$(mktemp -d)"
+STAGING="$(mktemp -d)"; TEMP_DIRS+=("$STAGING")
 cp -R "$APP" "$STAGING/"
 ln -s /Applications "$STAGING/Applications"
 rm -f "$DMG"
 hdiutil create -volname "Subus $VERSION" -srcfolder "$STAGING" -fs HFS+ -format UDZO -ov "$DMG" >/dev/null
-rm -rf "$STAGING"
 
 if ! $UNSIGNED; then
     codesign --force --timestamp --sign "$SIGN_IDENTITY" "$DMG"

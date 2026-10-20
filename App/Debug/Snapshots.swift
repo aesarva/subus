@@ -71,6 +71,10 @@ enum Snapshots {
         var long = trial(in: 3, name: "Яндекс Практикум — курс «Продуктовый дизайнер»")
         long.paymentMethods[1].label = "Revolut Metal •• 0815 (рабочая, общая с семьёй)"
         panel("longname", long)
+        // A long bank name on the label every row uses: it must truncate and keep "•• 0815".
+        var longLabel = base
+        longLabel.paymentMethods[0].label = "Revolut Metal Premium Business •• 0815"
+        panel("longlabel", longLabel)
 
         // All
         panel("all", base) { _, s in s.tab = .all }
