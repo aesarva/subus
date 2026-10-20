@@ -40,6 +40,10 @@ final class PanelState {
     var allHover: UUID?
     @ObservationIgnored weak var searchField: NSSearchField?
 
+    // Spending: only the price increase rows are selectable.
+    var spendingSelection: IncreaseKey?
+    var spendingHover: IncreaseKey?
+
     /// The subscription whose card is pushed over the tab.
     var card: UUID?
     var confirmingDelete = false
@@ -58,6 +62,9 @@ final class PanelState {
     /// The lifted row on All.
     var allFocus: UUID? { allHover ?? allSelection }
 
+    /// The lifted price increase row on Spending.
+    var spendingFocus: IncreaseKey? { spendingHover ?? spendingSelection }
+
     func hoverStation(_ keys: Set<ChargeKey>, inside: Bool) {
         guard !pointerQuiet else { return }
         if inside { if stationHover != keys { stationHover = keys } } else if stationHover == keys { stationHover = [] }
@@ -71,6 +78,11 @@ final class PanelState {
     func hoverAllRow(_ id: UUID, inside: Bool) {
         guard !pointerQuiet else { return }
         if inside { if allHover != id { allHover = id } } else if allHover == id { allHover = nil }
+    }
+
+    func hoverSpendingRow(_ key: IncreaseKey, inside: Bool) {
+        guard !pointerQuiet else { return }
+        if inside { if spendingHover != key { spendingHover = key } } else if spendingHover == key { spendingHover = nil }
     }
 
     /// Called for real mouse movement (not for content scrolling under the pointer).
@@ -94,8 +106,16 @@ final class PanelState {
         quietPointer()
     }
 
+    func moveSpendingSelection(by step: Int, in keys: [IncreaseKey]) {
+        guard !keys.isEmpty else { return }
+        let current = spendingSelection.flatMap { keys.firstIndex(of: $0) }
+        let next = current.map { min(max($0 + step, 0), keys.count - 1) } ?? (step > 0 ? 0 : keys.count - 1)
+        spendingSelection = keys[next]
+        quietPointer()
+    }
+
     /// Pushes the card; the row it came from becomes the selection, so leaving the card returns to it.
-    func openCard(_ id: UUID, upcomingKeys: [ChargeKey]) {
+    func openCard(_ id: UUID, upcomingKeys: [ChargeKey], spendingKeys: [IncreaseKey]) {
         switch tab {
         case .upcoming:
             if selection?.subscriptionID != id {
@@ -104,7 +124,10 @@ final class PanelState {
         case .all:
             allSelection = id
         case .spending:
-            break
+            if spendingSelection?.subscriptionID != id {
+                spendingSelection = spendingHover?.subscriptionID == id
+                    ? spendingHover : spendingKeys.first { $0.subscriptionID == id }
+            }
         }
         confirmingDelete = false
         card = id
@@ -116,6 +139,7 @@ final class PanelState {
         if deleted, let id = card {
             if selection?.subscriptionID == id { selection = nil }
             if allSelection == id { allSelection = nil }
+            if spendingSelection?.subscriptionID == id { spendingSelection = nil }
         }
         confirmingDelete = false
         card = nil
@@ -126,6 +150,7 @@ final class PanelState {
         rowHover = nil
         stationHover = []
         allHover = nil
+        spendingHover = nil
     }
 
     private func quietPointer() {
@@ -170,8 +195,7 @@ struct PanelRoot: View {
                 case .all:
                     AllTab(model: model, state: state, actions: actions)
                 case .spending:
-                    PanelEmptyState(systemImage: "hammer", title: String(localized: "Coming soon"), message: nil,
-                                    actionTitle: nil, action: nil)
+                    SpendingTab(model: model, state: state, actions: actions)
                 }
                 PanelFooter(total: model.library.subscriptions.count, inactive: inactiveCount,
                             onAdd: actions.onAdd, onSettings: actions.onSettings)

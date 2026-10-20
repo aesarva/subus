@@ -60,7 +60,7 @@ final class PanelController: NSObject, NSPopoverDelegate {
     /// Opens the panel, on the subscription's card when there is one.
     func show(subscription id: UUID?) {
         if let id, model.library.subscriptions.contains(where: { $0.id == id }) {
-            state.openCard(id, upcomingKeys: UpcomingTab.keys(model))
+            state.openCard(id, upcomingKeys: UpcomingTab.keys(model), spendingKeys: SpendingTab.keys(model))
         }
         // Pushed before opening, so the first frame already has the card's height.
         if popover.isShown { focusContent() } else { open() }
@@ -234,7 +234,7 @@ final class PanelController: NSObject, NSPopoverDelegate {
         switch state.tab {
         case .upcoming: state.moveSelection(by: step, in: UpcomingTab.keys(model))
         case .all: state.moveAllSelection(by: step, in: AllTab.rows(model, state).order)
-        case .spending: return false
+        case .spending: state.moveSpendingSelection(by: step, in: SpendingTab.keys(model))
         }
         return true
     }
@@ -244,7 +244,7 @@ final class PanelController: NSObject, NSPopoverDelegate {
         let id: UUID? = switch state.tab {
         case .upcoming: state.selection?.subscriptionID
         case .all: state.allSelection.flatMap { AllTab.rows(model, state).order.contains($0) ? $0 : nil }
-        case .spending: nil
+        case .spending: state.spendingSelection.flatMap { SpendingTab.keys(model).contains($0) ? $0.subscriptionID : nil }
         }
         guard let id else { return false }
         show(subscription: id)

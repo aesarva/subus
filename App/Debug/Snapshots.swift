@@ -96,6 +96,32 @@ enum Snapshots {
             $0.moveAllSelection(by: 1, in: AllTab.rows(demo, $0).order)
         }
 
+        // Spending
+        panel(demo, "spending-light", maxHeight: 900) { $0.tab = .spending }
+        panel(demo, "spending-dark", appearance: .darkAqua, maxHeight: 900) { $0.tab = .spending }
+        panel(demo, "spending-selected-dark", appearance: .darkAqua, maxHeight: 900) {
+            $0.tab = .spending
+            $0.moveSpendingSelection(by: 1, in: SpendingTab.keys(demo))
+        }
+        var single = base
+        for i in single.subscriptions.indices { single.subscriptions[i].categoryID = single.categories[1].id }
+        panel(model(single, in: directory), "spending-single-category-light", maxHeight: 900) { $0.tab = .spending }
+        var cashless = base
+        cashless.paymentMethods = []
+        for i in cashless.subscriptions.indices { cashless.subscriptions[i].paymentMethodID = nil }
+        panel(model(cashless, in: directory), "spending-no-payment-light", maxHeight: 900) { $0.tab = .spending }
+        var steady = base
+        for i in steady.subscriptions.indices {
+            steady.subscriptions[i].priceHistory = [PriceChange(effectiveFrom: steady.subscriptions[i].startDate,
+                                                                price: steady.subscriptions[i].price)]
+        }
+        // One subscription with neither a category nor a method: its bars ride the rail colour.
+        if let i = steady.subscriptions.firstIndex(where: { $0.name == "YouTube Premium" }) {
+            steady.subscriptions[i].categoryID = nil
+            steady.subscriptions[i].paymentMethodID = nil
+        }
+        panel(model(steady, in: directory), "spending-no-increases-light", maxHeight: 900) { $0.tab = .spending }
+
         // Card
         func id(_ model: AppModel, _ name: String) -> UUID {
             model.library.subscriptions.first { $0.name == name }!.id

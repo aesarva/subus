@@ -658,16 +658,6 @@
         }
       }
     },
-    "Coming soon": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Появится позже"
-          }
-        }
-      }
-    },
     "Show data folder": {
       "localizations": {
         "ru": {
@@ -2570,6 +2560,86 @@
           "stringUnit": {
             "state": "translated",
             "value": "лет"
+          }
+        }
+      }
+    },
+    "By category": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По категориям"
+          }
+        }
+      }
+    },
+    "By payment method": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По способам оплаты"
+          }
+        }
+      }
+    },
+    "Price increases in the past year": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подорожания за год"
+          }
+        }
+      }
+    },
+    "No category": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Без категории"
+          }
+        }
+      }
+    },
+    "No payment method": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Без способа оплаты"
+          }
+        }
+      }
+    },
+    "less than %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "меньше %@"
+          }
+        }
+      }
+    },
+    "since %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "с %@"
+          }
+        }
+      }
+    },
+    "from %@ to %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "было %1$@, стало %2$@"
           }
         }
       }
