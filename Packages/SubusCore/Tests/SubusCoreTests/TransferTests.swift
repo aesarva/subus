@@ -89,7 +89,7 @@ struct TransferTests {
     @Test func csvPriceValidation() {
         for bad in ["1,234.56", "9.9.9", "0", "-5", "9abc", ""] {
             let p = Transfer.parseCSV("name,price,currency,cycle_count,cycle_unit,start_date\nA,\"\(bad)\",USD,1,month,2026-01-01\nB,1,USD,1,month,2026-01-01", now: now)
-            #expect(p.errors.first?.field == "price" || bad == "", "\(bad)")
+            #expect(p.errors.first?.field == "price", "\(bad)")
         }
     }
 
@@ -98,6 +98,28 @@ struct TransferTests {
         let p = Transfer.parseCSV(text, now: now)
         #expect(p.library.subscriptions.isEmpty)
         #expect(p.errors == [ImportRowError(line: 2, field: "cycle_count"), ImportRowError(line: 5, field: "cycle_count")])
+    }
+
+    @Test func jsonRejectsNonSubusObjectAndBadLogoEntry() throws {
+        #expect(throws: TransferError.notSubusFile) { try Transfer.parseJSON(Data(#"{"hello":1}"#.utf8)) }
+        #expect(throws: TransferError.newerSchema(9)) { try Transfer.parseJSON(Data(#"{"schemaVersion":9,"subscriptions":"junk"}"#.utf8)) }
+        let p = try Transfer.parseJSON(Data(("{\"subscriptions\":[],\"logos\":{\"a.png\":\"" + png.base64EncodedString() + "\",\"b.png\":5}}").utf8))
+        #expect(p.logos == ["a.png": png])
+    }
+
+    @Test func csvUnterminatedQuoteIsRowError() {
+        let text = "name,price,currency,cycle_count,cycle_unit,start_date\nA,1,USD,1,month,2026-01-01\n\"B,1,USD,1,month,2026-01-01\nC,1,USD,1,month,2026-01-01"
+        let p = Transfer.parseCSV(text, now: now)
+        #expect(p.library.subscriptions.map(\.name) == ["A"])
+        #expect(p.errors == [ImportRowError(line: 3, field: "csv")])
+    }
+
+    @Test func addFallsBackToMonogramWithoutLogoData() throws {
+        let (l, s) = library()
+        let p = try Transfer.parseJSON(Transfer.exportJSON(l, logos: [:]))
+        let r = Transfer.apply(p, to: l, mode: .add)
+        #expect(r.library.subscriptions.first { $0.id != s.id }?.logo == .monogram(colorIndex: nil))
+        #expect(r.logos.isEmpty)
     }
 
     @Test func csvCreatesCategories() {

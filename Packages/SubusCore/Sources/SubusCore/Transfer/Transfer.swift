@@ -36,6 +36,7 @@ public struct ImportResult: Equatable, Sendable {
 
 public enum TransferError: Error, Equatable, Sendable {
     case newerSchema(Int)
+    case notSubusFile
 }
 
 public enum Transfer {
@@ -63,11 +64,16 @@ public enum Transfer {
         var logos: [String: String]
 
         private enum Keys: String, CodingKey { case logos }
+        private struct Lossy: Decodable {
+            var value: String?
+            init(from decoder: Decoder) throws { value = try? decoder.singleValueContainer().decode(String.self) }
+        }
 
         init(from decoder: Decoder) throws {
             library = try Library(from: decoder)
             let c = try decoder.container(keyedBy: Keys.self)
-            logos = (try? c.decodeIfPresent([String: String].self, forKey: .logos)) ?? [:]
+            let raw = (try? c.decodeIfPresent([String: Lossy].self, forKey: .logos)) ?? [:]
+            logos = raw.compactMapValues(\.value)
         }
     }
 
@@ -76,11 +82,13 @@ public enum Transfer {
     }
 
     public static func parseJSON(_ data: Data) throws -> ImportPreview {
-        let decoder = JSONDecoder()
-        let file = try decoder.decode(ImportFile.self, from: data)
-        if file.library.schemaVersion > Library.currentSchemaVersion {
-            throw TransferError.newerSchema(file.library.schemaVersion)
+        let object = try JSONSerialization.jsonObject(with: data)
+        guard let dict = object as? [String: Any] else { throw TransferError.notSubusFile }
+        if let version = dict["schemaVersion"] as? Int, version > Library.currentSchemaVersion {
+            throw TransferError.newerSchema(version)
         }
+        guard dict["subscriptions"] != nil else { throw TransferError.notSubusFile }
+        let file = try JSONDecoder().decode(ImportFile.self, from: data)
         var logos: [String: Data] = [:]
         for (name, encoded) in file.logos where Logo.isSafeFileName(name) {
             if let bytes = Data(base64Encoded: encoded) { logos[name] = bytes }
@@ -142,6 +150,10 @@ public enum Transfer {
 
         for record in records.dropFirst() {
             if record.fields.allSatisfy({ $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) { continue }
+            if record.unterminated {
+                errors.append(ImportRowError(line: record.line, field: "csv"))
+                continue
+            }
             if !missing.isEmpty {
                 errors += missing.map { ImportRowError(line: record.line, field: $0) }
                 continue
@@ -277,16 +289,19 @@ public enum Transfer {
             usedIDs.insert(s.id)
 
             if let name = logoFileName(s.logo) {
+                let bytes = preview.logos[name]
                 if idCollides || existingLogoNames.contains(name) {
-                    if let bytes = preview.logos[name] {
+                    if let bytes {
                         let renamed = "\(s.id).png"
                         if case .siteIcon = s.logo { s.logo = .siteIcon(fileName: renamed) } else { s.logo = .image(fileName: renamed) }
                         logos[renamed] = bytes
                     } else {
                         s.logo = .monogram(colorIndex: nil)
                     }
-                } else if let bytes = preview.logos[name] {
+                } else if let bytes {
                     logos[name] = bytes
+                } else {
+                    s.logo = .monogram(colorIndex: nil)
                 }
             }
             result.subscriptions.append(s)

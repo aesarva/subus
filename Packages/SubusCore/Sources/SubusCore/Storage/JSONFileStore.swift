@@ -66,14 +66,16 @@ public struct JSONFileStore: SubscriptionStore {
     public func load() throws -> LoadResult {
         let fm = FileManager.default
         guard fm.fileExists(atPath: fileURL.path) else {
+            if let backupData = try? Data(contentsOf: backupURL), let library = Self.decodeLibrary(backupData) {
+                persistRecovered(backupData)
+                return LoadResult(library: library, recovery: nil)
+            }
             return LoadResult(library: initial().sanitized(), recovery: nil)
         }
         let data = try Data(contentsOf: fileURL)
         if let library = Self.decodeLibrary(data) { return LoadResult(library: library, recovery: nil) }
 
-        let corrupt = corruptURL()
-        try fm.moveItem(at: fileURL, to: corrupt)
-        Self.logger.error("Data file is unreadable or newer than supported; moved to \(corrupt.lastPathComponent, privacy: .public)")
+        let corrupt = try preserveCorruptMain()
 
         if let backupData = try? Data(contentsOf: backupURL), let library = Self.decodeLibrary(backupData) {
             persistRecovered(backupData)
@@ -90,9 +92,24 @@ public struct JSONFileStore: SubscriptionStore {
         let data = try Self.makeEncoder().encode(library)
         if fm.fileExists(atPath: fileURL.path) {
             let current = try Data(contentsOf: fileURL)
-            if !current.isEmpty { try Self.atomicWrite(current, backupURL) }
+            if !current.isEmpty {
+                if Self.decodeLibrary(current) != nil {
+                    try Self.atomicWrite(current, backupURL)
+                } else {
+                    let kept = try preserveCorruptMain()
+                    Self.logger.error("Main file is unreadable; kept as \(kept.lastPathComponent, privacy: .public), backup untouched")
+                }
+            }
         }
         try writer(data, fileURL)
+    }
+
+    /// Copies (never moves) the unreadable main file, so main is never missing.
+    private func preserveCorruptMain() throws -> URL {
+        let corrupt = corruptURL()
+        try FileManager.default.copyItem(at: fileURL, to: corrupt)
+        Self.logger.error("Data file is unreadable or newer than supported; copied to \(corrupt.lastPathComponent, privacy: .public)")
+        return corrupt
     }
 
     private func persistRecovered(_ data: Data) {

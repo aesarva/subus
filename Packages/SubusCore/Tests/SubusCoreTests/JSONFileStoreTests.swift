@@ -120,16 +120,50 @@ struct JSONFileStoreTests {
         #expect(try decode(dir.appendingPathComponent("subscriptions.backup.json")) == a)
     }
 
-    @Test func failedRecoveryWriteStillReturnsLibrary() throws {
+    @Test func failedRecoveryWriteIsRetriedNextLaunch() throws {
         let dir = tempDir()
         let a = sample("A")
-        try JSONFileStore(directory: dir, initial: initial).save(a)
-        try JSONFileStore(directory: dir, initial: initial).save(a)
-        let store = JSONFileStore(directory: dir, initial: initial, writer: { _, _ in throw Boom() })
-        try Data("{oops".utf8).write(to: store.fileURL)
+        let normal = JSONFileStore(directory: dir, initial: initial)
+        try normal.save(a)
+        try normal.save(sample("A2"))
+        try Data("{oops".utf8).write(to: normal.fileURL)
+
+        let failing = JSONFileStore(directory: dir, initial: initial, writer: { _, _ in throw Boom() })
+        let r = try failing.load()
+        #expect(r.library == a)
+        guard case .restoredFromBackup = r.recovery else { Issue.record("wrong recovery \(String(describing: r.recovery))"); return }
+        #expect(try String(contentsOf: normal.fileURL, encoding: .utf8) == "{oops")
+
+        let next = try normal.load()
+        #expect(next.library == a)
+        guard case .restoredFromBackup = next.recovery else { Issue.record("wrong recovery"); return }
+    }
+
+    @Test func saveDoesNotBackUpCorruptMain() throws {
+        let dir = tempDir()
+        let a = sample("A")
+        let normal = JSONFileStore(directory: dir, initial: initial)
+        try normal.save(a)
+        try normal.save(sample("A2"))
+        try Data("{oops".utf8).write(to: normal.fileURL)
+        let failing = JSONFileStore(directory: dir, initial: initial, writer: { _, _ in throw Boom() })
+        #expect(throws: Boom.self) { try failing.save(sample("B")) }
+        let r = try normal.load()
+        #expect(r.library == a)
+        guard case .restoredFromBackup = r.recovery else { Issue.record("wrong recovery"); return }
+    }
+
+    @Test func missingMainRestoresValidBackup() throws {
+        let dir = tempDir()
+        let a = sample("A")
+        let store = JSONFileStore(directory: dir, initial: initial)
+        try store.save(a)
+        try store.save(a)
+        try FileManager.default.removeItem(at: store.fileURL)
         let r = try store.load()
         #expect(r.library == a)
-        #expect(r.recovery != nil)
+        #expect(r.recovery == nil)
+        #expect(FileManager.default.fileExists(atPath: store.fileURL.path))
     }
 
     @Test func loadSanitizes() throws {

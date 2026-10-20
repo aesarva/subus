@@ -5,6 +5,7 @@ enum CSV {
     struct Record: Equatable {
         var line: Int          // 1-based file line where the record starts
         var fields: [String]
+        var unterminated = false
     }
 
     static func parse(_ text: String, separator: Character) -> [Record] {
@@ -52,7 +53,10 @@ enum CSV {
             }
             i += 1
         }
-        if pendingContent || !field.isEmpty { endRecord() }
+        if pendingContent || !field.isEmpty {
+            endRecord()
+            if inQuotes { records[records.count - 1].unterminated = true }
+        }
         return records
     }
 
