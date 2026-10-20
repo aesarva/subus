@@ -70,6 +70,49 @@ enum Snapshots {
         distant.subscriptions = [yearly]
         shot(distant, "quiet-light")
 
+        // All
+        func panel(_ model: AppModel, _ name: String, appearance: NSAppearance.Name = .aqua, maxHeight: CGFloat = 640,
+                   sheet: Bool = false, _ configure: (PanelState) -> Void) {
+            let state = PanelState()
+            state.notificationsBannerDismissed = true
+            state.maxHeight = maxHeight
+            configure(state)
+            render(PanelRoot(model: model, state: state, actions: PanelActions()), appearance: appearance,
+                   to: directory.appendingPathComponent("\(name)-\(language).png"),
+                   sheetTo: sheet ? directory.appendingPathComponent("\(name)-sheet-\(language).png") : nil)
+        }
+        panel(demo, "all-light") { $0.tab = .all }
+        panel(demo, "all-dark", appearance: .darkAqua) { $0.tab = .all }
+        panel(demo, "all-search-noresults-light") { $0.tab = .all; $0.search = "Disney" }
+        panel(demo, "all-search-net-light") { $0.tab = .all; $0.search = "net" }
+        let other = demo.library.categories.first { $0.name == String(localized: "Other") }?.id
+        panel(demo, "all-filter-empty-light") { $0.tab = .all; $0.categoryFilter = other }
+        let entertainment = demo.library.categories[1].id
+        panel(demo, "all-filter-light") { $0.tab = .all; $0.categoryFilter = entertainment }
+        panel(demo, "all-inactive-expanded-light", maxHeight: 900) { $0.tab = .all; $0.inactiveExpanded = true }
+        panel(demo, "all-selected-dark", appearance: .darkAqua) {
+            $0.tab = .all
+            $0.moveAllSelection(by: 1, in: AllTab.rows(demo, $0).order)
+            $0.moveAllSelection(by: 1, in: AllTab.rows(demo, $0).order)
+        }
+
+        // Card
+        func id(_ model: AppModel, _ name: String) -> UUID {
+            model.library.subscriptions.first { $0.name == name }!.id
+        }
+        panel(demo, "card-light", maxHeight: 900) { $0.card = id(demo, "Яндекс Плюс") }
+        panel(demo, "card-trial-dark", appearance: .darkAqua, maxHeight: 900) { $0.card = id(demo, "ChatGPT Plus") }
+        panel(demo, "card-noupcoming-light", maxHeight: 900) { $0.card = id(demo, "Notion") }
+        panel(demo, "card-ended-light", maxHeight: 900) { $0.card = id(demo, "Кинопоиск") }
+        panel(demo, "card-yearly-light", maxHeight: 900) { $0.card = id(demo, "1Password") }
+        panel(demo, "card-delete-confirm-light", maxHeight: 900, sheet: true) {
+            $0.card = id(demo, "Spotify")
+            $0.confirmingDelete = true
+        }
+        let refusing = model(PreviewSupport.demoLibrary(today: today), in: directory, failingSaves: true)
+        refusing.setActive(id(refusing, "Spotify"), false)
+        panel(refusing, "card-toggle-failed-light", maxHeight: 900) { $0.card = id(refusing, "Spotify") }
+
         print(directory.path)
     }
 
@@ -92,7 +135,7 @@ enum Snapshots {
     }
 
     /// Draws on the opaque ground the system gives the popover under Reduce Transparency.
-    private static func render(_ root: PanelRoot, appearance: NSAppearance.Name, to url: URL) {
+    private static func render(_ root: PanelRoot, appearance: NSAppearance.Name, to url: URL, sheetTo sheetURL: URL? = nil) {
         let dark = appearance == .darkAqua
         let host = NSHostingView(rootView: root.background(Color(hex: dark ? 0x1C1C1E : 0xF6F6F3)))
         host.appearance = NSAppearance(named: appearance)
@@ -107,15 +150,28 @@ enum Snapshots {
             window.setContentSize(NSSize(width: PanelRoot.width, height: size.height))
             RunLoop.main.run(until: Date().addingTimeInterval(0.15))
         }
-        let size = host.bounds.size
-        guard let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(size.width * 2),
+        write(host, to: url)
+        if let sheetURL {
+            if let sheet = window.attachedSheet, let content = sheet.contentView {
+                write(content, to: sheetURL)
+                window.endSheet(sheet)
+            } else {
+                print("no sheet attached for \(sheetURL.lastPathComponent)")
+            }
+        }
+        window.orderOut(nil)
+    }
+
+    private static func write(_ view: NSView, to url: URL) {
+        let size = view.bounds.size
+        guard size.width > 0, size.height > 0,
+              let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(size.width * 2),
                                          pixelsHigh: Int(size.height * 2), bitsPerSample: 8, samplesPerPixel: 4,
                                          hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB,
                                          bytesPerRow: 0, bitsPerPixel: 0) else { return }
         rep.size = size
-        host.cacheDisplay(in: host.bounds, to: rep)
+        view.cacheDisplay(in: view.bounds, to: rep)
         try? rep.representation(using: .png, properties: [:])?.write(to: url)
-        window.orderOut(nil)
     }
 }
 

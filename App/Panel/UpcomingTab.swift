@@ -65,6 +65,10 @@ struct UpcomingTab: View {
             .onChange(of: state.selection) { _, key in
                 if let key { proxy.scrollTo(key) }
             }
+            // Back from a card: the row it was opened from comes into view again.
+            .onAppear {
+                if let key = state.selection { proxy.scrollTo(key) }
+            }
             .onChange(of: state.stationHover) { _, keys in
                 if let key = groups.lazy.flatMap(\.items).first(where: { keys.contains($0.id) })?.id {
                     proxy.scrollTo(key)

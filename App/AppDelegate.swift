@@ -38,8 +38,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             onSettings: onSettings
         )
         panel = PanelController(model: model, anchor: { [weak self] in self?.statusItem.button },
-                                onAdd: onAdd, onSettings: onSettings)
+                                onAdd: onAdd, onSettings: onSettings,
+                                onEdit: { [log] id in log.info("edit subscription \(id, privacy: .private)") })
         refreshStatusItem()
+        observeOpenRequests()
 
         #if DEBUG
         let args = Self.launchArgs
@@ -87,6 +89,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             notifier: notifier,
             logosDirectory: logos
         )
+    }
+
+    /// A notification click asks for a subscription: the panel opens on its card and the request is spent.
+    private func observeOpenRequests() {
+        let id = withObservationTracking {
+            model.openSubscriptionRequest
+        } onChange: { [weak self] in
+            Task { @MainActor in self?.observeOpenRequests() }
+        }
+        guard let id else { return }
+        panel.show(subscription: id)
+        model.openSubscriptionRequest = nil
     }
 
     /// Re-runs whenever the observed model state changes.

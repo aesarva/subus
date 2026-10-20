@@ -15,7 +15,8 @@ enum PanelTab: String, CaseIterable {
     }
 }
 
-/// Panel state that outlives one opening: the tab, the selection, hover and session-dismissed banners.
+/// Panel state that outlives one opening: the tab, the selection, hover, the All tab's filters,
+/// the pushed card and session-dismissed banners.
 @MainActor @Observable
 final class PanelState {
     var tab: PanelTab = .upcoming
@@ -25,6 +26,19 @@ final class PanelState {
     var notificationsBannerDismissed = false
     /// The screen's visible height − 80, set on every opening.
     var maxHeight: CGFloat = 640
+
+    // All tab
+    var search = ""
+    /// nil shows every category.
+    var categoryFilter: UUID?
+    var inactiveExpanded = false
+    var allSelection: UUID?
+    var allHover: UUID?
+    @ObservationIgnored weak var searchField: NSSearchField?
+
+    /// The subscription whose card is pushed over the tab.
+    var card: UUID?
+    var confirmingDelete = false
 
     /// After a key moves the selection, hover is ignored until the pointer really moves:
     /// rows scrolling under a resting pointer must not steal the lift back.
@@ -37,6 +51,9 @@ final class PanelState {
         return selection.map { [$0] } ?? []
     }
 
+    /// The lifted row on All.
+    var allFocus: UUID? { allHover ?? allSelection }
+
     func hoverStation(_ keys: Set<ChargeKey>, inside: Bool) {
         guard !pointerQuiet else { return }
         if inside { if stationHover != keys { stationHover = keys } } else if stationHover == keys { stationHover = [] }
@@ -45,6 +62,11 @@ final class PanelState {
     func hoverRow(_ key: ChargeKey, inside: Bool) {
         guard !pointerQuiet else { return }
         if inside { if rowHover != key { rowHover = key } } else if rowHover == key { rowHover = nil }
+    }
+
+    func hoverAllRow(_ id: UUID, inside: Bool) {
+        guard !pointerQuiet else { return }
+        if inside { if allHover != id { allHover = id } } else if allHover == id { allHover = nil }
     }
 
     /// Called for real mouse movement (not for content scrolling under the pointer).
@@ -57,13 +79,54 @@ final class PanelState {
         let current = selection.flatMap { keys.firstIndex(of: $0) }
         let next = current.map { min(max($0 + step, 0), keys.count - 1) } ?? (step > 0 ? 0 : keys.count - 1)
         selection = keys[next]
-        clearPointer()
-        pointerQuiet = true
+        quietPointer()
+    }
+
+    func moveAllSelection(by step: Int, in ids: [UUID]) {
+        guard !ids.isEmpty else { return }
+        let current = allSelection.flatMap { ids.firstIndex(of: $0) }
+        let next = current.map { min(max($0 + step, 0), ids.count - 1) } ?? (step > 0 ? 0 : ids.count - 1)
+        allSelection = ids[next]
+        quietPointer()
+    }
+
+    /// Pushes the card; the row it came from becomes the selection, so leaving the card returns to it.
+    func openCard(_ id: UUID, upcomingKeys: [ChargeKey]) {
+        switch tab {
+        case .upcoming:
+            if selection?.subscriptionID != id {
+                selection = rowHover?.subscriptionID == id ? rowHover : upcomingKeys.first { $0.subscriptionID == id }
+            }
+        case .all:
+            allSelection = id
+        case .spending:
+            break
+        }
+        confirmingDelete = false
+        card = id
+        quietPointer()
+    }
+
+    /// Pops the card back to its tab; a deleted subscription leaves nothing selected.
+    func closeCard(deleted: Bool = false) {
+        if deleted, let id = card {
+            if selection?.subscriptionID == id { selection = nil }
+            if allSelection == id { allSelection = nil }
+        }
+        confirmingDelete = false
+        card = nil
+        quietPointer()
     }
 
     func clearPointer() {
         rowHover = nil
         stationHover = []
+        allHover = nil
+    }
+
+    private func quietPointer() {
+        clearPointer()
+        pointerQuiet = true
     }
 }
 
@@ -71,9 +134,15 @@ struct PanelActions {
     var onAdd: () -> Void = {}
     var onSettings: () -> Void = {}
     var onOpen: (UUID) -> Void = { _ in }
+    var onEdit: (UUID) -> Void = { _ in }
+    /// After the card is popped: the panel takes keyboard focus back from the card's controls.
+    var onBack: () -> Void = {}
+    /// The delete confirmation is up: the panel must not close when it takes focus.
+    var onModal: (Bool) -> Void = { _ in }
 }
 
-/// The menu-bar panel: tabs, banners, the tab's pinned head and scrolling body, and the pinned footer.
+/// The menu-bar panel: tabs, banners, the tab's pinned head and scrolling body, and the pinned footer;
+/// or, pushed over them, a subscription's card.
 struct PanelRoot: View {
     nonisolated static let width: CGFloat = 360
 
@@ -83,19 +152,38 @@ struct PanelRoot: View {
 
     var body: some View {
         CappedColumn(maxHeight: state.maxHeight) {
-            TabSwitcher(selection: $state.tab)
-            ForEach(banners.prefix(2)) { $0 }
-            switch state.tab {
-            case .upcoming:
-                UpcomingTab(model: model, state: state, actions: actions)
-            case .all, .spending:
-                PanelEmptyState(systemImage: "hammer", title: String(localized: "Coming soon"), message: nil,
-                                actionTitle: nil, action: nil)
+            if let subscription = cardSubscription {
+                CardBackBar(onBack: { back() })
+                ForEach(banners.prefix(2)) { $0 }
+                SubscriptionCard(model: model, state: state, subscription: subscription, actions: actions,
+                                 onDeleted: { back(deleted: true) })
+            } else {
+                TabSwitcher(selection: $state.tab)
+                ForEach(banners.prefix(2)) { $0 }
+                switch state.tab {
+                case .upcoming:
+                    UpcomingTab(model: model, state: state, actions: actions)
+                case .all:
+                    AllTab(model: model, state: state, actions: actions)
+                case .spending:
+                    PanelEmptyState(systemImage: "hammer", title: String(localized: "Coming soon"), message: nil,
+                                    actionTitle: nil, action: nil)
+                }
+                PanelFooter(total: model.library.subscriptions.count, inactive: inactiveCount,
+                            onAdd: actions.onAdd, onSettings: actions.onSettings)
             }
-            PanelFooter(total: model.library.subscriptions.count, inactive: inactiveCount,
-                        onAdd: actions.onAdd, onSettings: actions.onSettings)
         }
         .frame(width: Self.width)
+        .onChange(of: state.confirmingDelete) { _, presented in actions.onModal(presented) }
+    }
+
+    private var cardSubscription: Subscription? {
+        state.card.flatMap { id in model.library.subscriptions.first { $0.id == id } }
+    }
+
+    private func back(deleted: Bool = false) {
+        state.closeCard(deleted: deleted)
+        actions.onBack()
     }
 
     private var inactiveCount: Int {

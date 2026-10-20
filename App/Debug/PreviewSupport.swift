@@ -35,7 +35,7 @@ enum PreviewSupport {
                              category: work, method: revolut)
 
         var yandex = make("Яндекс Плюс", 299, "RUB", start: today.adding(days: 22).adding(months: -18),
-                          category: entertainment, method: bank)
+                          category: entertainment, method: bank, manage: "https://plus.yandex.ru/my")
         yandex.changePrice(to: Money(399, "RUB"), effectiveFrom: today.adding(days: -70))
 
         let youTube = make("YouTube Premium", 299, "RUB", start: next(in: 26, monthsBack: 11), category: entertainment, method: bank)

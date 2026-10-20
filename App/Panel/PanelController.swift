@@ -8,6 +8,7 @@ final class PanelController: NSObject, NSPopoverDelegate {
     private let anchor: () -> NSStatusBarButton?
     private let onAdd: () -> Void
     private let onSettings: () -> Void
+    private let onEdit: (UUID) -> Void
     private let state = PanelState()
     private let popover = NSPopover()
     private var host: NSHostingController<PanelRoot>!
@@ -19,16 +20,23 @@ final class PanelController: NSObject, NSPopoverDelegate {
     private var closedAt = Date.distantPast
 
     init(model: AppModel, anchor: @escaping () -> NSStatusBarButton?,
-         onAdd: @escaping () -> Void, onSettings: @escaping () -> Void) {
+         onAdd: @escaping () -> Void, onSettings: @escaping () -> Void, onEdit: @escaping (UUID) -> Void) {
         self.model = model
         self.anchor = anchor
         self.onAdd = onAdd
         self.onSettings = onSettings
+        self.onEdit = onEdit
         super.init()
         let actions = PanelActions(
             onAdd: { [weak self] in self?.onAdd() },
             onSettings: { [weak self] in self?.onSettings() },
-            onOpen: { [weak self] id in self?.show(subscription: id) })
+            onOpen: { [weak self] id in self?.show(subscription: id) },
+            onEdit: { [weak self] id in self?.onEdit(id) },
+            onBack: { [weak self] in self?.focusContent() },
+            onModal: { [weak self] presented in
+                // The confirmation sheet takes focus; a transient popover would close under it.
+                self?.popover.behavior = presented ? .applicationDefined : .transient
+            })
         host = NSHostingController(rootView: PanelRoot(model: model, state: state, actions: actions))
         // The hosting controller publishes the SwiftUI ideal size as preferredContentSize,
         // and the popover's contentSize follows it as the content changes.
@@ -49,13 +57,24 @@ final class PanelController: NSObject, NSPopoverDelegate {
         }
     }
 
-    /// Opens the panel; the subscription card arrives with Task 17, until then the charge is selected.
+    /// Opens the panel, on the subscription's card when there is one.
     func show(subscription id: UUID?) {
-        if !popover.isShown { open() }
-        guard let id, state.selection?.subscriptionID != id else { return }
-        if let key = UpcomingTab.keys(model).first(where: { $0.subscriptionID == id }) {
-            state.selection = key
+        if let id, model.library.subscriptions.contains(where: { $0.id == id }) {
+            state.openCard(id, upcomingKeys: UpcomingTab.keys(model))
         }
+        // Pushed before opening, so the first frame already has the card's height.
+        if popover.isShown { focusContent() } else { open() }
+    }
+
+    /// The content view takes the keyboard back, e.g. from the search field or a card's control.
+    private func focusContent() {
+        guard let window = host.view.window else { return }
+        window.makeFirstResponder(host.view)
+    }
+
+    private func back() {
+        state.closeCard()
+        focusContent()
     }
 
     func close() {
@@ -91,6 +110,10 @@ final class PanelController: NSObject, NSPopoverDelegate {
     func popoverDidClose(_ notification: Notification) {
         closedAt = Date()
         state.clearPointer()
+        // The next opening starts on the tab, with an empty search.
+        state.closeCard()
+        state.search = ""
+        popover.behavior = .transient
         removeMonitors()
     }
 
@@ -100,6 +123,7 @@ final class PanelController: NSObject, NSPopoverDelegate {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             let key = Key(code: event.keyCode,
                           modifiers: event.modifierFlags.intersection([.command, .shift, .option, .control]),
+                          characters: event.characters,
                           windowNumber: event.windowNumber)
             let consumed = MainActor.assumeIsolated { self?.handle(key) ?? false }
             return consumed ? nil : event
@@ -126,6 +150,7 @@ final class PanelController: NSObject, NSPopoverDelegate {
     private struct Key: Sendable {
         let code: UInt16
         let modifiers: NSEvent.ModifierFlags
+        let characters: String?
         let windowNumber: Int
     }
 
@@ -140,22 +165,92 @@ final class PanelController: NSObject, NSPopoverDelegate {
             default: return false
             }
         }
-        // Text fields (the search on All) keep their own arrows, Return and Escape.
-        guard key.modifiers.isEmpty, !(window.firstResponder is NSText) else { return false }
+        if let field = state.searchField, field.currentEditor() != nil, window.firstResponder === field.currentEditor() {
+            return handleInSearch(key, field: field)
+        }
+        // Other text fields keep their own arrows, Return and Escape.
+        guard !(window.firstResponder is NSText) else { return false }
+        if key.modifiers.isEmpty {
+            switch key.code {
+            case 53: // Escape
+                if state.card != nil { back() } else { close() }
+                return true
+            case 125, 126: // ↓ ↑
+                return moveSelection(by: key.code == 125 ? 1 : -1)
+            case 36, 76: // Return, Enter
+                return openSelection()
+            default:
+                break
+            }
+        }
+        // Typing on All goes to the search field, starting with the key just pressed.
+        if state.tab == .all, state.card == nil, key.modifiers.isSubset(of: [.shift, .option]),
+           let text = key.characters, Self.isPrintable(text) {
+            return type(text)
+        }
+        return false
+    }
+
+    /// In the search field ↑/↓ and Return reach the list; Esc clears the search, and on an empty one closes the panel.
+    private func handleInSearch(_ key: Key, field: NSSearchField) -> Bool {
+        guard key.modifiers.isEmpty else { return false }
         switch key.code {
-        case 53: // Escape
-            close()
+        case 53:
+            if field.stringValue.isEmpty {
+                close()
+            } else {
+                // Cleared in the field editor too, so the field keeps the focus for the next Esc.
+                field.currentEditor()?.string = ""
+                field.stringValue = ""
+                state.search = ""
+            }
             return true
-        case 125, 126: // ↓ ↑
-            guard state.tab == .upcoming else { return false }
-            state.moveSelection(by: key.code == 125 ? 1 : -1, in: UpcomingTab.keys(model))
-            return true
-        case 36, 76: // Return, Enter
-            guard state.tab == .upcoming, let selection = state.selection else { return false }
-            show(subscription: selection.subscriptionID)
-            return true
+        case 125, 126:
+            return moveSelection(by: key.code == 125 ? 1 : -1)
+        case 36, 76:
+            if state.allSelection == nil { state.allSelection = AllTab.rows(model, state).order.first }
+            return openSelection()
         default:
             return false
+        }
+    }
+
+    private func moveSelection(by step: Int) -> Bool {
+        guard state.card == nil else { return false }
+        switch state.tab {
+        case .upcoming: state.moveSelection(by: step, in: UpcomingTab.keys(model))
+        case .all: state.moveAllSelection(by: step, in: AllTab.rows(model, state).order)
+        case .spending: return false
+        }
+        return true
+    }
+
+    private func openSelection() -> Bool {
+        guard state.card == nil else { return false }
+        let id: UUID? = switch state.tab {
+        case .upcoming: state.selection?.subscriptionID
+        case .all: state.allSelection.flatMap { AllTab.rows(model, state).order.contains($0) ? $0 : nil }
+        case .spending: nil
+        }
+        guard let id else { return false }
+        show(subscription: id)
+        return true
+    }
+
+    private func type(_ text: String) -> Bool {
+        guard let field = state.searchField, let window = host.view.window, window.makeFirstResponder(field),
+              let editor = field.currentEditor() as? NSTextView else { return false }
+        let end = NSRange(location: (editor.string as NSString).length, length: 0)
+        editor.setSelectedRange(end)
+        editor.insertText(text, replacementRange: end)
+        return true
+    }
+
+    /// Letters, digits, punctuation and symbols; not whitespace alone, control or function keys (arrows, F-keys).
+    private static func isPrintable(_ text: String) -> Bool {
+        guard !text.isEmpty, !text.allSatisfy(\.isWhitespace) else { return false }
+        return text.unicodeScalars.allSatisfy { scalar in
+            !CharacterSet.controlCharacters.contains(scalar) && !(0xF700...0xF8FF).contains(scalar.value)
         }
     }
 }

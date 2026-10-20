@@ -174,7 +174,7 @@ private struct StripRow: View {
             .frame(minHeight: 42)
             .contentShape(Rectangle())
         }
-        .buttonStyle(StripRowButtonStyle())
+        .buttonStyle(PlainRowButtonStyle())
         .onContinuousHover { phase in
             switch phase {
             case .active: onHover(item.id, true)
@@ -241,6 +241,6 @@ struct TrialTag: View {
 }
 
 /// Renders the label as is: pressing never dims text.
-private struct StripRowButtonStyle: ButtonStyle {
+struct PlainRowButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View { configuration.label }
 }

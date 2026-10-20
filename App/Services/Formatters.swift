@@ -63,4 +63,41 @@ enum Formatters {
         case (.year, _): return String(localized: "\(n) years")
         }
     }
+
+    /// "RUB 399 / month", "$35.88 / year".
+    static func perCycle(_ m: Money, _ c: BillingCycle) -> String {
+        String(localized: "\(money(m)) / \(cycle(c))")
+    }
+
+    /// The cycle as VoiceOver reads it after an amount: "per month", "every 3 months".
+    static func spokenCycle(_ c: BillingCycle) -> String {
+        let n = c.count
+        switch (c.unit, n) {
+        case (.day, 1): return String(localized: "per day")
+        case (.week, 1): return String(localized: "per week")
+        case (.month, 1): return String(localized: "per month")
+        case (.year, 1): return String(localized: "per year")
+        case (.day, _): return String(localized: "every \(n) days")
+        case (.week, _): return String(localized: "every \(n) weeks")
+        case (.month, _): return String(localized: "every \(n) months")
+        case (.year, _): return String(localized: "every \(n) years")
+        }
+    }
+
+    /// "Nov 11", with the year when it is not this year's: "Apr 11, 2025".
+    static func date(_ d: LocalDate, today: LocalDate) -> String {
+        let calendar = Calendar.subus()
+        var style = Date.FormatStyle(locale: .current, calendar: calendar, timeZone: calendar.timeZone).day().month(.abbreviated)
+        if d.year != today.year { style = style.year() }
+        return d.date(hour: 12, minute: 0, calendar: calendar).formatted(style)
+    }
+
+    /// "Wed, Nov 11", with the year when it is not this year's.
+    static func shortDate(_ d: LocalDate, today: LocalDate) -> String {
+        guard d.year != today.year else { return shortDate(d) }
+        let calendar = Calendar.subus()
+        let style = Date.FormatStyle(locale: .current, calendar: calendar, timeZone: calendar.timeZone)
+            .weekday(.abbreviated).day().month(.abbreviated).year()
+        return d.date(hour: 12, minute: 0, calendar: calendar).formatted(style)
+    }
 }
