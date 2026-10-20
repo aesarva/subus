@@ -19,6 +19,7 @@ final class AppModel {
     @ObservationIgnored private var carriedCatchUps: [PlannedReminder] = []
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var rateTimer: Timer?
+    @ObservationIgnored private var ratesRefreshing = false
     @ObservationIgnored private(set) var replanCount = 0
 
     @ObservationIgnored private let store: SubscriptionStore
@@ -109,6 +110,7 @@ final class AppModel {
         rateTimer = Timer.scheduledTimer(withTimeInterval: 12 * 3600, repeats: true) { [weak self] _ in
             Task { @MainActor in await self?.refreshRatesIfNeeded() }
         }
+        rateTimer?.tolerance = 600
         replan()
         Task {
             await refreshAuthorization()
@@ -125,16 +127,20 @@ final class AppModel {
 
     @discardableResult
     func save(_ s: Subscription) -> Bool {
-        let ok = commit(justSaved: [s.id]) { $0.upsert(s) }
-        if ok { Task { await requestAuthorizationIfNeeded() } }
+        let old = library
+        let ok = commit(justSaved: Self.changedIDs(from: old, to: library.upserting(s))) { $0.upsert(s) }
+        if ok {
+            removeLogoFiles(from: old)
+            Task { await requestAuthorizationIfNeeded() }
+        }
         return ok
     }
 
     @discardableResult
     func delete(_ id: UUID) -> Bool {
-        let logo = library.subscriptions.first { $0.id == id }?.logo
+        let old = library
         guard commit(mutating: { $0.remove(subscriptionID: id) }) else { return false }
-        if let logo { removeLogoFileIfUnused(logo) }
+        removeLogoFiles(from: old)
         return true
     }
 
@@ -153,8 +159,9 @@ final class AppModel {
 
     @discardableResult
     func replaceLibrary(_ l: Library) -> Bool {
-        let ok = commit(justSaved: Set(l.subscriptions.map(\.id))) { $0 = l }
-        if ok { removeUnusedLogoFiles() }
+        let old = library
+        let ok = commit(justSaved: Self.changedIDs(from: old, to: l)) { $0 = l }
+        if ok { removeLogoFiles(from: old) }
         return ok
     }
 
@@ -178,43 +185,45 @@ final class AppModel {
         return true
     }
 
-    private func removeLogoFileIfUnused(_ logo: Logo) {
-        guard let logosDirectory else { return }
-        switch logo {
-        case .image(let name), .siteIcon(let name):
-            guard Logo.isSafeFileName(name), !library.subscriptions.contains(where: { $0.logo == logo }) else { return }
-            try? FileManager.default.removeItem(at: logosDirectory.appendingPathComponent(name))
-        case .monogram:
-            break
-        }
-    }
-
-    private func removeUnusedLogoFiles() {
-        guard let logosDirectory,
-              let files = try? FileManager.default.contentsOfDirectory(atPath: logosDirectory.path) else { return }
-        let used = Set(library.subscriptions.compactMap { s -> String? in
+    private static func logoFileNames(_ library: Library) -> Set<String> {
+        Set(library.subscriptions.compactMap { s -> String? in
             switch s.logo {
             case .image(let name), .siteIcon(let name): name
             case .monogram: nil
             }
         })
-        for name in files where Logo.isSafeFileName(name) && !used.contains(name) {
+    }
+
+    /// Deletes logo files the old library referenced and the current one no longer does.
+    private func removeLogoFiles(from old: Library) {
+        guard let logosDirectory else { return }
+        let stale = Self.logoFileNames(old).subtracting(Self.logoFileNames(library))
+        for name in stale where Logo.isSafeFileName(name) {
             try? FileManager.default.removeItem(at: logosDirectory.appendingPathComponent(name))
         }
     }
 
-    func dismissRecovery() { recovery = nil }
+    private static func changedIDs(from old: Library, to new: Library) -> Set<UUID> {
+        let before = Dictionary(old.subscriptions.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        return Set(new.subscriptions.filter { before[$0.id] != $0 }.map(\.id))
+    }
 
     // MARK: Reminders
 
     func replan(justSaved: Set<UUID> = []) {
+        if unreadableMessage != nil {
+            remindersLog.info("Replan skipped: data is unreadable")
+            return
+        }
         let plan = ReminderPlanner.plan(library: library, settings: settings, now: now(), calendar: .subus(),
                                         justSaved: justSaved, carriedCatchUps: carriedCatchUps)
         carriedCatchUps = plan.filter(\.isCatchUp)
         replanCount += 1
         remindersLog.info("Replan #\(self.replanCount): \(plan.count) reminders")
         let library = library
-        Task { await notifier.replaceAll(plan, library: library) }
+        let token = notifier.nextReplaceToken()
+        let date = now()
+        Task { await notifier.replaceAll(plan, library: library, now: date, token: token) }
     }
 
     func refreshAuthorization() async {
@@ -233,14 +242,26 @@ final class AppModel {
     // MARK: Rates
 
     func refreshRatesIfNeeded() async {
-        guard RateRefreshPolicy.needsRefresh(cached: rates, now: now()) else { return }
+        guard !ratesRefreshing, RateRefreshPolicy.needsRefresh(cached: rates, now: now()) else { return }
+        ratesRefreshing = true
+        defer { ratesRefreshing = false }
         do {
             let table = try await rateProvider.fetchRates()
             rates = table
-            try rateCache.save(table)
             ratesLog.info("Rates updated for \(table.date.iso, privacy: .public)")
+            do { try rateCache.save(table) } catch {
+                ratesLog.error("Rates cache write failed: \(error.localizedDescription, privacy: .public)")
+            }
         } catch {
             ratesLog.error("Rates refresh failed: \(error.localizedDescription, privacy: .public)")
         }
+    }
+}
+
+private extension Library {
+    func upserting(_ s: Subscription) -> Library {
+        var copy = self
+        copy.upsert(s)
+        return copy
     }
 }

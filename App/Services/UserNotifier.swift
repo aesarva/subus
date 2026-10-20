@@ -59,17 +59,20 @@ final class UserNotifier: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    func replaceAll(_ reminders: [PlannedReminder], library: Library) async {
-        guard let center else { return }
+    /// Taken synchronously when a replan is requested, so the newest request always wins.
+    func nextReplaceToken() -> Int {
         generation += 1
-        let mine = generation
+        return generation
+    }
+
+    func replaceAll(_ reminders: [PlannedReminder], library: Library, now: Date, token mine: Int) async {
+        guard let center else { return }
         let pending = await center.pendingNotificationRequests()
         guard mine == generation else { return }
         center.removePendingNotificationRequests(
             withIdentifiers: pending.map(\.identifier).filter { $0.contains(Self.ourMarker) })
 
         let calendar = Calendar.subus()
-        let now = Date()
         for reminder in reminders {
             guard let subscription = library.subscriptions.first(where: { $0.id == reminder.subscriptionID }) else { continue }
             let content = UNMutableNotificationContent()
@@ -130,7 +133,7 @@ final class UserNotifier: NSObject, UNUserNotificationCenterDelegate {
         case .charge:
             var text: String
             switch d {
-            case 0: text = String(localized: "Charged today · \(amount)")
+            case 0: text = String(localized: "Charge today · \(amount)")
             case 1: text = String(localized: "Charge tomorrow · \(amount)")
             default: text = String(localized: "Charge in \(d) days · \(amount)")
             }

@@ -374,12 +374,12 @@
         }
       }
     },
-    "Charged today · %@": {
+    "Charge today · %@": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Списано сегодня · %@"
+            "value": "Списание сегодня · %@"
           }
         }
       }

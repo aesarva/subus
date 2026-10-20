@@ -20,7 +20,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         model = makeModel()
-        notifier.onOpen = { [model] id in model?.openSubscriptionRequest = id }
+        notifier.onOpen = { [weak model] id in model?.openSubscriptionRequest = id }
 
         statusItem = StatusItemController(
             onTogglePanel: { [log] in log.info("toggle panel") },
@@ -44,17 +44,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func makeModel() -> AppModel {
-        let base = (try? FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
-                                                 appropriateFor: nil, create: true))
-            ?? FileManager.default.temporaryDirectory
+        let settingsStore = SettingsStore(storage: UserDefaultsSettingsStorage(), locale: .current)
+        let rateProvider = CBRRateProvider(http: URLSessionHTTPClient())
+        let base: URL
+        do {
+            base = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
+                                               appropriateFor: nil, create: true)
+        } catch {
+            log.fault("Application Support is unavailable: \(error.localizedDescription, privacy: .public)")
+            return AppModel(store: UnavailableStore(), settingsStore: settingsStore, rateProvider: rateProvider,
+                            rateCache: RateCache(fileURL: URL(fileURLWithPath: "/dev/null/rates.json")),
+                            notifier: notifier)
+        }
         let directory = base.appendingPathComponent("Subus", isDirectory: true)
         let logos = directory.appendingPathComponent("Logos", isDirectory: true)
-        try? FileManager.default.createDirectory(at: logos, withIntermediateDirectories: true)
+        do {
+            try FileManager.default.createDirectory(at: logos, withIntermediateDirectories: true)
+        } catch {
+            log.error("Could not create data directory: \(error.localizedDescription, privacy: .public)")
+        }
         return AppModel(
             store: JSONFileStore(directory: directory,
                                  initial: { Library.initial(categoryNames: AppModel.defaultCategoryNames()) }),
-            settingsStore: SettingsStore(storage: UserDefaultsSettingsStorage(), locale: .current),
-            rateProvider: CBRRateProvider(http: URLSessionHTTPClient()),
+            settingsStore: settingsStore,
+            rateProvider: rateProvider,
             rateCache: RateCache(fileURL: directory.appendingPathComponent("rates.json")),
             notifier: notifier,
             logosDirectory: logos
@@ -75,4 +88,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let label = String(localized: "Subus, next charge \(Formatters.relativeDays(days)): \(state.1 ?? "")")
         statusItem.update(counterText: Formatters.counter(days), accent: days <= 1, accessibilityLabel: label)
     }
+}
+
+/// Stands in when there is no data directory: loading fails, so the model blocks every write.
+private struct UnavailableStore: SubscriptionStore {
+    struct Unavailable: Error {}
+    func load() throws -> LoadResult { throw Unavailable() }
+    func save(_ library: Library) throws { throw Unavailable() }
 }

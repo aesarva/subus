@@ -24,12 +24,15 @@ final class StatusItemController {
     /// `nil` counter text shows the glyph alone.
     func update(counterText: String?, accent: Bool, accessibilityLabel: String? = nil) {
         guard let button = item.button else { return }
-        button.image = MenuBarIcon.image(accent: accent)
+        button.image = MenuBarIcon.image()
         if let counterText {
             button.attributedTitle = NSAttributedString(
                 string: " " + counterText,
-                attributes: [.font: NSFont.monospacedDigitSystemFont(
-                    ofSize: NSFont.systemFontSize, weight: accent ? .semibold : .regular)]
+                attributes: [
+                    .font: NSFont.monospacedDigitSystemFont(
+                        ofSize: NSFont.systemFontSize, weight: accent ? .semibold : .regular),
+                    .foregroundColor: accent ? Brand.accent : NSColor.labelColor,
+                ]
             )
             button.imagePosition = .imageLeading
         } else {
