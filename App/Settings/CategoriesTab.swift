@@ -15,21 +15,20 @@ struct CategoriesTab: View {
             onRename: { id, name in edit { l in
                 if let i = l.categories.firstIndex(where: { $0.id == id }) { l.categories[i].name = name }
             } },
-            onRecolor: { id, color in edit { l in
+            onRecolor: { id, color in _ = edit { l in
                 if let i = l.categories.firstIndex(where: { $0.id == id }) { l.categories[i].colorIndex = color }
             } },
-            onDelete: { id in edit { $0.removeCategory(id) } },
+            onDelete: { id in _ = edit { $0.removeCategory(id) } },
             onAdd: {
-                edit { l in
+                _ = edit { l in
                     l.categories.append(Category(name: String(localized: "New category"),
                                                  colorIndex: l.categories.count % Category.paletteCount))
                 }
             })
     }
 
-    private func edit(_ change: (inout Library) -> Void) {
-        var copy = model.library
-        change(&copy)
-        error = model.replaceLibrary(copy) ? nil : model.saveError
+    private func edit(_ change: (inout Library) -> Void) -> Bool {
+        error = model.editLibrary(change)
+        return error == nil
     }
 }

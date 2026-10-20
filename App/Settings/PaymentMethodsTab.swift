@@ -15,21 +15,20 @@ struct PaymentMethodsTab: View {
             onRename: { id, name in edit { l in
                 if let i = l.paymentMethods.firstIndex(where: { $0.id == id }) { l.paymentMethods[i].label = name }
             } },
-            onRecolor: { id, color in edit { l in
+            onRecolor: { id, color in _ = edit { l in
                 if let i = l.paymentMethods.firstIndex(where: { $0.id == id }) { l.paymentMethods[i].colorIndex = color }
             } },
-            onDelete: { id in edit { $0.removePaymentMethod(id) } },
+            onDelete: { id in _ = edit { $0.removePaymentMethod(id) } },
             onAdd: {
-                edit { l in
+                _ = edit { l in
                     l.paymentMethods.append(PaymentMethod(label: String(localized: "New payment method"),
                                                           colorIndex: l.paymentMethods.count % Category.paletteCount))
                 }
             })
     }
 
-    private func edit(_ change: (inout Library) -> Void) {
-        var copy = model.library
-        change(&copy)
-        error = model.replaceLibrary(copy) ? nil : model.saveError
+    private func edit(_ change: (inout Library) -> Void) -> Bool {
+        error = model.editLibrary(change)
+        return error == nil
     }
 }

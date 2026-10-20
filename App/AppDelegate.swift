@@ -18,6 +18,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func newSubscription() { editor?.open(editing: nil) }
     @objc func openSettings() { settings?.show() }
 
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard settings?.isOpen == true else { return .terminateNow }
+        // Lets a rename still being typed commit before the app goes.
+        settings.commitEditing()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { NSApp.reply(toApplicationShouldTerminate: true) }
+        return .terminateLater
+    }
+
     func applicationWillFinishLaunching(_ notification: Notification) {
         guard Bundle.main.bundleIdentifier != nil else { return }
         UNUserNotificationCenter.current().delegate = notifier

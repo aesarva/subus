@@ -36,6 +36,13 @@ struct SettingsView: View {
 }
 
 extension AppModel {
+    /// Applies an edit to a copy of the library (no catch-up reminders); returns the error text on failure.
+    func editLibrary(_ change: (inout Library) -> Void) -> String? {
+        var copy = library
+        change(&copy)
+        return replaceLibrary(copy, justSaved: []) ? nil : (saveError ?? String(localized: "Couldn't save changes."))
+    }
+
     /// Writes one settings change; every change replans the reminders.
     func update(_ change: (inout AppSettings) -> Void) {
         var copy = settings

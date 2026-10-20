@@ -5,6 +5,8 @@ import SwiftUI
 struct NotificationsTab: View {
     let model: AppModel
     let notifier: UserNotifier
+    @State private var time = Date()
+    @State private var commit: Task<Void, Never>?
 
     var body: some View {
         Form {
@@ -14,7 +16,7 @@ struct NotificationsTab: View {
                     addMenu
                 }
                 .padding(.vertical, 2)
-                DatePicker("Time", selection: timeBinding, displayedComponents: .hourAndMinute)
+                DatePicker("Time", selection: $time, displayedComponents: .hourAndMinute)
             }
 
             Section {
@@ -40,6 +42,9 @@ struct NotificationsTab: View {
         }
         .formStyle(.grouped)
         .scrollDisabled(true)
+        .onAppear { time = timeDate() }
+        .onChange(of: time) { _, _ in scheduleCommit() }
+        .onDisappear(perform: commitTime)
         .task { await model.refreshAuthorization() }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             Task { await model.refreshAuthorization() }
@@ -84,16 +89,25 @@ struct NotificationsTab: View {
         days == 0 ? String(localized: "On the day") : String(localized: "\(days) days before")
     }
 
-    private var timeBinding: Binding<Date> {
-        let calendar = Calendar.subus()
-        return Binding {
-            calendar.date(from: DateComponents(hour: model.settings.reminderHour, minute: model.settings.reminderMinute)) ?? Date()
-        } set: { date in
-            let parts = calendar.dateComponents([.hour, .minute], from: date)
-            model.update {
-                $0.reminderHour = parts.hour ?? $0.reminderHour
-                $0.reminderMinute = parts.minute ?? $0.reminderMinute
-            }
+    private func timeDate() -> Date {
+        Calendar.subus().date(from: DateComponents(hour: model.settings.reminderHour, minute: model.settings.reminderMinute)) ?? Date()
+    }
+
+    /// Typing digits in the picker changes the time many times; one replan follows the last change.
+    private func scheduleCommit() {
+        commit?.cancel()
+        commit = Task {
+            try? await Task.sleep(for: .milliseconds(500))
+            if !Task.isCancelled { commitTime() }
+        }
+    }
+
+    private func commitTime() {
+        commit?.cancel()
+        let parts = Calendar.subus().dateComponents([.hour, .minute], from: time)
+        model.update {
+            $0.reminderHour = parts.hour ?? $0.reminderHour
+            $0.reminderMinute = parts.minute ?? $0.reminderMinute
         }
     }
 

@@ -187,7 +187,7 @@ enum Snapshots {
 
     private static func renderWindow<Content: View>(_ content: Content, width: CGFloat, appearance: NSAppearance.Name,
                                                     to url: URL) {
-        let host = NSHostingView(rootView: content)
+        let host = NSHostingView(rootView: content.background(Color(nsColor: .windowBackgroundColor)))
         host.appearance = NSAppearance(named: appearance)
         let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: width, height: 400),
                               styleMask: [.titled, .closable], backing: .buffered, defer: false)

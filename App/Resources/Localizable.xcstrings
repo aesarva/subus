@@ -3455,6 +3455,36 @@
           }
         }
       }
+    },
+    "Couldn't restart Subus. Quit and open it again.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось перезапустить Subus. Завершите его и откройте снова."
+          }
+        }
+      }
+    },
+    "Couldn't change Open at login.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось изменить автозапуск."
+          }
+        }
+      }
+    },
+    "Couldn't save changes.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось сохранить изменения."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

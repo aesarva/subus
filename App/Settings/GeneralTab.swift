@@ -7,12 +7,15 @@ import SwiftUI
 @MainActor @Observable
 final class LoginItemModel {
     private(set) var state = LoginItem.state
+    private(set) var failed = false
     private let log = Logger(subsystem: "io.github.aesarva.Subus", category: "ui")
 
     func refresh() { state = LoginItem.state }
 
     func set(_ on: Bool) {
+        failed = false
         do { try LoginItem.setEnabled(on) } catch {
+            failed = true
             log.error("Open at login failed: \(error.localizedDescription, privacy: .public)")
         }
         refresh()
@@ -34,6 +37,9 @@ struct GeneralTab: View {
             Section {
                 Toggle("Open at login", isOn: Binding(get: { login.state == .enabled }, set: { login.set($0) }))
                     .disabled(login.state == .unavailable)
+                if login.failed {
+                    Text("Couldn't change Open at login.").font(.callout).foregroundStyle(.red)
+                }
                 switch login.state {
                 case .requiresApproval:
                     HStack {
@@ -52,6 +58,9 @@ struct GeneralTab: View {
             Section {
                 Picker("Language", selection: $language.selection) {
                     ForEach(LanguageSetting.allCases, id: \.self) { Text($0.title).tag($0) }
+                }
+                if language.restartFailed {
+                    Text("Couldn't restart Subus. Quit and open it again.").font(.callout).foregroundStyle(.red)
                 }
                 if language.needsRestart {
                     HStack {

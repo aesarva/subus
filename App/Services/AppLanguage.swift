@@ -30,21 +30,27 @@ extension LanguageSetting {
     }
 }
 
+/// What this process launched with; the UI shows it until a restart.
+private let launchedLanguage = LanguageSetting.saved
+
 @MainActor @Observable final class LanguageModel {
-    /// What this process launched with; the UI shows it until a restart.
-    private let launched = LanguageSetting.saved
     var selection = LanguageSetting.saved {
         didSet { selection.save() }
     }
+    private(set) var restartFailed = false
 
-    var needsRestart: Bool { selection != launched }
+    var needsRestart: Bool { selection != launchedLanguage }
 
-    /// Starts a second instance, then quits, so macOS loads the chosen language.
+    /// Starts a second instance and quits only once it has launched, so a failure never ends the app.
     func restart() {
+        restartFailed = false
+        NSApp.keyWindow?.makeFirstResponder(nil)
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.createsNewApplicationInstance = true
-        NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL, configuration: configuration) { _, _ in
-            DispatchQueue.main.async { NSApp.terminate(nil) }
+        NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL, configuration: configuration) { _, error in
+            DispatchQueue.main.async { [self] in
+                if error == nil { NSApp.terminate(nil) } else { restartFailed = true }
+            }
         }
     }
 }

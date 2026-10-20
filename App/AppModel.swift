@@ -161,9 +161,9 @@ final class AppModel {
     }
 
     @discardableResult
-    func replaceLibrary(_ l: Library) -> Bool {
+    func replaceLibrary(_ l: Library, justSaved: Set<UUID>? = nil) -> Bool {
         let old = library
-        let ok = commit(justSaved: Self.changedIDs(from: old, to: l)) { $0 = l }
+        let ok = commit(justSaved: justSaved ?? Self.changedIDs(from: old, to: l)) { $0 = l }
         if ok { removeLogoFiles(from: old) }
         return ok
     }

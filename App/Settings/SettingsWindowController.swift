@@ -9,18 +9,26 @@ final class SettingsNavigation {
 }
 
 @MainActor
-final class SettingsWindowController {
+final class SettingsWindowController: NSObject, NSWindowDelegate {
     private let model: AppModel
     private let notifier: UserNotifier
     private let closePanel: () -> Void
     private let navigation = SettingsNavigation()
-    private var window: NSWindow?
+    private(set) var window: NSWindow?
 
     init(model: AppModel, notifier: UserNotifier, closePanel: @escaping () -> Void) {
         self.model = model
         self.notifier = notifier
         self.closePanel = closePanel
+        super.init()
     }
+
+    /// A name still being typed commits when the window goes away.
+    func windowWillClose(_ notification: Notification) { commitEditing() }
+
+    var isOpen: Bool { window?.isVisible ?? false }
+
+    func commitEditing() { window?.makeFirstResponder(nil) }
 
     func show() {
         closePanel()
@@ -34,6 +42,7 @@ final class SettingsWindowController {
             window.isReleasedWhenClosed = false
             window.center()
             self.window = window
+            window.delegate = self
         }
         NSApp.activate()
         window?.makeKeyAndOrderFront(nil)

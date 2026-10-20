@@ -24,43 +24,55 @@ final class DataController {
     // MARK: Export
 
     func exportJSON() {
-        guard let url = savePanel(ext: "json", type: .json) else { return }
-        do {
-            var logos: [String: Data] = [:]
-            if let directory = model.logosDirectory {
-                for s in model.library.subscriptions {
-                    switch s.logo {
-                    case .image(let name), .siteIcon(let name):
-                        if Logo.isSafeFileName(name), let data = try? Data(contentsOf: directory.appendingPathComponent(name)) {
-                            logos[name] = data
+        savePanel(ext: "json", type: .json) { [self] url in
+            do {
+                var logos: [String: Data] = [:]
+                if let directory = model.logosDirectory {
+                    for s in model.library.subscriptions {
+                        switch s.logo {
+                        case .image(let name), .siteIcon(let name):
+                            if Logo.isSafeFileName(name), let data = try? Data(contentsOf: directory.appendingPathComponent(name)) {
+                                logos[name] = data
+                            }
+                        case .monogram: break
                         }
-                    case .monogram: break
                     }
                 }
+                try Transfer.exportJSON(model.library, logos: logos).write(to: url, options: .atomic)
+                report(String(localized: "Exported to “\(url.lastPathComponent)”."))
+            } catch {
+                fail(String(localized: "Couldn't export: \(error.localizedDescription)"), error)
             }
-            try Transfer.exportJSON(model.library, logos: logos).write(to: url, options: .atomic)
-            report(String(localized: "Exported to “\(url.lastPathComponent)”."))
-        } catch {
-            fail(String(localized: "Couldn't export: \(error.localizedDescription)"), error)
         }
     }
 
     func exportCSV() {
-        guard let url = savePanel(ext: "csv", type: .commaSeparatedText) else { return }
-        do {
-            try Data(Transfer.exportCSV(model.library).utf8).write(to: url, options: .atomic)
-            report(String(localized: "Exported to “\(url.lastPathComponent)”."))
-        } catch {
-            fail(String(localized: "Couldn't export: \(error.localizedDescription)"), error)
+        savePanel(ext: "csv", type: .commaSeparatedText) { [self] url in
+            do {
+                try Data(Transfer.exportCSV(model.library).utf8).write(to: url, options: .atomic)
+                report(String(localized: "Exported to “\(url.lastPathComponent)”."))
+            } catch {
+                fail(String(localized: "Couldn't export: \(error.localizedDescription)"), error)
+            }
         }
     }
 
-    private func savePanel(ext: String, type: UTType) -> URL? {
+    private func savePanel(ext: String, type: UTType, completion: @escaping (URL) -> Void) {
         let panel = NSSavePanel()
         panel.allowedContentTypes = [type]
         panel.nameFieldStringValue = "Subus-\(Self.dateStamp()).\(ext)"
         panel.canCreateDirectories = true
-        return panel.runModal() == .OK ? panel.url : nil
+        panel.directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        present(panel) { if $0 == .OK, let url = panel.url { completion(url) } }
+    }
+
+    /// Sheet on the Settings window when there is one, so the panel can't hide behind it.
+    private func present(_ panel: NSSavePanel, completion: @escaping (NSApplication.ModalResponse) -> Void) {
+        if let window = NSApp.keyWindow {
+            panel.beginSheetModal(for: window, completionHandler: completion)
+        } else {
+            completion(panel.runModal())
+        }
     }
 
     static func dateStamp(_ date: Date = Date()) -> String {
@@ -74,7 +86,13 @@ final class DataController {
         panel.allowedContentTypes = [.json, .commaSeparatedText]
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
-        guard panel.runModal() == .OK, let url = panel.url else { return }
+        panel.directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        present(panel) { [self] response in
+            if response == .OK, let url = panel.url { read(url) }
+        }
+    }
+
+    private func read(_ url: URL) {
         do {
             let data = try Data(contentsOf: url)
             let preview: ImportPreview
@@ -99,33 +117,58 @@ final class DataController {
 
     func apply(_ item: PendingImport, mode: ImportMode) {
         pending = nil
-        let result = Transfer.apply(item.preview, to: model.library, mode: mode)
-        let written = writeLogos(result.logos)
+        var result = Transfer.apply(item.preview, to: model.library, mode: mode)
+        let (written, failedNames) = writeLogos(result.logos)
+        if !failedNames.isEmpty {
+            for i in result.library.subscriptions.indices {
+                switch result.library.subscriptions[i].logo {
+                case .image(let name), .siteIcon(let name):
+                    if failedNames.contains(name) { result.library.subscriptions[i].logo = .monogram(colorIndex: nil) }
+                case .monogram: break
+                }
+            }
+        }
         if model.replaceLibrary(result.library) {
             report(String(localized: "Imported \(item.preview.library.subscriptions.count) subscriptions."))
         } else {
-            for (url, previous) in written {
-                if let previous { try? previous.write(to: url, options: .atomic) } else { try? FileManager.default.removeItem(at: url) }
+            for file in written {
+                if let previous = file.previous {
+                    try? previous.write(to: file.url, options: .atomic)
+                } else if !file.existed {
+                    try? FileManager.default.removeItem(at: file.url)
+                }
             }
             fail(model.saveError ?? String(localized: "Couldn't import."), nil)
         }
     }
 
-    /// Returns each written file with the bytes it replaced (nil when it was new), so a failed import can undo them.
-    private func writeLogos(_ logos: [String: Data]) -> [(URL, Data?)] {
-        guard let directory = model.logosDirectory else { return [] }
-        var written: [(URL, Data?)] = []
-        for (name, data) in logos where Logo.isSafeFileName(name) {
+    private struct WrittenLogo {
+        var url: URL
+        var previous: Data?
+        var existed: Bool
+    }
+
+    /// Returns each written file with what it replaced (so a failed import can undo it), and the names that couldn't be written.
+    private func writeLogos(_ logos: [String: Data]) -> (written: [WrittenLogo], failed: Set<String>) {
+        var written: [WrittenLogo] = []
+        var failed = Set<String>()
+        for (name, data) in logos {
+            guard Logo.isSafeFileName(name), let directory = model.logosDirectory else {
+                failed.insert(name)
+                continue
+            }
             let url = directory.appendingPathComponent(name)
-            let previous = try? Data(contentsOf: url)
+            let existed = FileManager.default.fileExists(atPath: url.path)
+            let previous = existed ? try? Data(contentsOf: url) : nil
             do {
                 try data.write(to: url, options: .atomic)
-                written.append((url, previous))
+                written.append(WrittenLogo(url: url, previous: previous, existed: existed))
             } catch {
                 log.error("Logo write failed: \(error.localizedDescription, privacy: .public)")
+                failed.insert(name)
             }
         }
-        return written
+        return (written, failed)
     }
 
     func showDataFolder() {

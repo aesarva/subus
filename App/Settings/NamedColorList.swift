@@ -14,7 +14,7 @@ struct NamedColorList: View {
     let usage: (UUID) -> Int
     let deleteMessage: (Int) -> String
     let error: String?
-    let onRename: (UUID, String) -> Void
+    let onRename: (UUID, String) -> Bool
     let onRecolor: (UUID, Int) -> Void
     let onDelete: (UUID) -> Void
     let onAdd: () -> Void
@@ -64,11 +64,11 @@ struct NamedColorList: View {
 /// Edits locally and commits on Return or when focus leaves, so typing never writes the file.
 private struct NameField: View {
     let name: String
-    let commit: (String) -> Void
+    let commit: (String) -> Bool
     @State private var text: String
     @FocusState private var focused: Bool
 
-    init(name: String, commit: @escaping (String) -> Void) {
+    init(name: String, commit: @escaping (String) -> Bool) {
         self.name = name
         self.commit = commit
         _text = State(initialValue: name)
@@ -90,8 +90,7 @@ private struct NameField: View {
         if trimmed.isEmpty {
             text = name
         } else if trimmed != name {
-            commit(trimmed)
-            text = trimmed
+            text = commit(trimmed) ? trimmed : name
         }
     }
 }
@@ -111,7 +110,7 @@ private struct SwatchButton: View {
         .accessibilityLabel(Text("Color: \(Self.colorName(index))"))
         .popover(isPresented: $open, arrowEdge: .bottom) {
             HStack(spacing: 8) {
-                ForEach(0..<LinePalette.count, id: \.self) { i in
+                ForEach(0..<Category.paletteCount, id: \.self) { i in
                     Button {
                         pick(i)
                         open = false
@@ -133,6 +132,6 @@ private struct SwatchButton: View {
     static func colorName(_ i: Int) -> String {
         [String(localized: "Red"), String(localized: "Green"), String(localized: "Blue"), String(localized: "Orange"),
          String(localized: "Violet"), String(localized: "Cyan"), String(localized: "Brown"),
-         String(localized: "Yellow")][((i % 8) + 8) % 8]
+         String(localized: "Yellow")][((i % Category.paletteCount) + Category.paletteCount) % Category.paletteCount]
     }
 }
