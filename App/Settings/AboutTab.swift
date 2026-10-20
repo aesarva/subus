@@ -13,7 +13,7 @@ struct AboutTab: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            Image(nsImage: NSApp.applicationIconImage)
+            Image(nsImage: AppIconImage.load())
                 .resizable()
                 .frame(width: 64, height: 64)
                 .accessibilityHidden(true)
@@ -30,5 +30,16 @@ struct AboutTab: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
+    }
+}
+
+/// The app icon from the asset catalog, which works however the binary was launched; `NSApp.applicationIconImage`
+/// is only the generic placeholder when it was not started through LaunchServices.
+@MainActor
+enum AppIconImage {
+    static func load() -> NSImage {
+        if let icon = NSImage(named: "AppIcon") { return icon }
+        let icon = NSWorkspace.shared.icon(forFile: Bundle.main.bundlePath)
+        return icon.isValid ? icon : NSApp.applicationIconImage
     }
 }

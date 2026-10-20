@@ -211,7 +211,7 @@ private struct StripRow: View {
                     Text(verbatim: " · " + head)
                         .lineLimit(1)
                         .truncationMode(.tail)
-                        .frame(minWidth: 0, idealWidth: Self.shortestLabel, maxWidth: .infinity, alignment: .leading)
+                        .frame(minWidth: 0, idealWidth: Self.shortestLabel, alignment: .leading)
                     if let tail {
                         Text(verbatim: " " + tail).fixedSize().layoutPriority(1)
                     }
