@@ -38,3 +38,14 @@ snapshots: build
 	if [ -n "$$empty" ]; then echo "empty snapshots:"; echo "$$empty"; exit 1; fi; \
 	if [ "$$count" -ne $(SNAPSHOT_EXPECTED) ]; then echo "expected $(SNAPSHOT_EXPECTED) snapshots, got $$count"; exit 1; fi; \
 	echo "$$count snapshots in build/snapshots"
+
+.PHONY: app dmg
+# Release universal build → build/Subus.app (ad-hoc unless SIGN_IDENTITY is set).
+app:
+	scripts/build-app.sh
+
+# DMG without Developer ID: make dmg VERSION=0.1.0 → dist/Subus-0.1.0.dmg.
+# Signed + notarized release: scripts/release.sh <version>.
+VERSION ?= 0.1.0
+dmg:
+	scripts/release.sh $(VERSION) --unsigned
