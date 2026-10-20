@@ -613,7 +613,7 @@
       },
       {
         "name": "The Red Is the Accent Rule",
-        "body": "No custom red exists apart from #E5352B and its text variant. Line index 0 is magenta. The panel's custom red means \"now\": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises. A new surface does not get red for emphasis, errors or decoration.",
+        "body": "No custom red exists apart from #E5352B and its text variant. Line index 0 is magenta. The panel's custom red means \"now\": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises. A new surface does not get red for emphasis, errors or decoration. Errors (the save-error banner, the editor's field and logo messages) use system red, NSColor.systemRed, never the accent or a line colour.",
         "section": "colors"
       },
       {

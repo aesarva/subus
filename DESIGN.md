@@ -232,7 +232,7 @@ Each of the eight category indices has a colour pair: a **tile** colour that is 
 ### Named Rules
 **The One Reserved Ink Rule.** Full label colour on graphics appears in only three places: the today ring, the leg from today to the next station (5 pt, or 6 pt under Increase Contrast), and the next station's label. Cluster counts, ticks and month labels are secondary ink.
 
-**The Red Is the Accent Rule.** No custom red exists apart from #E5352B and its text variant. Line index 0 is magenta. The panel's custom red means "now": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises. A new surface does not get red for emphasis, errors or decoration. Errors (the save-error banner, the editor's field and logo messages) use system red, `NSColor.systemRed`, never the accent or a line colour.
+**The Red Is the Accent Rule.** No custom red exists apart from #E5352B and its text variant. Line index 0 is magenta. The panel's custom red means "now": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises. A new surface does not get the accent red for emphasis, errors or decoration. Errors (the save-error banner, the editor's field and logo messages) use system red, `NSColor.systemRed`, never the accent or a line colour.
 
 **The Line Means Category Rule.** A line colour on a station, spine, ring or bar always means the subscription's category. A subscription without a category rides the rail grey. Payment methods never take a line colour; their bars are secondary-label grey behind a card-shaped mark. Monogram tiles are the one separate use: a tile's colour is the subscription's own `colorIndex` (or a hash of its name), and two subscriptions may share one.
 
