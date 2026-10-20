@@ -38,8 +38,9 @@ struct AboutTab: View {
 @MainActor
 enum AppIconImage {
     static func load() -> NSImage {
-        if let icon = NSImage(named: "AppIcon") { return icon }
+        if let icon = NSImage(named: "AppIcon"), icon.size.width > 0, icon.size.height > 0 { return icon }
         let icon = NSWorkspace.shared.icon(forFile: Bundle.main.bundlePath)
-        return icon.isValid ? icon : NSApp.applicationIconImage
+        if icon.isValid, icon.size.width > 0, icon.size.height > 0 { return icon }
+        return NSApp.applicationIconImage
     }
 }

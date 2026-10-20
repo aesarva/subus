@@ -153,27 +153,37 @@ enum Snapshots {
             write(strip, to: directory.appendingPathComponent("statusitem-\(theme)-\(language).png"))
         }
 
-        for (theme, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
-            writeIcon(appearance: appearance, to: directory.appendingPathComponent("appicon-\(theme).png"))
-        }
+        writeIcon(to: directory.appendingPathComponent("appicon.png"))
 
         print(directory.path)
     }
 
-    /// The compiled icon at 256 x 256 px, drawn under the given appearance.
-    private static func writeIcon(appearance: NSAppearance.Name, to url: URL) {
+    /// The compiled icon at 256 x 256 px, light only: public APIs return just the light rendition of the Icon Composer
+    /// icon, so check the dark one in a Dark-mode Dock/Finder.
+    private static func writeIcon(to url: URL) {
         guard let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 256, pixelsHigh: 256, bitsPerSample: 8,
                                          samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
                                          colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0),
-              let context = NSGraphicsContext(bitmapImageRep: rep) else { return }
+              let context = NSGraphicsContext(bitmapImageRep: rep) else {
+            print("appicon: could not create a 256 x 256 bitmap")
+            return
+        }
         let icon = AppIconImage.load()
         NSGraphicsContext.saveGraphicsState()
         NSGraphicsContext.current = context
-        NSAppearance(named: appearance)?.performAsCurrentDrawingAppearance {
+        NSAppearance(named: .aqua)?.performAsCurrentDrawingAppearance {
             icon.draw(in: NSRect(x: 0, y: 0, width: 256, height: 256))
         }
         NSGraphicsContext.restoreGraphicsState()
-        try? rep.representation(using: .png, properties: [:])?.write(to: url)
+        guard let png = rep.representation(using: .png, properties: [:]) else {
+            print("appicon: could not encode PNG")
+            return
+        }
+        do {
+            try png.write(to: url)
+        } catch {
+            print("appicon: could not write \(url.lastPathComponent): \(error)")
+        }
     }
 
     private static func renderWindow<Content: View>(_ content: Content, width: CGFloat, appearance: NSAppearance.Name,
