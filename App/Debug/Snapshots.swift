@@ -3,8 +3,9 @@ import AppKit
 import SubusCore
 import SwiftUI
 
-/// `-Snapshots`: renders panel states with demo data to PNGs at 2× and prints the folder.
-/// Language follows the launch (`-AppleLanguages "(ru)"` for Russian).
+/// `-Snapshots`: renders every panel/editor/settings state with demo data, in light and dark, to PNGs at 2×
+/// (`<state>-<light|dark>-<en|ru>.png`) and prints the folder. The language follows the launch
+/// (`-AppleLanguages "(ru)"`); `make snapshots` runs both languages and collects the files.
 @MainActor
 enum Snapshots {
     static func run() {
@@ -12,40 +13,27 @@ enum Snapshots {
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let language = Bundle.main.preferredLocalizations.first == "ru" ? "ru" : "en"
         let today = LocalDate.today(now: Date(), calendar: .subus())
-
-        let demo = model(PreviewSupport.demoLibrary(today: today), in: directory)
-        let resting = PanelState()
-        resting.notificationsBannerDismissed = true
-        for (name, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
-            render(PanelRoot(model: demo, state: resting, actions: PanelActions()), appearance: appearance,
-                   to: directory.appendingPathComponent("upcoming-\(name)-\(language).png"))
-        }
-
-        let selected = PanelState()
-        selected.notificationsBannerDismissed = true
-        selected.moveSelection(by: 1, in: UpcomingTab.keys(demo))
-        selected.moveSelection(by: 1, in: UpcomingTab.keys(demo))
-        render(PanelRoot(model: demo, state: selected, actions: PanelActions()), appearance: .darkAqua,
-               to: directory.appendingPathComponent("selected-dark-\(language).png"))
-
-        let empty = model(Library.initial(categoryNames: AppModel.defaultCategoryNames()), in: directory)
-        render(PanelRoot(model: empty, state: PanelState(), actions: PanelActions()), appearance: .aqua,
-               to: directory.appendingPathComponent("empty-light-\(language).png"))
-
-        let corrupt = directory.appendingPathComponent("subscriptions.corrupt-demo.json")
-        let troubled = model(PreviewSupport.demoLibrary(today: today), in: directory,
-                             recovery: .restoredFromBackup(corruptFile: corrupt), failingSaves: true)
-        if let first = troubled.library.subscriptions.first { troubled.save(first) }
-        render(PanelRoot(model: troubled, state: PanelState(), actions: PanelActions()), appearance: .aqua,
-               to: directory.appendingPathComponent("banners-light-\(language).png"))
-
-        func shot(_ library: Library, _ name: String, quiet: Bool = true, appearance: NSAppearance.Name = .aqua) {
-            let state = PanelState()
-            state.notificationsBannerDismissed = quiet
-            render(PanelRoot(model: model(library, in: directory), state: state, actions: PanelActions()),
-                   appearance: appearance, to: directory.appendingPathComponent("\(name)-\(language).png"))
-        }
         let base = PreviewSupport.demoLibrary(today: today)
+
+        /// Runs `body` once per theme with the target file for that theme.
+        func each(_ name: String, _ body: (NSAppearance.Name, URL) -> Void) {
+            for (theme, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
+                body(appearance, directory.appendingPathComponent("\(name)-\(theme)-\(language).png"))
+            }
+        }
+        func panel(_ name: String, _ library: Library, maxHeight: CGFloat = 640, quiet: Bool = true,
+                   recovery: Recovery? = nil, failingSaves: Bool = false,
+                   _ configure: (AppModel, PanelState) -> Void = { _, _ in }) {
+            each(name) { appearance, url in
+                let appModel = model(library, in: directory, recovery: recovery, failingSaves: failingSaves)
+                if failingSaves, let first = appModel.library.subscriptions.first { appModel.save(first) }
+                let state = PanelState()
+                state.notificationsBannerDismissed = quiet
+                state.maxHeight = maxHeight
+                configure(appModel, state)
+                render(PanelRoot(model: appModel, state: state, actions: PanelActions()), appearance: appearance, to: url)
+            }
+        }
         /// The demo's first subscription (a trial) moved so its first charge falls `days` from today.
         func trial(in days: Int, name: String? = nil) -> Library {
             var library = base
@@ -53,63 +41,41 @@ enum Snapshots {
             if let name { library.subscriptions[0].name = name }
             return library
         }
-        shot(trial(in: 0), "next-today-light")
-        shot(trial(in: 0), "next-today-dark", appearance: .darkAqua)
-        shot(trial(in: 1), "next-tomorrow-light")
-        shot(trial(in: 3, name: "Яндекс Практикум — курс «Продуктовый дизайнер»"), "longname-light")
-        shot(base, "notifications-light", quiet: false)
+        func id(_ model: AppModel, _ name: String) -> UUID {
+            model.library.subscriptions.first { $0.name == name }!.id
+        }
+        let initial = Library.initial(categoryNames: AppModel.defaultCategoryNames())
 
+        // Upcoming
+        panel("upcoming", base)
+        panel("upcoming-empty", initial, quiet: false)
+        panel("next-today", trial(in: 0))
+        panel("next-tomorrow", trial(in: 1))
+        panel("selected", base) { m, s in
+            s.moveSelection(by: 1, in: UpcomingTab.keys(m))
+            s.moveSelection(by: 1, in: UpcomingTab.keys(m))
+        }
+        let corrupt = directory.appendingPathComponent("subscriptions.corrupt-demo.json")
+        panel("banners", base, quiet: false, recovery: .restoredFromBackup(corruptFile: corrupt), failingSaves: true)
+        panel("notifications-off", base, quiet: false)
         var paused = base
         for i in paused.subscriptions.indices { paused.subscriptions[i].isActive = false }
-        shot(paused, "paused-light")
-
-        var distant = Library.initial(categoryNames: AppModel.defaultCategoryNames())
+        panel("paused", paused)
+        var distant = initial
         var yearly = Subscription(name: "1Password", price: Money(Decimal(string: "35.88")!, "USD"), cycle: .yearly,
                                   startDate: today.adding(days: 100).adding(months: -12))
         yearly.categoryID = distant.categories[0].id
         distant.subscriptions = [yearly]
-        shot(distant, "quiet-light")
+        panel("quiet", distant)
+        panel("longname", trial(in: 3, name: "Яндекс Практикум — курс «Продуктовый дизайнер»"))
 
         // All
-        func panel(_ model: AppModel, _ name: String, appearance: NSAppearance.Name = .aqua, maxHeight: CGFloat = 640,
-                   sheet: Bool = false, _ configure: (PanelState) -> Void) {
-            let state = PanelState()
-            state.notificationsBannerDismissed = true
-            state.maxHeight = maxHeight
-            configure(state)
-            render(PanelRoot(model: model, state: state, actions: PanelActions()), appearance: appearance,
-                   to: directory.appendingPathComponent("\(name)-\(language).png"),
-                   sheetTo: sheet ? directory.appendingPathComponent("\(name)-sheet-\(language).png") : nil)
-        }
-        panel(demo, "all-light") { $0.tab = .all }
-        panel(demo, "all-dark", appearance: .darkAqua) { $0.tab = .all }
-        panel(demo, "all-search-noresults-light") { $0.tab = .all; $0.search = "Disney" }
-        panel(demo, "all-search-net-light") { $0.tab = .all; $0.search = "net" }
-        let other = demo.library.categories.first { $0.name == String(localized: "Other") }?.id
-        panel(demo, "all-filter-empty-light") { $0.tab = .all; $0.categoryFilter = other }
-        let entertainment = demo.library.categories[1].id
-        panel(demo, "all-filter-light") { $0.tab = .all; $0.categoryFilter = entertainment }
-        panel(demo, "all-inactive-expanded-light", maxHeight: 900) { $0.tab = .all; $0.inactiveExpanded = true }
-        panel(demo, "all-selected-dark", appearance: .darkAqua) {
-            $0.tab = .all
-            $0.moveAllSelection(by: 1, in: AllTab.rows(demo, $0).order)
-            $0.moveAllSelection(by: 1, in: AllTab.rows(demo, $0).order)
-        }
+        panel("all", base) { _, s in s.tab = .all }
+        panel("all-inactive-expanded", base, maxHeight: 900) { _, s in s.tab = .all; s.inactiveExpanded = true }
+        panel("all-search-noresults", base) { _, s in s.tab = .all; s.search = "Disney" }
 
         // Spending
-        panel(demo, "spending-light", maxHeight: 900) { $0.tab = .spending }
-        panel(demo, "spending-dark", appearance: .darkAqua, maxHeight: 900) { $0.tab = .spending }
-        panel(demo, "spending-selected-dark", appearance: .darkAqua, maxHeight: 900) {
-            $0.tab = .spending
-            $0.moveSpendingSelection(by: 1, in: SpendingTab.keys(demo))
-        }
-        var single = base
-        for i in single.subscriptions.indices { single.subscriptions[i].categoryID = single.categories[1].id }
-        panel(model(single, in: directory), "spending-single-category-light", maxHeight: 900) { $0.tab = .spending }
-        var cashless = base
-        cashless.paymentMethods = []
-        for i in cashless.subscriptions.indices { cashless.subscriptions[i].paymentMethodID = nil }
-        panel(model(cashless, in: directory), "spending-no-payment-light", maxHeight: 900) { $0.tab = .spending }
+        panel("spending", base, maxHeight: 900) { _, s in s.tab = .spending }
         var steady = base
         for i in steady.subscriptions.indices {
             steady.subscriptions[i].priceHistory = [PriceChange(effectiveFrom: steady.subscriptions[i].startDate,
@@ -120,41 +86,26 @@ enum Snapshots {
             steady.subscriptions[i].categoryID = nil
             steady.subscriptions[i].paymentMethodID = nil
         }
-        panel(model(steady, in: directory), "spending-no-increases-light", maxHeight: 900) { $0.tab = .spending }
+        panel("spending-no-increases", steady, maxHeight: 900) { _, s in s.tab = .spending }
 
         // Card
-        func id(_ model: AppModel, _ name: String) -> UUID {
-            model.library.subscriptions.first { $0.name == name }!.id
-        }
-        panel(demo, "card-light", maxHeight: 900) { $0.card = id(demo, "Яндекс Плюс") }
-        panel(demo, "card-trial-dark", appearance: .darkAqua, maxHeight: 900) { $0.card = id(demo, "ChatGPT Plus") }
-        panel(demo, "card-noupcoming-light", maxHeight: 900) { $0.card = id(demo, "Notion") }
-        panel(demo, "card-ended-light", maxHeight: 900) { $0.card = id(demo, "Кинопоиск") }
-        panel(demo, "card-yearly-light", maxHeight: 900) { $0.card = id(demo, "1Password") }
-        panel(demo, "card-delete-confirm-light", maxHeight: 900, sheet: true) {
-            $0.card = id(demo, "Spotify")
-            $0.confirmingDelete = true
-        }
-        let refusing = model(PreviewSupport.demoLibrary(today: today), in: directory, failingSaves: true)
-        refusing.setActive(id(refusing, "Spotify"), false)
-        panel(refusing, "card-toggle-failed-light", maxHeight: 900) { $0.card = id(refusing, "Spotify") }
+        panel("card", base, maxHeight: 900) { m, s in s.card = id(m, "Яндекс Плюс") }
+        panel("card-trial", base, maxHeight: 900) { m, s in s.card = id(m, "ChatGPT Plus") }
+        panel("card-noupcoming", base, maxHeight: 900) { m, s in s.card = id(m, "Notion") }
 
         // Editor
-        func editorShot(_ name: String, editing: Subscription? = nil, appearance: NSAppearance.Name = .aqua,
-                        height: CGFloat = 900, _ configure: (EditorState) -> Void = { _ in }) {
-            let editorModel = model(PreviewSupport.demoLibrary(today: today), in: directory)
-            let subscription = editing.flatMap { e in editorModel.library.subscriptions.first { $0.name == e.name } }
-            let state = EditorState(model: editorModel, editing: subscription)
-            configure(state)
-            renderEditor(state, appearance: appearance, height: height,
-                         to: directory.appendingPathComponent("\(name)-\(language).png"))
+        func editorShot(_ name: String, editing: String? = nil, _ configure: (EditorState) -> Void = { _ in }) {
+            each(name) { appearance, url in
+                let editorModel = model(base, in: directory)
+                let subscription = editing.flatMap { n in editorModel.library.subscriptions.first { $0.name == n } }
+                let state = EditorState(model: editorModel, editing: subscription)
+                configure(state)
+                renderEditor(state, appearance: appearance, height: 900, to: url)
+            }
         }
-        editorShot("editor-new-light") { $0.draft.name = "Spotify"; $0.draft.priceText = "169,00" }
-        editorShot("editor-new-dark", appearance: .darkAqua)
-        editorShot("editor-edit-light", editing: demo.library.subscriptions.first { $0.name == "Яндекс Плюс" }) {
-            $0.draft.priceText = "449"
-        }
-        editorShot("editor-errors-light") {
+        editorShot("editor-new") { $0.draft.name = "Spotify"; $0.draft.priceText = "169,00" }
+        editorShot("editor-edit", editing: "Яндекс Плюс") { $0.draft.priceText = "449" }
+        editorShot("editor-errors") {
             $0.draft.priceText = "abc"
             $0.draft.websiteText = "not a url"
             $0.setTrial(true)
@@ -163,24 +114,26 @@ enum Snapshots {
         }
 
         // Settings
-        func settingsShot(_ name: String, _ tab: SettingsTab, appearance: NSAppearance.Name = .aqua) {
-            let navigation = SettingsNavigation()
-            navigation.tab = tab
-            let settingsModel = model(PreviewSupport.demoLibrary(today: today), in: directory)
-            renderWindow(SettingsView(model: settingsModel, notifier: UserNotifier(), navigation: navigation),
-                         width: SettingsView.width, appearance: appearance,
-                         to: directory.appendingPathComponent("\(name)-\(language).png"))
+        func settingsShot(_ name: String, _ tab: SettingsTab) {
+            each(name) { appearance, url in
+                let navigation = SettingsNavigation()
+                navigation.tab = tab
+                let settingsModel = model(base, in: directory)
+                renderWindow(SettingsView(model: settingsModel, notifier: UserNotifier(), navigation: navigation),
+                             width: SettingsView.width, appearance: appearance, to: url)
+            }
         }
-        settingsShot("settings-general-light", .general)
-        settingsShot("settings-notifications-light", .notifications)
-        settingsShot("settings-categories-dark", .categories, appearance: .darkAqua)
-        settingsShot("settings-data-light", .data)
-        settingsShot("settings-about-light", .about)
-        var imported = ImportPreview(library: demo.library)
+        settingsShot("settings-general", .general)
+        settingsShot("settings-notifications", .notifications)
+        settingsShot("settings-categories", .categories)
+        settingsShot("settings-data", .data)
+        settingsShot("settings-about", .about)
+        var imported = ImportPreview(library: base)
         imported.errors = [ImportRowError(line: 4, field: "price"), ImportRowError(line: 9, field: "start_date")]
-        renderWindow(ImportPreviewView(preview: imported, onAdd: {}, onReplace: {}, onCancel: {}),
-                     width: 520, appearance: .aqua,
-                     to: directory.appendingPathComponent("import-preview-light-\(language).png"))
+        each("import-preview") { appearance, url in
+            renderWindow(ImportPreviewView(preview: imported, onAdd: {}, onReplace: {}, onCancel: {}),
+                         width: 520, appearance: appearance, to: url)
+        }
 
         print(directory.path)
     }
@@ -189,7 +142,7 @@ enum Snapshots {
                                                     to url: URL) {
         let host = NSHostingView(rootView: content.background(Color(nsColor: .windowBackgroundColor)))
         host.appearance = NSAppearance(named: appearance)
-        let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: width, height: 400),
+        let window = KeyWindow(contentRect: NSRect(x: -4000, y: -4000, width: width, height: 400),
                               styleMask: [.titled, .closable], backing: .buffered, defer: false)
         window.appearance = NSAppearance(named: appearance)
         window.contentView = host
@@ -207,7 +160,7 @@ enum Snapshots {
     private static func renderEditor(_ state: EditorState, appearance: NSAppearance.Name, height: CGFloat, to url: URL) {
         let host = NSHostingView(rootView: EditorView(state: state))
         host.appearance = NSAppearance(named: appearance)
-        let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: EditorView.width, height: height),
+        let window = KeyWindow(contentRect: NSRect(x: -4000, y: -4000, width: EditorView.width, height: height),
                               styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
         window.appearance = NSAppearance(named: appearance)
         window.contentView = host
@@ -240,15 +193,16 @@ enum Snapshots {
     }
 
     /// Draws on the opaque ground the system gives the popover under Reduce Transparency.
-    private static func render(_ root: PanelRoot, appearance: NSAppearance.Name, to url: URL, sheetTo sheetURL: URL? = nil) {
+    private static func render(_ root: PanelRoot, appearance: NSAppearance.Name, to url: URL) {
         let dark = appearance == .darkAqua
         let host = NSHostingView(rootView: root.background(Color(hex: dark ? 0x1C1C1E : 0xF6F6F3)))
         host.appearance = NSAppearance(named: appearance)
-        let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: PanelRoot.width, height: 600),
-                              styleMask: [.borderless], backing: .buffered, defer: false)
+        let window = KeyWindow(contentRect: NSRect(x: -4000, y: -4000, width: PanelRoot.width, height: 600),
+                               styleMask: [.borderless], backing: .buffered, defer: false)
         window.appearance = NSAppearance(named: appearance)
         window.contentView = host
-        window.orderFrontRegardless()
+        NSApp.activate()
+        window.makeKeyAndOrderFront(nil)
         for _ in 0..<3 {
             host.layoutSubtreeIfNeeded()
             let size = host.fittingSize
@@ -256,14 +210,6 @@ enum Snapshots {
             RunLoop.main.run(until: Date().addingTimeInterval(0.15))
         }
         write(host, to: url)
-        if let sheetURL {
-            if let sheet = window.attachedSheet, let content = sheet.contentView {
-                write(content, to: sheetURL)
-                window.endSheet(sheet)
-            } else {
-                print("no sheet attached for \(sheetURL.lastPathComponent)")
-            }
-        }
         window.orderOut(nil)
     }
 
@@ -278,6 +224,12 @@ enum Snapshots {
         view.cacheDisplay(in: view.bounds, to: rep)
         try? rep.representation(using: .png, properties: [:])?.write(to: url)
     }
+}
+
+/// Borderless windows refuse key status by default; snapshots want active-state control colours.
+private final class KeyWindow: NSWindow {
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { true }
 }
 
 private final class MemorySettingsStorage: SettingsStorage, @unchecked Sendable {
