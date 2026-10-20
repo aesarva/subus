@@ -52,9 +52,82 @@ FORM: Transit strip map, candidate 3 of 7 on my ordered list (1 tear-off calenda
   - Sums tight to the margin (from J-card).
   - Hierarchy by scale alone (from type specimen).
   - Stepped 2×90 ms marker motion, no easing, instant under Reduce Motion (from manual tab board).
-- Signature interaction: hovering a station on the overview, or moving the selection with the arrow keys, lifts its row in the strip map and dims the others to 45%. When the day changes, the "you are here" ring steps forward.
+- Signature interaction: hovering a station on the overview, or moving the selection with the arrow keys, lifts its row in the strip map (enlarged station ring + row highlight). Only the rails and stations of the other rows recede; text and amounts never lose opacity. When the day changes, the horizon slides: today stays at the left edge and the stations step one day left in two 90 ms steps.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+
+## Amendments after Codex design review (stage A, 2026-10-20)
+
+These bind the UI tasks together with the direction contract. Where they differ from the approved sketch, they win: the sketch's light station colours and quiet-rail greys are superseded by the tokens below.
+
+1. **Header notes.** Under the totals sits a notes block that grows in height. It holds, in this order: the year total, "CBR rate on …", "includes N trials at their future price", and "excluding N subscriptions (no rate)".
+   - No rate cache: the total covers only base-currency subscriptions, with the excluding note.
+   - Everything excluded: show "—" instead of a total, plus the note. Never an unexplained 0.
+2. **No text dimming, ever.** Selection or hover changes only graphics and the row highlight. Text and amounts keep full opacity.
+3. **Rails are meaningful and must reach ≥ 3:1 against the ground.**
+   - Resting rail and ticks: light `#8A8A83`, dark `#75757A`.
+   - Stations always use the per-theme line set: light = tile set, dark = bright set.
+   - Under Increase Contrast, rails and strokes go from 3 pt to 4 pt and the focus ring is the system one.
+4. **One container owns the background: `NSPopover`.**
+   - It is system-rendered: Liquid Glass on 26, popover vibrancy on 14–15. Reduce Transparency is handled by the system, which gives an opaque popover.
+   - Text uses semantic system colours (`labelColor`, `secondaryLabelColor`, `tertiaryLabelColor`), not hex ink, so Increase Contrast and the themes adapt natively. The hex inks above are the sketch reference only.
+   - The only custom colours are the line set, the tile set and the rail.
+5. **Size.**
+   - Content width is fixed at 360 pt.
+   - Height is the content height, capped at the screen's visible height − 80 pt.
+   - The segmented control, header and overview are pinned. The strip map scrolls. The footer is pinned with no overlap.
+   - `NSPopover.contentSize` follows the hosting view's fitting size.
+6. **Rows.**
+   - The amount never truncates or compresses.
+   - The name takes up to 2 lines, then tail-truncates.
+   - The Trial tag is its own element and wraps below the name if needed.
+   - Rows are at least 42 pt and grow to fit.
+   - The relative date ("in N days · date") is always present. The payment-method label is appended after it.
+   - Full name is in the card and in VoiceOver.
+7. **Overview geometry.**
+   - x = daysFromToday × (railWidth / 60). Today is fixed at the left edge.
+   - Stations closer than 14 pt merge into one cluster ring showing a count. Hover or arrow keys reveal the cluster's charges in a tooltip.
+   - Only the next station is labelled. The label clamps inside the rail ends.
+   - Repeats of the same subscription are separate stations.
+8. **VoiceOver.**
+   - Each strip row is one button. Label: "name, in N days, date, amount, category[, trial]". Action: open card.
+   - Stations and the spine are hidden from VoiceOver.
+   - The overview is one element: "Next 60 days: N charges; next in N days: name, amount".
+9. **Keyboard.**
+   - Tab and Shift-Tab cycle segmented control → search (All tab) → list → footer.
+   - ↑ and ↓ move the list selection and auto-scroll to it. Enter opens the card. Esc goes back from the card, otherwise closes the panel.
+   - ⌘N adds, ⌘, opens Settings. Focus returns to the originating row after leaving a card.
+   - The popover's content view becomes first responder on open.
+10. **Colour semantics.**
+    - Station and spine colour = the category's colour. No category = the rail colour.
+    - Monogram tile colour = the subscription's own `colorIndex`, or the hash of its name. This is a separate rule, and two subscriptions may share a colour.
+    - Category, trial, "next" and selection are always also carried by text, a tag or shape.
+11. **Empty and edge states.**
+    - No subscriptions: the empty state with a "Add your first subscription" button. The overview is hidden.
+    - Subscriptions exist but no charge in 60 days: a calm line "No charges in the next 60 days — next: name, date" (the real nearest charge). The overview shows today only.
+    - All inactive: "All subscriptions are paused" plus a link to All.
+    - One charge: the leg is drawn to it.
+    - Today and tomorrow: the accent from the status-item rule.
+    - Status item:
+      - Shows "Nd" even beyond the horizon, and trials count.
+      - No text when there is no future charge or the setting is off.
+      - 0–1 days: semibold text plus a dot. The accessibility label is "Subus, next charge in N days: name".
+12. **Banners.**
+    - They sit under the segmented control, in priority order: save error > data recovered or corrupt > notifications off.
+    - At most 2 are visible. Each has one action.
+    - None are dismissable except "notifications off", which can be dismissed for the session.
+13. **Group sums.** Each group closes with "≈ total for this group", converted to the base currency. If any charge in the group is unconvertible, add "+ N not converted".
+14. **Footer.** "+ Add" · "Total 12 · inactive 2" (inactive includes ended) · Settings (gear with tooltip and accessibility label "Settings").
+15. **Secondary tabs and card (states the UI tasks must render and snapshot).**
+    - All: no search results; category filter with no results; Inactive section collapsed and expanded.
+    - Spending: no payment methods; no price increases; a single category.
+    - Card:
+      - no manageURL (button hidden);
+      - fewer than 3 future charges, or none ("No upcoming charges");
+      - price history of 1 entry (section hidden);
+      - delete confirmation;
+      - failure to toggle Active (saveError banner).
+16. **Text.** Use system text styles: body 13, subheadline 12, caption 11. Group heads are caption semibold with tracking. Nothing below 11 pt. macOS has no Dynamic Type, so rows must grow with content rather than clip.
 
 ## Unresolved
 - The exact panel height cap and the scroll behaviour on long lists. This is set at build time, but the first viewport must hold as above.
