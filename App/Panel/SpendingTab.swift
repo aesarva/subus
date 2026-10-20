@@ -278,7 +278,7 @@ private struct IncreaseRow: View {
                     if let rise {
                         Text(verbatim: rise)
                             .font(.system(size: 11, weight: steep ? .semibold : .regular).monospacedDigit())
-                            .foregroundStyle(steep ? LinePalette.accent : Color.secondary)
+                            .foregroundStyle(steep ? LinePalette.accentText : Color.secondary)
                     }
                 }
                 .fixedSize()

@@ -31,7 +31,7 @@ final class StatusItemController {
                 attributes: [
                     .font: NSFont.monospacedDigitSystemFont(
                         ofSize: NSFont.systemFontSize, weight: accent ? .semibold : .regular),
-                    .foregroundColor: accent ? Brand.accent : NSColor.labelColor,
+                    .foregroundColor: accent ? Brand.accentText : NSColor.labelColor,
                 ]
             )
             button.imagePosition = .imageLeading

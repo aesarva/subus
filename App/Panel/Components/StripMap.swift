@@ -210,7 +210,7 @@ private struct StripRow: View {
         var rest = " · " + Formatters.shortDate(item.charge.date)
         if withPayment, let label = item.paymentLabel { rest += " · " + label }
         let soon = item.days <= 1
-        return (soon ? relative.foregroundStyle(LinePalette.accent).fontWeight(.semibold) : relative) + Text(verbatim: rest)
+        return (soon ? relative.foregroundStyle(LinePalette.accentText).fontWeight(.semibold) : relative) + Text(verbatim: rest)
     }
 
     private var accessibilityText: String {

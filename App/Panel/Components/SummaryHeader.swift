@@ -31,7 +31,7 @@ struct SummaryHeader: View {
                     Text(verbatim: "\(days)")
                         .font(.system(size: 44, weight: .semibold).monospacedDigit())
                         .tracking(-1)
-                        .foregroundStyle(days <= 1 ? LinePalette.accent : Color.primary)
+                        .foregroundStyle(days <= 1 ? LinePalette.accentText : Color.primary)
                         .padding(.bottom, -3)
                     Text(verbatim: Self.caption(days))
                         .font(.system(size: 11))

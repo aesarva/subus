@@ -338,7 +338,7 @@ private struct ChargeStop: View {
         let rest = Text(verbatim: " · " + date)
             .font(.system(size: 13))
             .foregroundStyle(.secondary)
-        return (soon ? relative.foregroundStyle(LinePalette.accent) : relative) + rest
+        return (soon ? relative.foregroundStyle(LinePalette.accentText) : relative) + rest
     }
 
     private func draw(in context: inout GraphicsContext, size: CGSize, accent: Bool) {

@@ -27,6 +27,8 @@ enum LinePalette {
     static func stroke(_ contrast: ColorSchemeContrast) -> CGFloat { contrast == .increased ? 4 : 3 }
 
     static let accent = Color(nsColor: Brand.accent)
+    /// The accent for text, ≥ 4.5:1 in each theme.
+    static let accentText = Color(nsColor: Brand.accentText)
 
     /// The one opacity for rails and stations that recede behind a lifted station. Never applied to text.
     static let recede = 0.45
