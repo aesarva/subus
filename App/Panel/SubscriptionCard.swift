@@ -56,21 +56,29 @@ struct SubscriptionCard: View {
     // MARK: Header
 
     private var header: some View {
-        let s = subscription
+        let s = subscription, price = s.currentPrice(today: today)
         return HStack(alignment: .top, spacing: 12) {
             LogoView(subscription: s, size: 40, logosDirectory: model.logosDirectory ?? FileManager.default.temporaryDirectory)
             VStack(alignment: .leading, spacing: 3) {
                 name
-                Text(verbatim: Formatters.perCycle(s.price, s.cycle))
+                Text(verbatim: Formatters.perCycle(price, s.cycle))
                     .font(.system(size: 13, weight: .medium).monospacedDigit())
                     .fixedSize(horizontal: false, vertical: true)
                 if s.cycle != .monthly {
-                    let monthly = CostNormalizer.monthly(s.price, cycle: s.cycle)
+                    let monthly = CostNormalizer.monthly(price, cycle: s.cycle)
                     Text(verbatim: String(localized: "≈ \(Formatters.money(monthly)) / month"))
                         .font(.system(size: 11).monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
-                if let url = s.manageURL {
+                if let next = s.nextPriceChange(today: today) {
+                    let amount = Formatters.money(next.price), date = Formatters.date(next.effectiveFrom, today: today)
+                    Text(verbatim: String(localized: "→ \(amount) from \(date)"))
+                        .font(.system(size: 11).monospacedDigit())
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityLabel(String(localized: "Changes to \(amount) from \(date)"))
+                }
+                if let url = s.manageURL, URLNormalizer.isWeb(url) {
                     Button { NSWorkspace.shared.open(url) } label: {
                         HStack(spacing: 3) {
                             Text("Manage subscription")
@@ -120,7 +128,7 @@ struct SubscriptionCard: View {
         if !s.isActive {
             return AnyView(OutlineTag(text: String(localized: "status.inactive", defaultValue: "Inactive"), color: .secondary))
         }
-        if let trial = s.trialEndDate, trial >= today { return AnyView(TrialTag()) }
+        if let trial = s.trialEndDate, trial > today { return AnyView(TrialTag()) }
         return nil
     }
 
@@ -209,7 +217,7 @@ struct SubscriptionCard: View {
         if history.count > 1 {
             SectionHead(title: String(localized: "Price history"))
             VStack(alignment: .leading, spacing: 7) {
-                ForEach(history.reversed(), id: \.effectiveFrom) { change in
+                ForEach(Array(history.enumerated()).reversed(), id: \.offset) { _, change in
                     HStack(alignment: .firstTextBaseline) {
                         Text(verbatim: Formatters.date(change.effectiveFrom, today: today))
                             .font(.system(size: 12).monospacedDigit())

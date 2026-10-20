@@ -1576,6 +1576,26 @@
         }
       }
     },
+    "→ %@ from %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "→ %1$@ с %2$@"
+          }
+        }
+      }
+    },
+    "Changes to %@ from %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Изменится на %1$@ с %2$@"
+          }
+        }
+      }
+    },
     "every %lld days": {
       "localizations": {
         "en": {

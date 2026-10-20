@@ -7,10 +7,9 @@ struct EditorView: View {
     var onCancel: () -> Void = {}
 
     @FocusState private var focus: EditorState.Field?
-    @Environment(\.colorScheme) private var scheme
 
     static let width: CGFloat = 520
-    private var errorColor: Color { LinePalette.line(0, scheme) }
+    private let errorColor = Color(nsColor: .systemRed)
     private let calendar = Calendar.subus()
 
     var body: some View {
@@ -32,7 +31,7 @@ struct EditorView: View {
                                 .monospacedDigit()
                                 .focused($focus, equals: .price)
                                 .invalid(messages(.price))
-                            CurrencyPicker(selection: $state.draft.currency)
+                            CurrencyPicker(selection: $state.draft.currency, accessibilityLabel: String(localized: "Currency"))
                         }
                     }
                     errorRows(.price)

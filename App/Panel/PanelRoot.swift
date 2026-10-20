@@ -228,7 +228,7 @@ struct PanelRoot: View {
         if let error = model.saveError {
             let folder = model.dataDirectory
             result.append(IdentifiedBanner(id: "save", banner: PanelBanner(
-                systemImage: "exclamationmark.triangle.fill", tint: LinePalette.accent, message: error,
+                systemImage: "exclamationmark.triangle.fill", tint: Color(nsColor: .systemRed), message: error,
                 actionTitle: String(localized: "Show data folder"),
                 action: { if let folder { NSWorkspace.shared.activateFileViewerSelecting([folder]) } })))
         }

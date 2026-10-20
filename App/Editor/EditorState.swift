@@ -60,7 +60,7 @@ final class EditorState {
     /// The price differs from what is stored, so a new price-history entry needs its date.
     var priceChanged: Bool {
         guard let existing, let amount = PriceParser.parse(draft.priceText, locale: locale) else { return false }
-        return Money(amount, draft.currency) != existing.price
+        return Money(amount, draft.currency) != existing.currentPrice(today: model.today)
     }
 
     // MARK: Draft defaults

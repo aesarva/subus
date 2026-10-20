@@ -31,7 +31,8 @@ struct GeneralTab: View {
         Form {
             LabeledContent("Base currency") {
                 CurrencyPicker(selection: Binding(get: { model.settings.baseCurrency },
-                                                  set: { value in model.update { $0.baseCurrency = value } }))
+                                                  set: { value in model.update { $0.baseCurrency = value } }),
+                               accessibilityLabel: String(localized: "Base currency"))
             }
 
             Section {

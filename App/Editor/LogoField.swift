@@ -7,7 +7,6 @@ import UniformTypeIdentifiers
 struct LogoField: View {
     @Bindable var state: EditorState
     @State private var targeted = false
-    @Environment(\.colorScheme) private var scheme
 
     private static let colorNames: [LocalizedStringResource] = [
         "Magenta", "Green", "Blue", "Orange", "Violet", "Cyan", "Brown", "Yellow",
@@ -19,7 +18,7 @@ struct LogoField: View {
                 .frame(width: 56, height: 56)
                 .overlay {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .strokeBorder(LinePalette.accent, lineWidth: 3)
+                        .strokeBorder(Color(nsColor: .controlAccentColor), lineWidth: 3)
                         .opacity(targeted ? 1 : 0)
                 }
                 .dropDestination(for: URL.self, action: { urls, _ in
@@ -42,7 +41,7 @@ struct LogoField: View {
                 if state.imageFailed {
                     Text("Couldn't read this image")
                         .font(.caption)
-                        .foregroundStyle(LinePalette.line(0, scheme))
+                        .foregroundStyle(Color(nsColor: .systemRed))
                 }
             }
         }

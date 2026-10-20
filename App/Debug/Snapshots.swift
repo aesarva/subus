@@ -97,6 +97,12 @@ enum Snapshots {
 
         // Card
         panel("card", base, maxHeight: 900) { m, s in s.card = id(m, "Яндекс Плюс") }
+        // A price change scheduled after today: the header keeps today's price and names the next one.
+        var scheduled = base
+        if let i = scheduled.subscriptions.firstIndex(where: { $0.name == "Яндекс Плюс" }) {
+            scheduled.subscriptions[i].changePrice(to: Money(449, "RUB"), effectiveFrom: today.adding(days: 20))
+        }
+        panel("card-scheduled", scheduled, maxHeight: 900) { m, s in s.card = id(m, "Яндекс Плюс") }
         panel("card-trial", base, maxHeight: 900) { m, s in s.card = id(m, "ChatGPT Plus") }
         panel("card-noupcoming", base, maxHeight: 900) { m, s in s.card = id(m, "Notion") }
 

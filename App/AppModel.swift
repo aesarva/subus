@@ -259,10 +259,7 @@ final class AppModel {
         persist(carriedCatchUps, key: Self.catchUpsKey)
         replanCount += 1
         remindersLog.info("Replan #\(self.replanCount): \(plan.count) reminders")
-        let library = library
-        let token = notifier.nextReplaceToken()
-        let date = now()
-        Task { await notifier.replaceAll(plan, library: library, now: date, token: token) }
+        notifier.replaceAll(plan, library: library, now: now())
     }
 
     func refreshAuthorization() async {

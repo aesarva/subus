@@ -228,7 +228,7 @@ private struct AllRow: View {
                 }
                 Spacer(minLength: 8)
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text(verbatim: Formatters.money(s.price))
+                    Text(verbatim: Formatters.money(s.currentPrice(today: today)))
                         .font(.system(size: 13, weight: .semibold).monospacedDigit())
                     Text(verbatim: "/ " + Formatters.cycle(s.cycle))
                         .font(.system(size: 11).monospacedDigit())
@@ -287,7 +287,7 @@ private struct AllRow: View {
 
     private var accessibilityText: String {
         let s = item.subscription
-        var parts = [s.name, Formatters.money(s.price) + " " + Formatters.spokenCycle(s.cycle)]
+        var parts = [s.name, Formatters.money(s.currentPrice(today: today)) + " " + Formatters.spokenCycle(s.cycle)]
         if let category = item.categoryName { parts.append(category) }
         if let status { parts.append(status) }
         return parts.joined(separator: ", ")

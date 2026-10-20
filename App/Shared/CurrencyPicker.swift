@@ -5,6 +5,8 @@ import SwiftUI
 /// A code outside the list stays selectable.
 struct CurrencyPicker: View {
     @Binding var selection: String
+    /// What the surrounding form calls it: "Base currency" in Settings, "Currency" in the editor.
+    let accessibilityLabel: String
     @State private var choosing = false
 
     var body: some View {
@@ -22,7 +24,7 @@ struct CurrencyPicker: View {
             .frame(maxWidth: .infinity)
         }
         .frame(width: 200)
-        .accessibilityLabel(String(localized: "Currency"))
+        .accessibilityLabel(accessibilityLabel)
         .accessibilityValue(Self.label(selection))
         .popover(isPresented: $choosing, arrowEdge: .bottom) {
             CurrencySearch(selection: selection,

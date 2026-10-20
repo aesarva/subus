@@ -18,6 +18,7 @@ final class UserNotifier: NSObject, UNUserNotificationCenterDelegate {
     }
     private var pendingOpen: UUID?
     private var generation = 0
+    private var replacing: Task<Void, Never>?
     private let log = Logger(subsystem: "io.github.aesarva.Subus", category: "reminders")
 
     private var center: UNUserNotificationCenter? {
@@ -59,14 +60,19 @@ final class UserNotifier: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    /// Taken synchronously when a replan is requested, so the newest request always wins.
-    func nextReplaceToken() -> Int {
+    /// Queues a replacement of our pending requests by `reminders`. Each run waits for the previous one, and a newer
+    /// request supersedes an older one that has not finished, so only the newest plan ends up scheduled.
+    func replaceAll(_ reminders: [PlannedReminder], library: Library, now: Date) {
         generation += 1
-        return generation
+        let mine = generation, previous = replacing
+        replacing = Task {
+            await previous?.value
+            await replace(reminders, library: library, now: now, token: mine)
+        }
     }
 
-    func replaceAll(_ reminders: [PlannedReminder], library: Library, now: Date, token mine: Int) async {
-        guard let center else { return }
+    private func replace(_ reminders: [PlannedReminder], library: Library, now: Date, token mine: Int) async {
+        guard let center, mine == generation else { return }
         let pending = await center.pendingNotificationRequests()
         guard mine == generation else { return }
         center.removePendingNotificationRequests(
@@ -109,6 +115,13 @@ final class UserNotifier: NSObject, UNUserNotificationCenterDelegate {
             }
             guard mine == generation else { return }
         }
+
+        // Anything of ours not in this plan (e.g. added by a run that overlapped the snapshot above) goes.
+        let planned = Set(reminders.map(\.id))
+        let stale = await center.pendingNotificationRequests().map(\.identifier)
+            .filter { $0.contains(Self.ourMarker) && !planned.contains($0) }
+        guard mine == generation else { return }
+        if !stale.isEmpty { center.removePendingNotificationRequests(withIdentifiers: stale) }
     }
 
     func sendTest() {
