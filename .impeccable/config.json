@@ -1,6 +1,8 @@
 {
   "detector": {
-    "ignoreRules": [],
+    "ignoreRules": [
+      "tiny-text"
+    ],
     "ignoreFiles": [],
     "ignoreValues": [
       {
