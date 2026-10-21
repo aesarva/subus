@@ -1,7 +1,7 @@
 import SubusCore
 import SwiftUI
 
-/// The 60-day line: today's ring at the left, a station per charge, the leg to the next one in full ink.
+/// The 30-day line: today's ring at the left, a station per charge, the leg to the next one in full ink.
 struct OverviewLine: View {
     let items: [UpcomingItem]
     let today: LocalDate
@@ -68,7 +68,7 @@ struct OverviewLine: View {
         (width - railStart - railEndInset) / CGFloat(Upcoming.horizonDays)
     }
 
-    /// x = days × railWidth / 60, except that no station comes closer to today's ring than a visible leg.
+    /// x = days × railWidth / Upcoming.horizonDays, except that no station comes closer to today's ring than a visible leg.
     static func layout(_ items: [UpcomingItem], width: CGFloat, shift: CGFloat = 0) -> LineLayout {
         let dw = dayWidth(width)
         let nearest = railStart + ringRadius + minLeg + stationRadius
@@ -288,10 +288,10 @@ struct OverviewLine: View {
 
     private var accessibilityText: String {
         guard let next = items.min(by: { $0.days < $1.days }) else {
-            return String(localized: "Next 60 days: no charges")
+            return String(localized: "Next 30 days: no charges")
         }
         return String(localized: """
-            Next 60 days: \(items.count) charges; next \(Formatters.relativeDays(next.days)): \
+            Next 30 days: \(items.count) charges; next \(Formatters.relativeDays(next.days)): \
             \(next.subscription.name), \(Formatters.money(next.charge.amount))
             """)
     }

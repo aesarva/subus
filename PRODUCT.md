@@ -32,7 +32,7 @@ The menu bar is glanced at in passing many times a day, and the panel is opened 
 ## Capabilities and Constraints
 
 - Subscription: name, logo (own image, the site's icon fetched on request, or a monogram), price and currency, billing cycle (N days, weeks, months or years), first charge date, optional trial end date, optional end date, active/inactive, category, payment method (a free-text label, never card numbers), website, manage/cancel link, price history, per-subscription notification switch, notes.
-- Upcoming charges are grouped as Today & tomorrow / This week / This month / Later (60 days). Monthly and yearly totals are shown in the base currency. Spending is broken down by category and by payment method. Price increases from the last year are listed.
+- Upcoming charges are grouped as Today & tomorrow / This week / This month / Later (up to 30 days; each subscription once, at its nearest charge). Monthly and yearly totals are shown in the base currency. Spending is broken down by category and by payment method. Price increases from the last year are listed.
 - Notifications: 5/3/1 days before by default (0–30, configurable), at 10:00 by default. Charge and trial-end reminders have different wording. There is a "Manage subscription" action.
 - Currency: CBR daily rates, cached; offline the cached rate is used. A currency CBR does not list is left out of totals and flagged, never silently miscounted.
 - Data: a local JSON file with automatic backup and recovery from corruption. JSON export/import (with logos) and CSV export/import.

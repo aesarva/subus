@@ -42,7 +42,7 @@ struct UpcomingTab: View {
         let text: String
         if let nearest = model.nearestCharge {
             let name = nearest.0.name, date = Formatters.shortDate(nearest.1.date)
-            text = String(localized: "No charges in the next 60 days — next: \(name), \(date)")
+            text = String(localized: "No charges in the next 30 days — next: \(name), \(date)")
         } else {
             text = String(localized: "No upcoming charges")
         }

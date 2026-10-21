@@ -968,12 +968,12 @@
         }
       }
     },
-    "No charges in the next 60 days — next: %@, %@": {
+    "No charges in the next 30 days — next: %@, %@": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "В ближайшие 60 дней списаний нет — следующее: %1$@, %2$@"
+            "value": "В ближайшие 30 дней списаний нет — следующее: %1$@, %2$@"
           }
         }
       }
@@ -1128,12 +1128,12 @@
         }
       }
     },
-    "Next 60 days: no charges": {
+    "Next 30 days: no charges": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ближайшие 60 дней: списаний нет"
+            "value": "Ближайшие 30 дней: списаний нет"
           }
         }
       }
@@ -1294,7 +1294,7 @@
         }
       }
     },
-    "Next 60 days: %lld charges; next %@: %@, %@": {
+    "Next 30 days: %lld charges; next %@: %@, %@": {
       "localizations": {
         "en": {
           "variations": {
@@ -1302,13 +1302,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Next 60 days: %lld charge; next %@: %@, %@"
+                  "value": "Next 30 days: %lld charge; next %@: %@, %@"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Next 60 days: %lld charges; next %@: %@, %@"
+                  "value": "Next 30 days: %lld charges; next %@: %@, %@"
                 }
               }
             }
@@ -1320,25 +1320,25 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Ближайшие 60 дней: %lld списание; следующее %@: %@, %@"
+                  "value": "Ближайшие 30 дней: %lld списание; следующее %@: %@, %@"
                 }
               },
               "few": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Ближайшие 60 дней: %lld списания; следующее %@: %@, %@"
+                  "value": "Ближайшие 30 дней: %lld списания; следующее %@: %@, %@"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Ближайшие 60 дней: %lld списаний; следующее %@: %@, %@"
+                  "value": "Ближайшие 30 дней: %lld списаний; следующее %@: %@, %@"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Ближайшие 60 дней: %lld списаний; следующее %@: %@, %@"
+                  "value": "Ближайшие 30 дней: %lld списаний; следующее %@: %@, %@"
                 }
               }
             }

@@ -194,7 +194,7 @@ components:
 
 **Creative North Star: "The Line"**
 
-Subus draws the next sixty days as a transit strip map. Today is the station you are at, on the left of a short horizontal line. Each upcoming charge is a station in its category's line colour. Below, the same charges hang off a vertical spine, grouped like the stops of a route. The world deliberately avoids the category default: a stack of rounded cards with brand-coloured logo tiles under a big total. There are no cards, boxes or row backgrounds in the panel. Hierarchy comes from scale and weight alone, and one large number answers "how long until the next charge".
+Subus draws the next thirty days as a transit strip map. Today is the station you are at, on the left of a short horizontal line. Each upcoming charge is a station in its category's line colour. Below, the same charges hang off a vertical spine, grouped like the stops of a route. The world deliberately avoids the category default: a stack of rounded cards with brand-coloured logo tiles under a big total. There are no cards, boxes or row backgrounds in the panel. Hierarchy comes from scale and weight alone, and one large number answers "how long until the next charge".
 
 The ground belongs to the system. The panel is a plain `NSPopover`: Liquid Glass on macOS 26, popover vibrancy on 14 and 15, and an opaque system popover under Reduce Transparency. Text uses semantic label colours, never hex inks. The only custom colours are the eight line colours, the eight monogram tiles, the rail grey, and one brand orange. Native controls carry everything interactive: the segmented control, search field, menu picker, switch, link buttons and borderless buttons.
 
@@ -307,7 +307,7 @@ A hollow circle in the category's line colour, 13 pt with a 3 pt stroke. It mark
 Charges closer than 14 pt on the overview merge into a capsule. It is 18 pt tall (21 pt lifted, with an ink halo) and spans the merged stations. Its stroke is the shared line colour when every charge in it has the same category, otherwise the rail colour. The count is centred inside in 11 pt semibold secondary ink. A capsule keeps its size when it recedes; only the stroke thins. Hovering reveals every charge in a tooltip and in the station label.
 
 ### Overview Line
-A 60-day rail in rail grey with week and month ticks, month labels, and today's ring at the left: a 15 pt outer ring in full ink. When something is due today, that ring is the station: it carries an accent dot and there is no leg. Otherwise the leg runs from today to the next station in full ink. Only the next station is labelled ("23 · Name +N"), and the label is clamped inside the rail ends. Hovering a station lifts it and its strip rows. On a day change the horizon slides in two 90 ms steps. VoiceOver reads it as one element: "Next 60 days: N charges; next in N days: name, amount".
+A 30-day rail in rail grey with week and month ticks, month labels, and today's ring at the left: a 15 pt outer ring in full ink. When something is due today, that ring is the station: it carries an accent dot and there is no leg. Otherwise the leg runs from today to the next station in full ink. Only the next station is labelled ("23 · Name +N"), and the label is clamped inside the rail ends. Hovering a station lifts it and its strip rows. On a day change the horizon slides in two 90 ms steps. VoiceOver reads it as one element: "Next 30 days: N charges; next in N days: name, amount".
 
 ### Strip Row
 One button per charge:

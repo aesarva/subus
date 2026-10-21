@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Upcoming covers the next 30 days and shows each subscription once, at its nearest charge; reminders still plan 60 days ahead.
 - Create a category or a card right from the subscription form.
 - Add a card by choosing one of your saved cards (macOS AutoFill); Subus keeps only its last 4 digits.
 - Any colour for a category; lines stay legible in light and dark.

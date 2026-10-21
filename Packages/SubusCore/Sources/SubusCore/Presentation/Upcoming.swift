@@ -13,13 +13,15 @@ public struct UpcomingSection: Equatable, Sendable {
 }
 
 public enum Upcoming {
-    public static let horizonDays = 60
+    /// The panel's horizon. Reminders plan further ahead on their own (`ReminderPlanner.horizonDays`).
+    public static let horizonDays = 30
 
+    /// Each live subscription once, with its nearest charge in the next `horizonDays` days.
     public static func sections(library: Library, today: LocalDate, calendar: Calendar) -> [UpcomingSection] {
         let live = library.subscriptions.filter { $0.isLive(today: today) }
         let names = Dictionary(live.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a })
         let range = today...today.adding(days: horizonDays)
-        let charges = live.flatMap { BillingSchedule.charges(for: $0, in: range) }.sorted { a, b in
+        let charges = live.compactMap { BillingSchedule.charges(for: $0, in: range).first }.sorted { a, b in
             if a.date != b.date { return a.date < b.date }
             let order = (names[a.subscriptionID] ?? "").localizedStandardCompare(names[b.subscriptionID] ?? "")
             if order != .orderedSame { return order == .orderedAscending }
