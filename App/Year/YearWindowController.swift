@@ -35,6 +35,13 @@ final class YearState {
         mode = defaults.string(forKey: Self.modeKey).flatMap(YearMode.init(rawValue:)) ?? .weeks
     }
 
+    /// Pushes or pops subscription pages; under Reduce Motion without the push animation.
+    func navigate(reduceMotion: Bool, _ change: (YearState) -> Void) {
+        var transaction = Transaction()
+        transaction.disablesAnimations = reduceMotion
+        withTransaction(transaction) { change(self) }
+    }
+
     /// The next opening starts over, in the remembered mode.
     func reset() {
         filter = YearFilter()

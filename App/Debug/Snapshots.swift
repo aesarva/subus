@@ -192,6 +192,10 @@ enum Snapshots {
         yearShot("year-nothing-found", library: base) { _, s in s.filter.query = "Disney" }
         yearShot("year-no-subscriptions", library: initial)
         yearShot("year-unreadable", library: .empty, unreadable: true)
+        // The subscription page, pushed over the year: monthly with a price history, yearly, and inactive.
+        yearShot("year-sub-monthly", library: base) { m, s in s.path = [id(m, "Яндекс Плюс")] }
+        yearShot("year-sub-yearly", library: base) { m, s in s.path = [id(m, "1Password")] }
+        yearShot("year-sub-inactive", library: base) { m, s in s.path = [id(m, "Notion")] }
 
         // Status item: the glyph alone, "3d", and the accent "1d" and "0d", on a light and a dark menu bar.
         for (theme, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {

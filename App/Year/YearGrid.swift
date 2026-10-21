@@ -4,8 +4,14 @@ import SwiftUI
 /// The year as a commit calendar: weeks in month columns (1–5 cells each, 12–14 columns) or months in four
 /// columns of tiles. A cell's tone counts its charges; this week or month is ringed in the accent and the
 /// selected cell in ink, both outside the cell. Click selects; arrows walk the grid; Return opens the
-/// selected cell's first subscription.
+/// selected cell's first subscription. With a `highlight` it draws one subscription's year: every cell at step 0
+/// and a station of the subscription's line in each week it charges.
 struct YearGrid: View {
+    /// One subscription's grid: its line colour, `nil` riding the rail.
+    struct Highlight {
+        let lineColor: CategoryColor?
+    }
+
     let plan: YearPlan
     let mode: YearMode
     @Binding var selection: LocalDate?
@@ -13,6 +19,7 @@ struct YearGrid: View {
     /// The room the cells may take: week cells grow from 36 to 56 pt with the width; month tiles grow with both.
     let width: CGFloat
     var height: CGFloat = .infinity
+    var highlight: Highlight? = nil
     var onOpen: (UUID) -> Void = { _ in }
 
     @FocusState private var focused: Bool
@@ -21,16 +28,17 @@ struct YearGrid: View {
     static let tileGap: CGFloat = 10
 
     var body: some View {
+        let columns = mode == .weeks ? plan.weekColumns() : []
         Group {
             switch mode {
-            case .weeks: weeks
+            case .weeks: weeks(columns)
             case .months: months
             }
         }
         .focusable()
         .focused($focused)
         .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow, .return]) { press in
-            handle(press.key)
+            handle(press.key, columns: columns)
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(mode == .weeks ? String(localized: "Year by weeks") : String(localized: "Year by months"))
@@ -46,18 +54,17 @@ struct YearGrid: View {
     }
 
     /// The grid's own width for its cells, so the card and the legend under it hug the grid.
-    static func contentWidth(plan: YearPlan, mode: YearMode, width: CGFloat) -> CGFloat {
+    /// `weekColumns` is the plan's `weekColumns().count`, counted once by the caller.
+    static func contentWidth(weekColumns columns: Int, mode: YearMode, width: CGFloat) -> CGFloat {
         switch mode {
         case .weeks:
-            let columns = plan.weekColumns().count
             return side(width: width, columns: columns) * CGFloat(columns) + gap * CGFloat(max(columns - 1, 0))
         case .months:
             return tileWidth(width: width) * 4 + tileGap * 3
         }
     }
 
-    private var weeks: some View {
-        let columns = plan.weekColumns()
+    private func weeks(_ columns: [(month: MonthKey, weeks: [YearPeriod])]) -> some View {
         let side = Self.side(width: width, columns: columns.count)
         return HStack(alignment: .top, spacing: Self.gap) {
             ForEach(columns, id: \.month) { column in
@@ -118,7 +125,10 @@ struct YearGrid: View {
             focused = true
         } label: {
             content()
-                .background(YearCellFill(level: period.level, cornerRadius: cornerRadius))
+                .background(YearCellFill(level: highlight == nil ? period.level : 0, cornerRadius: cornerRadius))
+                .overlay {
+                    if let highlight, period.count > 0 { YearCellStation(lineColor: highlight.lineColor) }
+                }
                 .overlay(YearCellRings(current: current, selected: selected, cornerRadius: cornerRadius))
                 .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         }
@@ -127,12 +137,12 @@ struct YearGrid: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(YearFormat.spoken(period, mode: mode))
         .accessibilityValue(current ? (mode == .weeks ? String(localized: "this week") : String(localized: "this month")) : "")
-        .accessibilityAddTraits(selected ? .isSelected : [])
+        .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
     }
 
     // MARK: Keys
 
-    private func handle(_ key: KeyEquivalent) -> KeyPress.Result {
+    private func handle(_ key: KeyEquivalent, columns: [(month: MonthKey, weeks: [YearPeriod])]) -> KeyPress.Result {
         let periods = mode == .weeks ? plan.weeks : plan.months
         guard let index = periods.firstIndex(where: { $0.id == selection }) else { return .ignored }
         if key == .return {
@@ -144,8 +154,8 @@ struct YearGrid: View {
         switch (mode, key) {
         case (.weeks, .upArrow), (.months, .leftArrow): target = index - 1
         case (.weeks, .downArrow), (.months, .rightArrow): target = index + 1
-        case (.weeks, .leftArrow): target = neighbourColumn(of: index, step: -1)
-        case (.weeks, .rightArrow): target = neighbourColumn(of: index, step: 1)
+        case (.weeks, .leftArrow): target = neighbourColumn(of: index, step: -1, in: columns)
+        case (.weeks, .rightArrow): target = neighbourColumn(of: index, step: 1, in: columns)
         case (.months, .upArrow): target = index - 4
         case (.months, .downArrow): target = index + 4
         default: return .ignored
@@ -156,8 +166,7 @@ struct YearGrid: View {
     }
 
     /// The same row of the next or previous month column, or its last cell when that column is shorter.
-    private func neighbourColumn(of index: Int, step: Int) -> Int {
-        let columns = plan.weekColumns()
+    private func neighbourColumn(of index: Int, step: Int, in columns: [(month: MonthKey, weeks: [YearPeriod])]) -> Int {
         var start = 0
         for (c, column) in columns.enumerated() {
             if index < start + column.weeks.count {
@@ -188,6 +197,23 @@ private struct YearCellFill: View {
             .overlay {
                 if contrast == .increased { shape.strokeBorder(Color(nsColor: .separatorColor), lineWidth: 1) }
             }
+    }
+}
+
+/// A charge in one subscription's grid: its 13 pt station on the card ground, with a 1 pt halo of that ground.
+private struct YearCellStation: View {
+    let lineColor: CategoryColor?
+
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color(scheme == .dark ? YearRamp.cardDark : YearRamp.cardLight))
+                .frame(width: StationRing.diameter + 2, height: StationRing.diameter + 2)
+            StationRing(lineColor: lineColor)
+        }
+        .allowsHitTesting(false)
     }
 }
 

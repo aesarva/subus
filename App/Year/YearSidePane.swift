@@ -16,6 +16,8 @@ struct YearSidePane: View {
 
     static let minWidth: CGFloat = 320
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Picker(String(localized: "Show"), selection: $state.pane) {
@@ -34,7 +36,7 @@ struct YearSidePane: View {
 
     private var logos: URL { model.logosDirectory ?? FileManager.default.temporaryDirectory }
 
-    private func open(_ id: UUID) { state.path.append(id) }
+    private func open(_ id: UUID) { state.navigate(reduceMotion: reduceMotion) { $0.path.append(id) } }
 
     // MARK: Week / Month
 

@@ -12,6 +12,7 @@ struct YearView: View {
 
     /// The room under the summary, shared by the grid card and the side pane.
     @State private var room = CGSize(width: 1060, height: 540)
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     static let padding: CGFloat = 20
     static let spacing: CGFloat = 20
@@ -40,7 +41,10 @@ struct YearView: View {
                 if state.windowWidth != width { state.windowWidth = width }
             }
             .yearToolbar(model: model, state: state, period: plan.range)
-            // Task 7: `.navigationDestination(for: UUID.self)` pushes the subscription page.
+            .navigationDestination(for: UUID.self) { id in
+                SubscriptionPage(model: model, id: id, onEdit: onEdit)
+                    .yearBackButton(state: state)
+            }
         }
         // The plan holds both weeks and months, so the selection carries over without a rebuild.
         .onChange(of: state.mode) { old, new in
@@ -54,6 +58,9 @@ struct YearView: View {
         .onChange(of: model.library, initial: true) { _, library in
             let pruned = state.filter.pruned(to: library)
             if pruned != state.filter { state.filter = pruned }
+            // A subscription deleted while its page is open: back to the year.
+            let ids = Set(library.subscriptions.map(\.id))
+            if !state.path.allSatisfy(ids.contains) { state.navigate(reduceMotion: reduceMotion) { $0.path.removeAll() } }
         }
         .onChange(of: screen, initial: true) { _, screen in
             if screen == .noChargesThisYear { state.pane = .all }
@@ -103,7 +110,8 @@ struct YearView: View {
     /// (320 pt at least): past 56 pt cells a wider window widens the pane.
     private func main(plan: YearPlan, inputs: YearPlanCache.Inputs, today: LocalDate, emptyYear: Bool) -> some View {
         let mode = state.mode
-        let fullGrid = YearGrid.contentWidth(plan: plan, mode: .weeks, width: .infinity) + Self.cardPadding * 2
+        let weekColumns = plan.weekColumns().count
+        let fullGrid = YearGrid.contentWidth(weekColumns: weekColumns, mode: .weeks, width: .infinity) + Self.cardPadding * 2
         let side = min(460, max(YearSidePane.minWidth, room.width - Self.spacing - fullGrid))
         let gridRoom = max(0, room.width - Self.spacing - side)
         let cellRoom = gridRoom - Self.cardPadding * 2
@@ -122,10 +130,11 @@ struct YearView: View {
                     }
                     YearGrid(plan: plan, mode: mode,
                              selection: Binding(get: { selection }, set: { state.selection = $0 }),
-                             today: today, width: cellRoom, height: cellHeight, onOpen: { state.path.append($0) })
+                             today: today, width: cellRoom, height: cellHeight,
+                             onOpen: { id in state.navigate(reduceMotion: reduceMotion) { $0.path.append(id) } })
                     YearLegend(mode: mode)
                 }
-                .frame(width: YearGrid.contentWidth(plan: plan, mode: mode, width: cellRoom),
+                .frame(width: YearGrid.contentWidth(weekColumns: weekColumns, mode: mode, width: cellRoom),
                        alignment: .leading)
                 .padding(Self.cardPadding)
                 .padding(.top, 2)
@@ -147,7 +156,7 @@ struct YearView: View {
 }
 
 /// The grid's surface: #FBFBF9 / #232325 at a 16 pt radius, edged by a hairline.
-private struct YearCard: View {
+struct YearCard: View {
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {

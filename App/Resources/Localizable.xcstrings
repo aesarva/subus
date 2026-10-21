@@ -4316,6 +4316,56 @@
         }
       }
     },
+    "In the next 12 months": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "За 12 месяцев"
+          }
+        }
+      }
+    },
+    "Charges": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Списания"
+          }
+        }
+      }
+    },
+    "new price": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "новая цена"
+          }
+        }
+      }
+    },
+    "No charges in the next year": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Списаний в ближайший год нет"
+          }
+        }
+      }
+    },
+    "Card": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Карта"
+          }
+        }
+      }
+    },
     "No charges in the next 12 months": {
       "localizations": {
         "ru": {

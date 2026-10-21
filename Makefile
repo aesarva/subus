@@ -22,7 +22,7 @@ run: build
 SNAPSHOT_BIN = build/Build/Products/Debug/Subus.app/Contents/MacOS/Subus
 SNAPSHOT_SRC = $(HOME)/Library/Containers/io.github.aesarva.Subus/Data/tmp/Snapshots
 # appicon.png is language-independent: both runs write the same file, so it counts once (168 localized + 1).
-SNAPSHOT_EXPECTED = 169
+SNAPSHOT_EXPECTED = 181
 
 .PHONY: snapshots
 snapshots: build
