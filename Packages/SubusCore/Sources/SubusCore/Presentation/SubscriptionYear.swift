@@ -21,7 +21,9 @@ public struct SubscriptionYear: Equatable, Sendable {
         }
         var total = YearMoney(currency: baseCurrency)
         for c in charges { total.add(c.converted) }
-        let changed = zip(raw, raw.dropFirst()).filter { $0.amount != $1.amount }.map { $1.date }
+        // Первое списание сравнивается с ценой на сегодня, остальные — с предыдущим списанием.
+        var changed = zip(raw, raw.dropFirst()).filter { $0.amount != $1.amount }.map { $1.date }
+        if let first = raw.first, first.amount != s.currentPrice(today: today) { changed.append(first.date) }
         return SubscriptionYear(charges: charges, total: total,
                                 next: BillingSchedule.nextCharge(for: s, onOrAfter: today),
                                 firstAtNewPrice: Set(changed))

@@ -49,6 +49,24 @@ private func rows(_ subs: [Subscription], showInactive: Bool = false, sort: Year
     #expect(year(s).firstAtNewPrice == [d("2027-01-12")])
 }
 
+@Test func firstAtNewPriceBeforeFirstChargeInRange() {
+    var s = sub("X", rub(299), start: "2026-01-26")
+    s.changePrice(to: rub(399), effectiveFrom: d("2026-10-22"))
+    #expect(year(s).firstAtNewPrice == [d("2026-10-26")])
+}
+
+@Test func firstAtNewPriceNotMarkedForOldChange() {
+    var s = sub("X", rub(299))
+    s.changePrice(to: rub(399), effectiveFrom: d("2026-08-12"))
+    #expect(year(s).firstAtNewPrice.isEmpty)
+}
+
+@Test func firstAtNewPriceNotMarkedForTrial() {
+    let s = Subscription(name: "T", price: rub(399), cycle: .monthly, startDate: d("2026-10-01"),
+                         trialEndDate: d("2026-11-01"))
+    #expect(year(s).firstAtNewPrice.isEmpty)
+}
+
 @Test func priceStepsPercent() throws {
     var s = sub("X", rub(299))
     s.changePrice(to: rub(399), effectiveFrom: d("2027-01-05"))
