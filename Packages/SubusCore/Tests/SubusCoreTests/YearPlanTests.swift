@@ -215,3 +215,10 @@ private func plan(_ subs: [Subscription], filter: YearFilter = YearFilter(), tod
     #expect(p.charges.allSatisfy { $0.charge.subscriptionID == w.id })
     #expect(p.matchedSubscriptionIDs == [w.id])
 }
+
+@Test func twelveColumns() {
+    let p = plan([], today: d("2026-01-01"), calendar: mondayFirst)
+    #expect(p.weeks.first?.id == d("2025-12-29"))
+    #expect(p.weeks.last?.id == d("2026-12-28"))
+    #expect(p.weekColumns().count == 12)
+}

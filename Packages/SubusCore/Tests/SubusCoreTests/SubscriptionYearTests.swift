@@ -67,6 +67,16 @@ private func rows(_ subs: [Subscription], showInactive: Bool = false, sort: Year
     #expect(year(s).firstAtNewPrice.isEmpty)
 }
 
+@Test func firstAtNewPriceChangeEffectiveToday() {
+    var s = sub("X", rub(299), start: "2026-01-26")
+    s.changePrice(to: rub(399), effectiveFrom: d("2026-10-21"))
+    #expect(year(s).firstAtNewPrice == [d("2026-10-26")])
+}
+
+@Test func firstAtNewPriceNotMarkedForFirstEverCharge() {
+    #expect(year(sub("X", rub(399), start: "2026-10-26")).firstAtNewPrice.isEmpty)
+}
+
 @Test func priceStepsPercent() throws {
     var s = sub("X", rub(299))
     s.changePrice(to: rub(399), effectiveFrom: d("2027-01-05"))
