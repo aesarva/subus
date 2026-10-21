@@ -3,10 +3,12 @@ import SubusCore
 import SwiftUI
 
 /// The card-number field. macOS offers saved cards through AutoFill (`.creditCardNumber`); whatever arrives
-/// is reduced by `CardFieldParser`, so the binding never holds a parsed full number. Undo is off in the field
-/// editor before the first keystroke, and the editor is wiped when the field goes away.
+/// is reduced by `CardFieldParser`. The raw text stays inside AppKit: the binding only ever holds what was
+/// read from it (last four digits and network) or nothing, and `hasText` says whether something unread is typed.
+/// The field has a field editor of its own with undo off, so no other field shares or inherits its text.
 struct CardNumberField: NSViewRepresentable {
     @Binding var state: CardFieldState
+    @Binding var hasText: Bool
     var onEnd: () -> Void = {}
 
     func makeNSView(context: Context) -> CardTextField {
@@ -15,17 +17,17 @@ struct CardNumberField: NSViewRepresentable {
         field.placeholderString = "0000"
         field.stringValue = state.text
         field.delegate = context.coordinator
+        context.coordinator.raw = state
         return field
     }
 
     func updateNSView(_ field: CardTextField, context: Context) {
         context.coordinator.parent = self
-        if field.currentEditor() == nil, field.stringValue != state.text { field.stringValue = state.text }
     }
 
     static func dismantleNSView(_ field: CardTextField, coordinator: Coordinator) {
-        if let editor = field.currentEditor() as? NSTextView { CardTextField.wipe(editor) }
         field.abortEditing()
+        field.wipeEditor()
         field.stringValue = ""
     }
 
@@ -33,55 +35,97 @@ struct CardNumberField: NSViewRepresentable {
 
     @MainActor final class Coordinator: NSObject, NSTextFieldDelegate {
         var parent: CardNumberField
+        var raw = CardFieldState()
 
         init(parent: CardNumberField) { self.parent = parent }
 
         func controlTextDidChange(_ notification: Notification) {
-            guard let field = notification.object as? NSTextField else { return }
-            let next = CardFieldParser.edited(parent.state, to: field.stringValue)
-            if next.text != field.stringValue { replace(field, with: next.text) }
-            parent.state = next
+            guard let field = notification.object as? CardTextField else { return }
+            apply(CardFieldParser.edited(raw, to: field.stringValue, inserted: field.takeInsertedLength()), to: field)
         }
 
         func controlTextDidEndEditing(_ notification: Notification) {
-            guard let field = notification.object as? NSTextField else { return }
-            let next = CardFieldParser.ended(parent.state)
-            if next.text != field.stringValue { field.stringValue = next.text }
-            parent.state = next
+            guard let field = notification.object as? CardTextField else { return }
+            apply(CardFieldParser.ended(raw), to: field)
             parent.onEnd()
         }
 
-        private func replace(_ field: NSTextField, with text: String) {
-            if let editor = field.currentEditor() as? NSTextView {
-                editor.string = text
-                editor.undoManager?.removeAllActions(withTarget: editor)
-                if let storage = editor.textStorage { editor.undoManager?.removeAllActions(withTarget: storage) }
-            }
-            field.stringValue = text
+        private func apply(_ next: CardFieldState, to field: CardTextField) {
+            if next.text != field.stringValue { field.replaceText(with: next.text) }
+            raw = next
+            parent.state = next.last4 == nil ? CardFieldState() : next
+            parent.hasText = !next.text.trimmingCharacters(in: .whitespaces).isEmpty
         }
     }
 }
 
 final class CardTextField: NSTextField {
-    /// The shared field editor gets undo switched off before anything is typed or filled in here.
-    override func becomeFirstResponder() -> Bool {
-        let accepted = super.becomeFirstResponder()
-        (currentEditor() as? NSTextView)?.allowsUndo = false
-        return accepted
+    override class var cellClass: AnyClass? {
+        get { CardFieldCell.self }
+        set {}
     }
 
-    /// The field editor serves the sheet's other fields next, so it leaves clean and with undo back on.
+    override init(frame: NSRect) {
+        super.init(frame: frame)
+        cell?.allowsUndo = false
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+
+    /// The length of what the last edit inserted, read once by the coordinator.
+    func takeInsertedLength() -> Int? { (cell as? CardFieldCell)?.editor.takeInsertedLength() }
+
+    /// Replaces the text in the field and, while editing, in its own field editor.
+    func replaceText(with text: String) {
+        (currentEditor() as? NSTextView)?.string = text
+        stringValue = text
+    }
+
     override func textDidEndEditing(_ notification: Notification) {
         super.textDidEndEditing(notification)
-        if let editor = notification.object as? NSTextView {
-            Self.wipe(editor)
-            editor.allowsUndo = true
-        }
+        wipeEditor()
     }
 
-    static func wipe(_ editor: NSTextView) {
+    func wipeEditor() { (cell as? CardFieldCell)?.wipe() }
+}
+
+/// Hands the field a private field editor that never records undo.
+final class CardFieldCell: NSTextFieldCell {
+    let editor: CardFieldEditor = {
+        let editor = CardFieldEditor()
+        editor.isFieldEditor = true
+        editor.allowsUndo = false
+        return editor
+    }()
+
+    override func fieldEditor(for controlView: NSView) -> NSTextView? {
+        editor.allowsUndo = false
+        return editor
+    }
+
+    override func setUpFieldEditorAttributes(_ textObj: NSText) -> NSText {
+        let text = super.setUpFieldEditorAttributes(textObj)
+        (text as? NSTextView)?.allowsUndo = false
+        return text
+    }
+
+    func wipe() {
         editor.undoManager?.removeAllActions(withTarget: editor)
-        if let storage = editor.textStorage { editor.undoManager?.removeAllActions(withTarget: storage) }
         editor.string = ""
+    }
+}
+
+/// The private field editor; it notes how long each insertion is, so AutoFill replacing typed text is seen.
+final class CardFieldEditor: NSTextView {
+    private var insertedLength: Int?
+
+    override func shouldChangeText(in affectedCharRange: NSRange, replacementString: String?) -> Bool {
+        insertedLength = replacementString?.count
+        return super.shouldChangeText(in: affectedCharRange, replacementString: replacementString)
+    }
+
+    func takeInsertedLength() -> Int? {
+        defer { insertedLength = nil }
+        return insertedLength
     }
 }

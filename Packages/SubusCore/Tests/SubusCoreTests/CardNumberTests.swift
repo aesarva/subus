@@ -55,6 +55,13 @@ private let en = Locale(identifier: "en_US")
         }
     }
 
+    @Test func cardFieldParsesAutoFillOverTypedText() {
+        let typed = CardFieldState(text: "123456789")
+        let s = CardFieldParser.edited(typed, to: "4242424242424242", inserted: 16)
+        #expect(s == CardFieldState(text: "•• 4242", last4: "4242", network: .visa))
+        #expect(CardFieldParser.edited(typed, to: "1234567890", inserted: 1).last4 == nil)
+    }
+
     @Test func cardFieldParsesOnEnd() {
         let typed = CardFieldState(text: "4242424242424242")
         #expect(CardFieldParser.ended(typed) == CardFieldState(text: "•• 4242", last4: "4242", network: .visa))

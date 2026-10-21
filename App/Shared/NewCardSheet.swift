@@ -1,3 +1,4 @@
+import AppKit
 import SubusCore
 import SwiftUI
 
@@ -11,6 +12,7 @@ struct NewCardSheet: View {
     @State private var card: CardFieldState
     @State private var bank: String
     @State private var ended = false
+    @State private var hasText = false
     @State private var error: String?
 
     init(model: AppModel, card: CardFieldState = CardFieldState(), bank: String = "",
@@ -22,7 +24,7 @@ struct NewCardSheet: View {
     }
 
     private var label: String { PaymentLabel.compose(bank: bank, last4: card.last4, network: card.network) }
-    private var unreadable: Bool { ended && card.last4 == nil && !card.text.trimmingCharacters(in: .whitespaces).isEmpty }
+    private var unreadable: Bool { ended && card.last4 == nil && hasText }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -30,7 +32,7 @@ struct NewCardSheet: View {
             Form {
                 LabeledContent("Card number") {
                     VStack(alignment: .trailing, spacing: 4) {
-                        CardNumberField(state: $card, onEnd: { ended = true })
+                        CardNumberField(state: $card, hasText: $hasText, onEnd: { ended = true })
                             .frame(width: 180)
                         if unreadable {
                             Text("Enter the last 4 digits or choose a card").font(.caption).foregroundStyle(.red)
@@ -55,13 +57,19 @@ struct NewCardSheet: View {
                 Spacer()
                 Button("Cancel", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
-                Button("Add", action: add)
+                Button("Add", action: endEditingThenAdd)
                     .keyboardShortcut(.defaultAction)
                     .disabled(label.isEmpty)
             }
             .padding([.horizontal, .bottom], 20)
         }
         .frame(width: 460)
+    }
+
+    /// A number still being typed is read first, so the label includes it.
+    private func endEditingThenAdd() {
+        NSApp.keyWindow?.makeFirstResponder(nil)
+        DispatchQueue.main.async { add() }
     }
 
     private func add() {

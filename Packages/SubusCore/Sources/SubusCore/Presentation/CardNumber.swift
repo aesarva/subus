@@ -58,8 +58,11 @@ public struct CardFieldState: Equatable, Sendable {
 public enum CardFieldParser {
     public static func mask(_ last4: String) -> String { "•• " + last4 }
 
-    public static func edited(_ old: CardFieldState, to newText: String) -> CardFieldState {
-        if newText.count - old.text.count >= 8, let parsed = parsed(newText) { return parsed }
+    /// `inserted` is the length of the text this edit put in, when the field knows it: AutoFill may replace
+    /// what was typed, so the net growth alone can miss it.
+    public static func edited(_ old: CardFieldState, to newText: String, inserted: Int? = nil) -> CardFieldState {
+        let bulk = (inserted ?? 0) >= 8 || newText.count - old.text.count >= 8
+        if bulk, let parsed = parsed(newText) { return parsed }
         if let digits = maskDigits(newText) {
             return CardFieldState(text: newText, last4: digits, network: digits == old.last4 ? old.network : nil)
         }
