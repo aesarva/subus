@@ -106,7 +106,7 @@ private struct SwatchButton: View {
 
     var body: some View {
         Button { open = true } label: {
-            Circle().fill(LinePalette.line(index, scheme)).frame(width: 16, height: 16)
+            Circle().fill(LinePalette.line(.preset(index), scheme)).frame(width: 16, height: 16)
         }
         .buttonStyle(.plain)
         .help(Self.colorName(index))
@@ -118,7 +118,7 @@ private struct SwatchButton: View {
                         pick(i)
                         open = false
                     } label: {
-                        Circle().fill(LinePalette.line(i, scheme)).frame(width: 20, height: 20)
+                        Circle().fill(LinePalette.line(.preset(i), scheme)).frame(width: 20, height: 20)
                             .overlay {
                                 if i == index { Image(systemName: "checkmark").font(.caption.bold()).foregroundStyle(.white) }
                             }

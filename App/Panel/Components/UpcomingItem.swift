@@ -18,7 +18,7 @@ struct UpcomingItem: Identifiable {
     let subscription: Subscription
     let days: Int
     /// The category's line colour index; nil rides the rail colour.
-    let lineIndex: Int?
+    let lineColor: CategoryColor?
     let categoryName: String?
     let paymentLabel: String?
 
@@ -33,7 +33,7 @@ extension AppModel {
             guard let s = byID[charge.subscriptionID] else { return nil }
             let category = category(s.categoryID)
             return UpcomingItem(charge: charge, subscription: s, days: today.days(until: charge.date),
-                                lineIndex: category?.colorIndex, categoryName: category?.name,
+                                lineColor: category?.color, categoryName: category?.name,
                                 paymentLabel: paymentMethod(s.paymentMethodID)?.label)
         }
     }

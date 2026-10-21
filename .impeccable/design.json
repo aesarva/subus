@@ -618,7 +618,7 @@
       },
       {
         "name": "The Line Means Category Rule",
-        "body": "A line colour on a station, spine, ring or bar always means the subscription's category. A subscription without a category rides the rail grey. Payment methods never take a line colour; their bars are secondary-label grey behind a card-shaped mark. Monogram tiles are the one separate use: a tile's colour is the subscription's own `colorIndex` (or a hash of its name), and two subscriptions may share one.",
+        "body": "A line colour on a station, spine, ring or bar always means the subscription's category. A subscription without a category rides the rail grey. Payment methods never take a line colour; their bars are secondary-label grey behind a card-shaped mark. Monogram tiles are the one separate use: a tile's colour is the subscription's own `colorIndex` (or a hash of its name), and two subscriptions may share one. A category's line is a preset or a custom colour the user picked; a custom colour is fitted per theme to 3:1 on the reference ground by moving only its OKLCH lightness, and the hue stays.",
         "section": "colors"
       },
       {

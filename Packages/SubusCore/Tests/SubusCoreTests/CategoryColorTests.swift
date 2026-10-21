@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import SubusCore
 
-private let teal = RGBColor(red: 0x2A, green: 0x9D, blue: 0x8F)
+private let teal = SRGBColor(red: 0x2A, green: 0x9D, blue: 0x8F)
 
 private func libraryJSON(_ l: Library) throws -> [String: Any] {
     try #require(JSONSerialization.jsonObject(with: Transfer.exportJSON(l, logos: [:])) as? [String: Any])
@@ -10,11 +10,11 @@ private func libraryJSON(_ l: Library) throws -> [String: Any] {
 
 @Suite struct CategoryColorTests {
     @Test func rgbHexRoundTrip() {
-        #expect(RGBColor(hex: "#2a9d8f")?.hex == "#2A9D8F")
-        #expect(RGBColor(hex: "2A9D8F") == teal)
-        #expect(RGBColor(hex: "#GGHHII") == nil)
-        #expect(RGBColor(hex: "#FFF") == nil)
-        #expect(RGBColor(hex: "") == nil)
+        #expect(SRGBColor(hex: "#2a9d8f")?.hex == "#2A9D8F")
+        #expect(SRGBColor(hex: "2A9D8F") == teal)
+        #expect(SRGBColor(hex: "#GGHHII") == nil)
+        #expect(SRGBColor(hex: "#FFF") == nil)
+        #expect(SRGBColor(hex: "") == nil)
     }
 
     @Test func v1CategoryDecodes() throws {
@@ -98,9 +98,9 @@ private func libraryJSON(_ l: Library) throws -> [String: Any] {
 
     private func importPair() -> (local: Library, preview: ImportPreview) {
         var local = Library()
-        local.categories = [Category(name: "Music", colorIndex: 2, customColor: RGBColor(hex: "#112233"))]
+        local.categories = [Category(name: "Music", colorIndex: 2, customColor: SRGBColor(hex: "#112233"))]
         var incoming = Library()
-        incoming.categories = [Category(name: "Music", colorIndex: 2, customColor: RGBColor(hex: "#445566"))]
+        incoming.categories = [Category(name: "Music", colorIndex: 2, customColor: SRGBColor(hex: "#445566"))]
         return (local, ImportPreview(library: incoming))
     }
 
@@ -108,13 +108,13 @@ private func libraryJSON(_ l: Library) throws -> [String: Any] {
         let (local, preview) = importPair()
         let r = Transfer.apply(preview, to: local, mode: .add)
         #expect(r.library.categories.count == 1)
-        #expect(r.library.categories[0].customColor == RGBColor(hex: "#112233"))
+        #expect(r.library.categories[0].customColor == SRGBColor(hex: "#112233"))
     }
 
     @Test func replaceImportTakesFileColor() {
         let (local, preview) = importPair()
         let r = Transfer.apply(preview, to: local, mode: .replace)
-        #expect(r.library.categories.map(\.customColor) == [RGBColor(hex: "#445566")])
+        #expect(r.library.categories.map(\.customColor) == [SRGBColor(hex: "#445566")])
     }
 
     @Test func jsonExportKeepsCustomColor() throws {

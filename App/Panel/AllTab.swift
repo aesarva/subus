@@ -6,7 +6,7 @@ struct AllItem: Identifiable {
     let subscription: Subscription
     let categoryName: String?
     /// The category's line colour index; nil rides the rail colour.
-    let lineIndex: Int?
+    let lineColor: CategoryColor?
     /// Set when the subscription's end date has passed.
     let endedOn: LocalDate?
     var id: UUID { subscription.id }
@@ -66,7 +66,7 @@ struct AllTab: View {
             }
             .map { s in
                 let category = model.category(s.categoryID)
-                return AllItem(subscription: s, categoryName: category?.name, lineIndex: category?.colorIndex,
+                return AllItem(subscription: s, categoryName: category?.name, lineColor: category?.color,
                                endedOn: s.isEnded(today: today) ? s.endDate : nil)
             }
         let live = matching.filter { $0.subscription.isLive(today: today) }
@@ -264,7 +264,7 @@ private struct AllRow: View {
     private var secondary: some View {
         HStack(spacing: 5) {
             if let name = item.categoryName {
-                StationRing(lineIndex: item.lineIndex)
+                StationRing(lineColor: item.lineColor)
                 Text(verbatim: name)
                     .lineLimit(1)
             }

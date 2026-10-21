@@ -220,7 +220,8 @@ The ground is system material, and colour comes from a metro map: eight line col
 Each of the eight category indices has a colour pair: a **tile** colour that is also the light-theme line, and a **bright** colour for dark-theme lines. The indices run Magenta, Green, Blue, Red, Violet, Cyan, Brown, Yellow. No index is orange.
 - **Tiles** (`tile-*`): the monogram tile ground behind a white letter. Each reaches at least 4.74:1 against white (5.13–7.27:1). The same colours are the line strokes in light, at 4.74–6.72:1 on #F6F6F3.
 - **Bright** (`bright-*`): line strokes in dark, at 4.88–10.12:1 on #1C1C1E.
-- Strokes come from `LinePalette.line(index, scheme)`: the tile set in light, the bright set in dark. Tiles always use the tile set.
+- Strokes come from `LinePalette.line(color, scheme)`: the tile set in light, the bright set in dark. Tiles always use the tile set.
+- **Custom category colours.** A category may carry any colour the user picks instead of a preset. Its line is fitted per theme by `LineContrast.adjusted`: only OKLCH lightness moves, the hue stays, until the stroke reaches 3:1 on the reference ground (#F6F6F3 or #1C1C1E); chroma drops only where sRGB runs out. A colour already at 3:1 is drawn as picked. The presets stay orange-free; a custom colour is the user's call and may be orange.
 - Violet (index 4) also outlines the Trial tag. The tag's text says "Trial", so the colour only frames it.
 
 ### Neutral

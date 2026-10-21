@@ -151,8 +151,8 @@ struct OverviewLine: View {
     /// today's ring, the leg and the next station's label.
     private func drawStation(_ cluster: Cluster, _ state: StationState, in context: inout GraphicsContext) {
         let y = Self.railY
-        let indices = Set(cluster.items.map(\.lineIndex))
-        let color = indices.count == 1 ? LinePalette.line(cluster.items[0].lineIndex, scheme) : LinePalette.rail(scheme)
+        let indices = Set(cluster.items.map(\.lineColor))
+        let color = indices.count == 1 ? LinePalette.line(cluster.items[0].lineColor, scheme) : LinePalette.rail(scheme)
         if cluster.isSingle {
             context.drawStation(at: CGPoint(x: cluster.x0, y: y), color: color, state, contrast: contrast)
             return

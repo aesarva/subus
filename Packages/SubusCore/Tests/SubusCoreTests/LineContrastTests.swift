@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import SubusCore
 
-private func c(_ hex: String) -> RGBColor { RGBColor(hex: hex)! }
+private func c(_ hex: String) -> SRGBColor { SRGBColor(hex: hex)! }
 
 private func hueDistance(_ a: Double, _ b: Double) -> Double {
     let d = abs(a - b).truncatingRemainder(dividingBy: 360)

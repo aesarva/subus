@@ -150,9 +150,9 @@ public struct Category: Identifiable, Hashable, Codable, Sendable {
     public var name: String
     /// Always set: the preset an older Subus falls back to when it does not know `customColor`.
     public var colorIndex: Int
-    public var customColor: RGBColor?
+    public var customColor: SRGBColor?
 
-    public init(id: UUID = UUID(), name: String, colorIndex: Int, customColor: RGBColor? = nil) {
+    public init(id: UUID = UUID(), name: String, colorIndex: Int, customColor: SRGBColor? = nil) {
         self.id = id
         self.name = name
         self.colorIndex = colorIndex
@@ -180,7 +180,7 @@ public struct Category: Identifiable, Hashable, Codable, Sendable {
         name = try c.decode(String.self, forKey: .name)
         colorIndex = try c.decode(Int.self, forKey: .colorIndex)
         // A damaged colour costs only the colour, never the file.
-        customColor = (try? c.decodeIfPresent(RGBColor.self, forKey: .customColor)) ?? nil
+        customColor = (try? c.decodeIfPresent(SRGBColor.self, forKey: .customColor)) ?? nil
     }
 }
 

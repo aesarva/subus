@@ -146,7 +146,7 @@ struct SubscriptionCard: View {
         } else {
             VStack(spacing: 0) {
                 ForEach(Array(charges.enumerated()), id: \.element.date) { index, charge in
-                    ChargeStop(charge: charge, today: today, lineIndex: category?.colorIndex,
+                    ChargeStop(charge: charge, today: today, lineColor: category?.color,
                                isFirst: index == 0, isLast: index == charges.count - 1)
                 }
             }
@@ -192,7 +192,7 @@ struct SubscriptionCard: View {
         }
         if let category {
             rows.append(Fact(label: String(localized: "Category"), value: AnyView(HStack(spacing: 6) {
-                StationRing(lineIndex: category.colorIndex)
+                StationRing(lineColor: category.color)
                 Text(verbatim: category.name)
             })))
         }
@@ -299,7 +299,7 @@ private struct SectionHead: View {
 private struct ChargeStop: View {
     let charge: Charge
     let today: LocalDate
-    let lineIndex: Int?
+    let lineColor: CategoryColor?
     let isFirst: Bool
     let isLast: Bool
 
@@ -347,7 +347,7 @@ private struct ChargeStop: View {
 
     private func draw(in context: inout GraphicsContext, size: CGSize, accent: Bool) {
         let stroke = LinePalette.stroke(contrast)
-        let color = LinePalette.line(lineIndex, scheme)
+        let color = LinePalette.line(lineColor, scheme)
         let x = StripMap.spineX, y = size.height / 2
         context.drawLayer { layer in
             if !(isFirst && isLast) {

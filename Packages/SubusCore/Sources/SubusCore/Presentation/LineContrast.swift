@@ -3,25 +3,25 @@ import Foundation
 /// Fits a user-picked line colour to a minimum WCAG contrast against a ground, moving only its OKLCH lightness.
 public enum LineContrast {
     /// The reference grounds every line ratio is measured against (DESIGN.md).
-    public static let lightGround = RGBColor(red: 0xF6, green: 0xF6, blue: 0xF3)
-    public static let darkGround = RGBColor(red: 0x1C, green: 0x1C, blue: 0x1E)
+    public static let lightGround = SRGBColor(red: 0xF6, green: 0xF6, blue: 0xF3)
+    public static let darkGround = SRGBColor(red: 0x1C, green: 0x1C, blue: 0x1E)
 
     /// WCAG 2.x contrast ratio, 1…21.
-    public static func ratio(_ a: RGBColor, _ b: RGBColor) -> Double {
+    public static func ratio(_ a: SRGBColor, _ b: SRGBColor) -> Double {
         let (la, lb) = (luminance(a), luminance(b))
         return (max(la, lb) + 0.05) / (min(la, lb) + 0.05)
     }
 
     /// The colour moved in OKLCH lightness only, the hue kept, until it reaches `minimum` against `ground`.
     /// Chroma drops only where the colour would leave sRGB. When even the extreme misses, black or white.
-    public static func adjusted(_ color: RGBColor, against ground: RGBColor, minimum: Double = 3.0) -> RGBColor {
+    public static func adjusted(_ color: SRGBColor, against ground: SRGBColor, minimum: Double = 3.0) -> SRGBColor {
         if ratio(color, ground) >= minimum { return color }
         let darker = luminance(ground) > 0.18
-        let extreme = darker ? RGBColor(red: 0, green: 0, blue: 0) : RGBColor(red: 255, green: 255, blue: 255)
+        let extreme = darker ? SRGBColor(red: 0, green: 0, blue: 0) : SRGBColor(red: 255, green: 255, blue: 255)
         guard ratio(extreme, ground) >= minimum else { return extreme }
 
         let start = OKLCH.from(color)
-        func candidate(_ l: Double) -> RGBColor { OKLCH.fitted(l: l, c: start.c, h: start.h) }
+        func candidate(_ l: Double) -> SRGBColor { OKLCH.fitted(l: l, c: start.c, h: start.h) }
         // `lo` misses the minimum, `hi` reaches it; the search closes in on the smallest move.
         var lo = start.l, hi = darker ? 0.0 : 1.0
         var best = extreme
@@ -38,7 +38,7 @@ public enum LineContrast {
         return best
     }
 
-    private static func luminance(_ c: RGBColor) -> Double {
+    private static func luminance(_ c: SRGBColor) -> Double {
         let (r, g, b) = OKLCH.linear(c)
         return 0.2126 * r + 0.7152 * g + 0.0722 * b
     }
@@ -46,7 +46,7 @@ public enum LineContrast {
 
 /// sRGB ⇄ OKLCH (Björn Ottosson's OKLab in polar form); hue in degrees.
 enum OKLCH {
-    static func from(_ c: RGBColor) -> (l: Double, c: Double, h: Double) {
+    static func from(_ c: SRGBColor) -> (l: Double, c: Double, h: Double) {
         let (r, g, b) = linear(c)
         let l = cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
         let m = cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
@@ -60,24 +60,24 @@ enum OKLCH {
     }
 
     /// nil when the colour lies outside sRGB.
-    static func rgb(l: Double, c: Double, h: Double) -> RGBColor? {
+    static func rgb(l: Double, c: Double, h: Double) -> SRGBColor? {
         let (r, g, b) = linearRGB(l: l, c: c, h: h)
         let tolerance = 1e-4
         guard [r, g, b].allSatisfy({ $0 >= -tolerance && $0 <= 1 + tolerance }) else { return nil }
-        return RGBColor(red: byte(r), green: byte(g), blue: byte(b))
+        return SRGBColor(red: byte(r), green: byte(g), blue: byte(b))
     }
 
     /// The colour at this lightness and hue, its chroma cut by 5 % steps until it fits sRGB.
-    static func fitted(l: Double, c: Double, h: Double) -> RGBColor {
+    static func fitted(l: Double, c: Double, h: Double) -> SRGBColor {
         var chroma = c
         while chroma > 1e-4 {
             if let rgb = rgb(l: l, c: chroma, h: h) { return rgb }
             chroma *= 0.95
         }
-        return rgb(l: l, c: 0, h: h) ?? RGBColor(red: byte(l), green: byte(l), blue: byte(l))
+        return rgb(l: l, c: 0, h: h) ?? SRGBColor(red: byte(l), green: byte(l), blue: byte(l))
     }
 
-    static func linear(_ c: RGBColor) -> (Double, Double, Double) {
+    static func linear(_ c: SRGBColor) -> (Double, Double, Double) {
         func f(_ v: UInt8) -> Double {
             let x = Double(v) / 255
             return x <= 0.04045 ? x / 12.92 : pow((x + 0.055) / 1.055, 2.4)

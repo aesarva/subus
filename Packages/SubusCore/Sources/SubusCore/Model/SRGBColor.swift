@@ -1,7 +1,7 @@
 import Foundation
 
 /// An 8-bit sRGB colour, stored in JSON as "#RRGGBB".
-public struct RGBColor: Hashable, Codable, Sendable {
+public struct SRGBColor: Hashable, Codable, Sendable {
     public var red: UInt8
     public var green: UInt8
     public var blue: UInt8
@@ -23,7 +23,7 @@ public struct RGBColor: Hashable, Codable, Sendable {
 
     public init(from decoder: Decoder) throws {
         let raw = try decoder.singleValueContainer().decode(String.self)
-        guard let color = RGBColor(hex: raw) else {
+        guard let color = SRGBColor(hex: raw) else {
             throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "Not a #RRGGBB colour"))
         }
         self = color
@@ -38,5 +38,5 @@ public struct RGBColor: Hashable, Codable, Sendable {
 /// How a category's line is coloured: one of the palette presets, or a colour the user picked.
 public enum CategoryColor: Hashable, Sendable {
     case preset(Int)
-    case custom(RGBColor)
+    case custom(SRGBColor)
 }
