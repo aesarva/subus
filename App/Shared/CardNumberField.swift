@@ -89,23 +89,23 @@ final class CardTextField: NSTextField {
     func wipeEditor() { (cell as? CardFieldCell)?.wipe() }
 }
 
-/// Hands the field a private field editor that never records undo.
+/// Hands the field a private field editor that never records undo. The editor carries the card content type
+/// itself, so AutoFill still offers saved cards, and has no spelling, replacement or completion of its own.
 final class CardFieldCell: NSTextFieldCell {
     let editor: CardFieldEditor = {
         let editor = CardFieldEditor()
         editor.isFieldEditor = true
-        editor.allowsUndo = false
         return editor
     }()
 
     override func fieldEditor(for controlView: NSView) -> NSTextView? {
-        editor.allowsUndo = false
+        editor.configureForCard()
         return editor
     }
 
     override func setUpFieldEditorAttributes(_ textObj: NSText) -> NSText {
         let text = super.setUpFieldEditorAttributes(textObj)
-        (text as? NSTextView)?.allowsUndo = false
+        (text as? CardFieldEditor)?.configureForCard()
         return text
     }
 
@@ -118,6 +118,16 @@ final class CardFieldCell: NSTextFieldCell {
 /// The private field editor; it notes how long each insertion is, so AutoFill replacing typed text is seen.
 final class CardFieldEditor: NSTextView {
     private var insertedLength: Int?
+
+    func configureForCard() {
+        allowsUndo = false
+        contentType = .creditCardNumber
+        isContinuousSpellCheckingEnabled = false
+        isAutomaticTextReplacementEnabled = false
+        isAutomaticTextCompletionEnabled = false
+        isAutomaticSpellingCorrectionEnabled = false
+        inlinePredictionType = .no
+    }
 
     override func shouldChangeText(in affectedCharRange: NSRange, replacementString: String?) -> Bool {
         insertedLength = replacementString?.count

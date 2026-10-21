@@ -91,3 +91,11 @@ public enum CardFieldParser {
         text.count == 4 && text.allSatisfy { $0.isASCII && $0.isNumber }
     }
 }
+
+/// The new-card sheet's Add. It is enabled while there is a label, or typed text still to be read when
+/// editing ends; once read, typed text that gave no digits blocks it, so the sheet stays open with the hint.
+public enum CardSheetAdd {
+    public static func enabled(label: String, hasText: Bool) -> Bool { !label.isEmpty || hasText }
+
+    public static func blocked(_ state: CardFieldState, hasText: Bool) -> Bool { hasText && state.last4 == nil }
+}

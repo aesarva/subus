@@ -113,3 +113,12 @@ func composeForms(bank: String, last4: String?, network: CardNetwork?, locale: L
     #expect(PaymentLabel.split("Visa •• 4242") == ("Visa", "•• 4242"))
     #expect(PaymentLabel.split("•• 4242") == ("•• 4242", nil))
 }
+
+@Test func cardSheetAddWaitsForTypedText() {
+    #expect(CardSheetAdd.enabled(label: "", hasText: true))
+    #expect(CardSheetAdd.enabled(label: "Т-Банк", hasText: false))
+    #expect(!CardSheetAdd.enabled(label: "", hasText: false))
+    #expect(CardSheetAdd.blocked(CardFieldState(), hasText: true))
+    #expect(!CardSheetAdd.blocked(CardFieldState(text: "•• 4242", last4: "4242", network: .visa), hasText: true))
+    #expect(!CardSheetAdd.blocked(CardFieldState(), hasText: false))
+}

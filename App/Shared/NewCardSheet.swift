@@ -59,7 +59,7 @@ struct NewCardSheet: View {
                     .keyboardShortcut(.cancelAction)
                 Button("Add", action: endEditingThenAdd)
                     .keyboardShortcut(.defaultAction)
-                    .disabled(label.isEmpty)
+                    .disabled(!CardSheetAdd.enabled(label: label, hasText: hasText))
             }
             .padding([.horizontal, .bottom], 20)
         }
@@ -73,6 +73,7 @@ struct NewCardSheet: View {
     }
 
     private func add() {
+        guard !CardSheetAdd.blocked(card, hasText: hasText) else { return }
         let label = label
         var id: UUID?
         error = model.editLibrary { id = $0.addPaymentMethod(label: label) }
