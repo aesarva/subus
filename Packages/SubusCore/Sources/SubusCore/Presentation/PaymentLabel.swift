@@ -21,6 +21,13 @@ public enum PaymentLabel {
         return (tokens[..<start].joined(separator: " "), tokens[start..<end].joined(separator: " "))
     }
 
+    /// "Bank •• 4242", "Bank", "Visa •• 4242" or "•• 4242": the bank wins over the network as the head.
+    public static func compose(bank: String, last4: String?, network: CardNetwork?, locale: Locale = .current) -> String {
+        let bank = bank.trimmingCharacters(in: .whitespacesAndNewlines)
+        let head = bank.isEmpty ? network?.displayName(locale: locale) : bank
+        return [head, last4.map(CardFieldParser.mask)].compactMap { $0 }.joined(separator: " ")
+    }
+
     private static func isDigits(_ token: String) -> Bool {
         !token.isEmpty && token.allSatisfy { $0.isASCII && $0.isNumber }
     }
