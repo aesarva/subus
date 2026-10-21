@@ -28,7 +28,7 @@ Subus — нативное приложение для строки меню mac
 - Проект Xcode генерируется XcodeGen из `project.yml`; `.xcodeproj` не коммитится. Логика — в локальном SwiftPM-пакете `SubusCore`.
 - Bundle ID: `io.github.aesarva.Subus`.
 - App Sandbox включён. Entitlements: `com.apple.security.network.client`, `com.apple.security.files.user-selected.read-write`. Hardened runtime включён.
-- `LSUIElement = true` (нет иконки в Dock).
+- `LSUIElement = true`: без иконки в Dock; пока открыт редактор или настройки, приложение временно обычное — с иконкой в Dock и в ⌘Tab (изменено 2026-10-21).
 - Локализация: английский (исходный) и русский, String Catalog `Localizable.xcstrings`, `String(localized:)`. Переключатель языка в настройках: Системный / Русский / English (пишет `AppleLanguages` в домен приложения, применяется после перезапуска) — как в Lidless.
 - Сторонних зависимостей нет.
 - Календарь приложения — всегда григорианский (`Calendar(identifier: .gregorian)`) с текущим часовым поясом и первым днём недели из локали; `Calendar.current` напрямую не используется (у пользователя может быть, например, японский или буддийский календарь).

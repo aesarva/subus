@@ -51,8 +51,6 @@ final class EditorWindowController: NSObject, NSWindowDelegate {
         window.title = subscription.map { String(localized: "Edit “\($0.name)”") } ?? String(localized: "New Subscription")
         window.isReleasedWhenClosed = false
         window.identifier = DockPresence.identifier
-        // Stays above the browser while the user looks up a price or a date.
-        window.level = .floating
         window.delegate = self
         window.contentViewController = NSHostingController(
             rootView: EditorView(state: state, onCancel: { [weak window] in window?.close() }))
@@ -72,8 +70,10 @@ final class EditorWindowController: NSObject, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
+        // Matched on the entry, not on `?.key`: the new-subscription slot's key is nil, and optional chaining
+        // would flatten it into "not found", leaving the closed form to reopen with its old draft.
         guard let window = notification.object as? NSWindow,
-              let key = windows.first(where: { $0.value === window })?.key else { return }
-        windows[key] = nil
+              let entry = windows.first(where: { $0.value === window }) else { return }
+        windows[entry.key] = nil
     }
 }
