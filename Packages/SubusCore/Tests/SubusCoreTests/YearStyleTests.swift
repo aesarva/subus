@@ -49,6 +49,7 @@ private func styleSub(_ name: String = "X", end: String? = nil) -> Subscription 
 @Test func selectionCarriesAcrossModes() {
     let p = stylePlan(Library())
     #expect(YearSelection.carry(d("2027-02-08"), from: .weeks, to: .months, plan: p, today: styleToday) == d("2027-02-01"))
+    #expect(YearSelection.carry(d("2027-03-29"), from: .weeks, to: .months, plan: p, today: styleToday) == d("2027-04-01"))
     #expect(YearSelection.carry(d("2027-02-01"), from: .months, to: .weeks, plan: p, today: styleToday) == d("2027-02-01"))
     #expect(YearSelection.carry(d("2026-10-01"), from: .months, to: .weeks, plan: p, today: styleToday) == d("2026-10-19"))
     #expect(YearSelection.carry(d("2027-02-08"), from: .weeks, to: .weeks, plan: p, today: styleToday) == d("2027-02-08"))

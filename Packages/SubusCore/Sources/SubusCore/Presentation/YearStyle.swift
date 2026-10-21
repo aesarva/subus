@@ -58,7 +58,8 @@ public enum YearSelection {
         case (.weeks, .weeks), (.months, .months):
             return periods(plan, to).contains { $0.id == selected } ? selected : fallback
         case (.weeks, .months):
-            let key = MonthKey(selected)
+            // Неделя рисуется в колонке своего `monthKey`, поэтому переносим в тот же месяц.
+            let key = plan.weeks.first { $0.id == selected }?.monthKey ?? MonthKey(selected)
             return plan.months.first { $0.monthKey == key }?.id ?? fallback
         case (.months, .weeks):
             guard let month = plan.months.first(where: { $0.id == selected }) else { return fallback }
