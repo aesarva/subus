@@ -878,6 +878,26 @@
         }
       }
     },
+    "Year": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Год"
+          }
+        }
+      }
+    },
+    "Year (⌘Y)": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Год (⌘Y)"
+          }
+        }
+      }
+    },
     "Settings (⌘,)": {
       "localizations": {
         "ru": {
@@ -2522,6 +2542,22 @@
         }
       }
     },
+    "menu.window": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Окно"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Window"
+          }
+        }
+      }
+    },
     "billing.unit.day.one": {
       "localizations": {
         "en": {
@@ -3783,6 +3819,98 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "Импортировано. %lld логотипа не удалось сохранить, вместо них — буквы."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Group by": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Группировать по"
+          }
+        }
+      }
+    },
+    "Weeks": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Недели"
+          }
+        }
+      }
+    },
+    "Months": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Месяцы"
+          }
+        }
+      }
+    },
+    "Charged in the next 12 months": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Спишется за 12 месяцев"
+          }
+        }
+      }
+    },
+    "%lld charges": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld charge"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld charges"
+                }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld списание"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld списания"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld списаний"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld списания"
                 }
               }
             }

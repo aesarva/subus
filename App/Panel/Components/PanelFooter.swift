@@ -1,10 +1,11 @@
 import SwiftUI
 
-/// "+ Add" · "Total 12 · inactive 2" · Settings.
+/// "+ Add" · Year · "Total 12 · inactive 2" · Settings.
 struct PanelFooter: View {
     let total: Int
     let inactive: Int
     let onAdd: () -> Void
+    let onYear: () -> Void
     let onSettings: () -> Void
 
     var body: some View {
@@ -15,6 +16,10 @@ struct PanelFooter: View {
                     Label(String(localized: "Add"), systemImage: "plus")
                 }
                 .help(String(localized: "Add Subscription (⌘N)"))
+                Button(action: onYear) {
+                    Label(String(localized: "Year"), systemImage: "calendar")
+                }
+                .help(String(localized: "Year (⌘Y)"))
                 Spacer(minLength: 4)
                 if total > 0 {
                     Text(verbatim: countText)

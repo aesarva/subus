@@ -14,10 +14,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panel: PanelController!
     private var editor: EditorWindowController!
     private var settings: SettingsWindowController!
+    private var year: YearWindowController!
     private var dockPresence: DockPresence?
 
     @objc func newSubscription() { editor?.open(editing: nil) }
     @objc func openSettings() { settings?.show() }
+    @objc func openYear() { year?.show() }
+
+    /// A Dock click with none of our windows on screen (only minimised ones) opens the Year window.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        let visible = NSApp.windows.contains { $0.identifier == DockPresence.identifier && $0.isVisible }
+        if !visible { openYear() }
+        return false
+    }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard settings?.isOpen == true else { return .terminateNow }
@@ -50,18 +59,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settings = SettingsWindowController(model: model, notifier: notifier,
                                             closePanel: { [weak self] in self?.panel.close() })
         let onSettings: () -> Void = { [weak self] in self?.settings.show() }
+        let onEdit: (UUID) -> Void = { [weak self] id in
+            guard let self, let s = model.library.subscriptions.first(where: { $0.id == id }) else { return }
+            editor.open(editing: s)
+        }
+        year = YearWindowController(model: model, closePanel: { [weak self] in self?.panel.close() },
+                                    onEdit: onEdit, onAdd: onAdd)
+        let onYear: () -> Void = { [weak self] in self?.year.show() }
         statusItem = StatusItemController(
             onTogglePanel: { [weak self] in self?.panel.toggle() },
             onAdd: onAdd,
+            onYear: onYear,
             onSettings: onSettings
         )
         panel = PanelController(model: model, anchor: { [weak self] in self?.statusItem.button },
-                                onAdd: onAdd, onSettings: onSettings,
-                                onEdit: { [weak self] id in
-                                    guard let self, let s = model.library.subscriptions.first(where: { $0.id == id })
-                                    else { return }
-                                    editor.open(editing: s)
-                                })
+                                onAdd: onAdd, onYear: onYear, onSettings: onSettings, onEdit: onEdit)
         refreshStatusItem()
         observeOpenRequests()
 
@@ -78,6 +90,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         if args.contains("-OpenEditorOnLaunch") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in self?.editor.open(editing: nil) }
+        }
+        if args.contains("-OpenYearOnLaunch") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in self?.year.show() }
         }
         if args.contains("-SendTestNotification") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [notifier] in notifier.sendTest() }

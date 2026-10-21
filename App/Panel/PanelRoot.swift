@@ -164,6 +164,7 @@ final class PanelState {
 
 struct PanelActions {
     var onAdd: () -> Void = {}
+    var onYear: () -> Void = {}
     var onSettings: () -> Void = {}
     var onOpen: (UUID) -> Void = { _ in }
     var onEdit: (UUID) -> Void = { _ in }
@@ -201,7 +202,7 @@ struct PanelRoot: View {
                     SpendingTab(model: model, state: state, actions: actions)
                 }
                 PanelFooter(total: model.library.subscriptions.count, inactive: inactiveCount,
-                            onAdd: actions.onAdd, onSettings: actions.onSettings)
+                            onAdd: actions.onAdd, onYear: actions.onYear, onSettings: actions.onSettings)
             }
         }
         .frame(width: Self.width)

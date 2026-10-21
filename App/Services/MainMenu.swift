@@ -4,7 +4,7 @@ import AppKit
 /// text fields ⌘X, ⌘C, ⌘V, ⌘A, ⌘Z and ⇧⌘Z.
 @MainActor
 enum MainMenu {
-    static func make(newSubscription: Selector, openSettings: Selector, target: AnyObject) -> NSMenu {
+    static func make(newSubscription: Selector, openSettings: Selector, openYear: Selector, target: AnyObject) -> NSMenu {
         let main = NSMenu()
 
         let app = NSMenu()
@@ -31,6 +31,12 @@ enum MainMenu {
         edit.addItem(withTitle: String(localized: "Select All"), action: #selector(NSText.selectAll(_:)),
                      keyEquivalent: "a")
         main.addItem(submenu: edit, title: edit.title)
+
+        let window = NSMenu(title: String(localized: "menu.window", defaultValue: "Window"))
+        window.addItem(withTitle: String(localized: "Year"), action: openYear, keyEquivalent: "y").target = target
+        main.addItem(submenu: window, title: window.title)
+        // AppKit lists the open windows under it.
+        NSApp.windowsMenu = window
         return main
     }
 }
