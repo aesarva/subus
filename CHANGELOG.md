@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Create a category or a card right from the subscription form.
+- Add a card by choosing one of your saved cards (macOS AutoFill); Subus keeps only its last 4 digits.
+- Any colour for a category; lines stay legible in light and dark.
 - While an add, edit or Settings window is open, Subus shows in the Dock and in ⌘Tab, so a half-filled form behind the browser is one click away; it returns to the menu bar alone when the last one closes.
 - "New Subscription" opens an empty form again instead of the last one closed.
 - The brand accent is now orange (#E8590C): the menu-bar dot, the app icon, today and tomorrow, and the days figure at 0–1. The orange category colour becomes red.

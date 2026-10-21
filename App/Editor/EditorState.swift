@@ -3,6 +3,12 @@ import Observation
 import OSLog
 import SubusCore
 
+/// A category or payment-method picker's value: the draft's id, or the "New…" item, which opens a sheet
+/// and leaves the draft as it was.
+enum PickerChoice: Hashable {
+    case none, existing(UUID), create
+}
+
 /// The editor's working copy: the draft, the logo not yet written to disk, and the save flow.
 @MainActor @Observable
 final class EditorState {
@@ -20,6 +26,8 @@ final class EditorState {
     private(set) var fetchFailed = false
     private(set) var imageFailed = false
     private(set) var saveMessage: String?
+    var creatingCategory = false
+    var creatingPayment = false
 
     /// The record as it was when the editor opened: the baseline of the merge on save.
     let existing: Subscription?
@@ -41,6 +49,28 @@ final class EditorState {
     }
 
     // MARK: Validation
+
+    var categoryChoice: PickerChoice {
+        get { draft.categoryID.map(PickerChoice.existing) ?? .none }
+        set {
+            switch newValue {
+            case .none: draft.categoryID = nil
+            case .existing(let id): draft.categoryID = id
+            case .create: creatingCategory = true
+            }
+        }
+    }
+
+    var paymentChoice: PickerChoice {
+        get { draft.paymentMethodID.map(PickerChoice.existing) ?? .none }
+        set {
+            switch newValue {
+            case .none: draft.paymentMethodID = nil
+            case .existing(let id): draft.paymentMethodID = id
+            case .create: creatingPayment = true
+            }
+        }
+    }
 
     var errors: [DraftError] { attempted ? draft.validate(locale: locale) : [] }
 
