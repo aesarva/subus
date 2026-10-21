@@ -3,7 +3,7 @@ import AppKit
 import SubusCore
 import SwiftUI
 
-/// `-Snapshots`: renders every panel/editor/settings state and the status item with demo data, in light and dark,
+/// `-Snapshots`: renders every panel/editor/settings/Year state and the status item with demo data, in light and dark,
 /// to PNGs at 2× (`<state>-<light|dark>-<en|ru>.png`) and prints the folder. The language follows the launch
 /// (`-AppleLanguages "(ru)"`); `make snapshots` runs both languages and collects the files.
 @MainActor
@@ -165,6 +165,34 @@ enum Snapshots {
                          width: 520, appearance: appearance, to: url)
         }
 
+        // Year window
+        /// The window at its default 1100 × 720, with its toolbar; the mode lives in a scratch defaults suite.
+        func yearShot(_ name: String, library: Library, unreadable: Bool = false,
+                      configure: (AppModel, YearState) -> Void = { _, _ in }) {
+            each(name) { appearance, url in
+                let yearModel = model(library, in: directory, unreadable: unreadable)
+                let suite = "io.github.aesarva.Subus.snapshots"
+                let defaults = UserDefaults(suiteName: suite)!
+                defaults.removePersistentDomain(forName: suite)
+                let state = YearState(defaults: defaults)
+                configure(yearModel, state)
+                renderYear(YearView(model: yearModel, state: state, onEdit: { _ in }, onAdd: {}),
+                           appearance: appearance, to: url)
+                defaults.removePersistentDomain(forName: suite)
+            }
+        }
+        yearShot("year-weeks", library: base)
+        yearShot("year-months", library: base) { _, s in s.mode = .months }
+        yearShot("year-empty-week", library: base) { m, s in
+            let plan = YearPlan.build(library: m.library, filter: s.filter, today: m.today, calendar: .subus(),
+                                      baseCurrency: m.settings.baseCurrency, converter: CurrencyConverter(table: m.rates))
+            s.selection = plan.weeks.dropFirst().first { $0.count == 0 }?.id
+        }
+        yearShot("year-all", library: base) { _, s in s.pane = .all; s.filter.showInactive = true }
+        yearShot("year-nothing-found", library: base) { _, s in s.filter.query = "Disney" }
+        yearShot("year-no-subscriptions", library: initial)
+        yearShot("year-unreadable", library: .empty, unreadable: true)
+
         // Status item: the glyph alone, "3d", and the accent "1d" and "0d", on a light and a dark menu bar.
         for (theme, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             let strip = StatusItemStrip(states: [(nil, false), (Formatters.counter(3), false),
@@ -227,6 +255,28 @@ enum Snapshots {
         window.orderOut(nil)
     }
 
+    /// The Year window as the app builds it — a hosting controller that bridges the title and the toolbar —
+    /// drawn with its title bar and toolbar from the window's frame view.
+    private static func renderYear(_ content: YearView, appearance: NSAppearance.Name, to url: URL) {
+        let host = NSHostingController(rootView: content)
+        host.sizingOptions = []
+        host.sceneBridgingOptions = [.title, .toolbars]
+        let window = KeyWindow(contentViewController: host)
+        window.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
+        window.title = String(localized: "Year")
+        window.appearance = NSAppearance(named: appearance)
+        window.setContentSize(NSSize(width: 1100, height: 720))
+        window.setFrameOrigin(NSPoint(x: -4000, y: -4000))
+        NSApp.activate()
+        window.makeKeyAndOrderFront(nil)
+        for _ in 0..<4 {
+            host.view.layoutSubtreeIfNeeded()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.25))
+        }
+        write(window.contentView?.superview ?? host.view, to: url)
+        window.orderOut(nil)
+    }
+
     private static func renderEditor(_ state: EditorState, appearance: NSAppearance.Name, height: CGFloat, to url: URL) {
         let host = NSHostingView(rootView: EditorView(state: state))
         host.appearance = NSAppearance(named: appearance)
@@ -245,7 +295,7 @@ enum Snapshots {
     }
 
     private static func model(_ library: Library, in directory: URL, recovery: Recovery? = nil,
-                              failingSaves: Bool = false) -> AppModel {
+                              failingSaves: Bool = false, unreadable: Bool = false) -> AppModel {
         let storage = MemorySettingsStorage()
         let settingsStore = SettingsStore(storage: storage, locale: .current)
         var settings = AppSettings.defaults(locale: .current)
@@ -257,7 +307,8 @@ enum Snapshots {
         try? RateCache(fileURL: ratesURL).save(RateTable(
             date: today, rubPerUnit: ["RUB": 1, "USD": Decimal(string: "81.6")!, "EUR": Decimal(string: "94.3")!],
             fetchedAt: Date()))
-        return AppModel(store: MemoryStore(result: LoadResult(library: library, recovery: recovery), failing: failingSaves),
+        return AppModel(store: MemoryStore(result: LoadResult(library: library, recovery: recovery), failing: failingSaves,
+                                           unreadable: unreadable),
                         settingsStore: settingsStore, rateProvider: NoRates(), rateCache: RateCache(fileURL: ratesURL),
                         notifier: UserNotifier(), logosDirectory: directory.appendingPathComponent("Logos"),
                         stateStorage: storage)
@@ -365,9 +416,15 @@ private struct MemoryStore: SubscriptionStore {
     struct Refused: LocalizedError {
         var errorDescription: String? { "The disk is full (demo)." }
     }
+    /// The file could not be read: loading throws, as a damaged or unreachable data file does.
+    struct Unreadable: Error {}
     let result: LoadResult
     let failing: Bool
-    func load() throws -> LoadResult { result }
+    var unreadable = false
+    func load() throws -> LoadResult {
+        if unreadable { throw Unreadable() }
+        return result
+    }
     func save(_ library: Library) throws { if failing { throw Refused() } }
 }
 

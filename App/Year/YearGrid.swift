@@ -1,0 +1,270 @@
+import SubusCore
+import SwiftUI
+
+/// The year as a commit calendar: weeks in month columns (1–5 cells each, 12–14 columns) or months in four
+/// columns of tiles. A cell's tone counts its charges; this week or month is ringed in the accent and the
+/// selected cell in ink, both outside the cell. Click selects; arrows walk the grid; Return opens the
+/// selected cell's first subscription.
+struct YearGrid: View {
+    let plan: YearPlan
+    let mode: YearMode
+    @Binding var selection: LocalDate?
+    let today: LocalDate
+    /// The room the cells may take: week cells grow from 36 to 56 pt with the width; month tiles grow with both.
+    let width: CGFloat
+    var height: CGFloat = .infinity
+    var onOpen: (UUID) -> Void = { _ in }
+
+    @FocusState private var focused: Bool
+
+    static let gap: CGFloat = 6
+    static let tileGap: CGFloat = 10
+
+    var body: some View {
+        Group {
+            switch mode {
+            case .weeks: weeks
+            case .months: months
+            }
+        }
+        .focusable()
+        .focused($focused)
+        .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow, .return]) { press in
+            handle(press.key)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(mode == .weeks ? String(localized: "Year by weeks") : String(localized: "Year by months"))
+    }
+
+    // MARK: Weeks
+
+    /// The side of a week cell for the room and the column count.
+    static func side(width: CGFloat, columns: Int) -> CGFloat {
+        guard columns > 0 else { return 36 }
+        let fit = (width - gap * CGFloat(columns - 1)) / CGFloat(columns)
+        return min(56, max(36, fit.rounded(.down)))
+    }
+
+    /// The grid's own width for its cells, so the card and the legend under it hug the grid.
+    static func contentWidth(plan: YearPlan, mode: YearMode, width: CGFloat) -> CGFloat {
+        switch mode {
+        case .weeks:
+            let columns = plan.weekColumns().count
+            return side(width: width, columns: columns) * CGFloat(columns) + gap * CGFloat(max(columns - 1, 0))
+        case .months:
+            return tileWidth(width: width) * 4 + tileGap * 3
+        }
+    }
+
+    private var weeks: some View {
+        let columns = plan.weekColumns()
+        let side = Self.side(width: width, columns: columns.count)
+        return HStack(alignment: .top, spacing: Self.gap) {
+            ForEach(columns, id: \.month) { column in
+                VStack(spacing: Self.gap) {
+                    Text(verbatim: YearFormat.monthLabel(column.month, today: today))
+                        .font(.system(size: 11, weight: .semibold))
+                        .tracking(0.6)
+                        .foregroundStyle(.secondary)
+                        .fixedSize()
+                        .frame(width: side)
+                        .accessibilityHidden(true)
+                    ForEach(column.weeks) { week in
+                        cell(week, cornerRadius: 7) {
+                            Color.clear.frame(width: side, height: side)
+                        }
+                    }
+                }
+                // Rings reach past the gap: the column holding them draws over its neighbours.
+                .zIndex(column.weeks.contains { $0.id == selection || isCurrent($0) } ? 1 : 0)
+            }
+        }
+    }
+
+    // MARK: Months
+
+    static func tileWidth(width: CGFloat) -> CGFloat {
+        min(180, max(120, ((width - tileGap * 3) / 4).rounded(.down)))
+    }
+
+    private var months: some View {
+        let tile = Self.tileWidth(width: width)
+        let rows = stride(from: 0, to: plan.months.count, by: 4).map { Array(plan.months[$0..<min($0 + 4, plan.months.count)]) }
+        let fit = (height - Self.tileGap * CGFloat(max(rows.count - 1, 0))) / CGFloat(max(rows.count, 1))
+        let tileHeight = min(128, max(96, min(tile * 0.72, fit).rounded(.down)))
+        return VStack(alignment: .leading, spacing: Self.tileGap) {
+            ForEach(rows, id: \.first!.id) { row in
+                HStack(spacing: Self.tileGap) {
+                    ForEach(row) { month in
+                        cell(month, cornerRadius: 14) {
+                            MonthTile(month: month, today: today)
+                                .frame(width: tile, height: tileHeight, alignment: .topLeading)
+                        }
+                    }
+                }
+                .zIndex(row.contains { $0.id == selection || isCurrent($0) } ? 1 : 0)
+            }
+        }
+    }
+
+    // MARK: Cell
+
+    private func isCurrent(_ p: YearPeriod) -> Bool { p.start <= today && today <= p.end }
+
+    private func cell(_ period: YearPeriod, cornerRadius: CGFloat, @ViewBuilder content: () -> some View) -> some View {
+        let current = isCurrent(period), selected = period.id == selection
+        return Button {
+            selection = period.id
+            focused = true
+        } label: {
+            content()
+                .background(YearCellFill(level: period.level, cornerRadius: cornerRadius))
+                .overlay(YearCellRings(current: current, selected: selected, cornerRadius: cornerRadius))
+                .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+        }
+        .buttonStyle(PlainRowButtonStyle())
+        .help(YearFormat.tooltip(period, mode: mode))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(YearFormat.spoken(period, mode: mode))
+        .accessibilityValue(current ? (mode == .weeks ? String(localized: "this week") : String(localized: "this month")) : "")
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    // MARK: Keys
+
+    private func handle(_ key: KeyEquivalent) -> KeyPress.Result {
+        let periods = mode == .weeks ? plan.weeks : plan.months
+        guard let index = periods.firstIndex(where: { $0.id == selection }) else { return .ignored }
+        if key == .return {
+            guard let id = periods[index].charges.first?.charge.subscriptionID else { return .ignored }
+            onOpen(id)
+            return .handled
+        }
+        let target: Int
+        switch (mode, key) {
+        case (.weeks, .upArrow), (.months, .leftArrow): target = index - 1
+        case (.weeks, .downArrow), (.months, .rightArrow): target = index + 1
+        case (.weeks, .leftArrow): target = neighbourColumn(of: index, step: -1)
+        case (.weeks, .rightArrow): target = neighbourColumn(of: index, step: 1)
+        case (.months, .upArrow): target = index - 4
+        case (.months, .downArrow): target = index + 4
+        default: return .ignored
+        }
+        guard periods.indices.contains(target) else { return .handled }
+        selection = periods[target].id
+        return .handled
+    }
+
+    /// The same row of the next or previous month column, or its last cell when that column is shorter.
+    private func neighbourColumn(of index: Int, step: Int) -> Int {
+        let columns = plan.weekColumns()
+        var start = 0
+        for (c, column) in columns.enumerated() {
+            if index < start + column.weeks.count {
+                let row = index - start
+                let other = c + step
+                guard columns.indices.contains(other) else { return index }
+                let otherStart = step < 0 ? start - columns[other].weeks.count : start + column.weeks.count
+                return otherStart + min(row, columns[other].weeks.count - 1)
+            }
+            start += column.weeks.count
+        }
+        return index
+    }
+}
+
+/// The cell's tone on the neutral ramp; under Increase Contrast the stronger ramp and a 1 pt separator edge.
+private struct YearCellFill: View {
+    let level: Int
+    let cornerRadius: CGFloat
+
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        shape
+            .fill(Color(YearRamp.tone(level: level, dark: scheme == .dark, increasedContrast: contrast == .increased)))
+            .overlay {
+                if contrast == .increased { shape.strokeBorder(Color(nsColor: .separatorColor), lineWidth: 1) }
+            }
+    }
+}
+
+/// Rings outside the cell, through a gap of the card ground: this week or month in the accent
+/// (gap 1.5, ring 2.5), the selection in ink (gap 2, ring 2); both — the ink ring 1.5 pt behind the accent one.
+struct YearCellRings: View {
+    let current: Bool
+    let selected: Bool
+    let cornerRadius: CGFloat
+
+    var body: some View {
+        ZStack {
+            if current {
+                ring(gap: 1.5, width: 2.5, color: LinePalette.accent)
+                if selected { ring(gap: 1.5 + 2.5 + 1.5, width: 1.5, color: .primary) }
+            } else if selected {
+                ring(gap: 2, width: 2, color: .primary)
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    private func ring(gap: CGFloat, width: CGFloat, color: Color) -> some View {
+        RoundedRectangle(cornerRadius: cornerRadius + gap + width, style: .continuous)
+            .strokeBorder(color, lineWidth: width)
+            .padding(-(gap + width))
+    }
+}
+
+/// A month tile: the month (with "from 21" / "to 20" when the period cuts it), the number of charges at 26 pt,
+/// the word for them, and the sum. Every text takes the ramp's text colour for the tile's step.
+private struct MonthTile: View {
+    let month: YearPeriod
+    let today: LocalDate
+
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 5) {
+                Text(verbatim: YearFormat.monthLabel(month.monthKey, today: today))
+                    .font(.system(size: 11, weight: .semibold))
+                    .tracking(0.6)
+                if let cut {
+                    Text(verbatim: cut).font(.system(size: 11))
+                }
+            }
+            .lineLimit(1)
+            Spacer(minLength: 4)
+            Text(verbatim: "\(month.count)")
+                .font(.system(size: 26, weight: .semibold).monospacedDigit())
+            Text(verbatim: YearFormat.chargesWord(month.count))
+                .font(.system(size: 12))
+            Text(verbatim: sum)
+                .font(.system(size: 13, weight: .semibold).monospacedDigit())
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .padding(.top, 2)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .foregroundStyle(Color(YearRamp.text(level: month.level, dark: scheme == .dark,
+                                             increasedContrast: contrast == .increased)))
+    }
+
+    /// "from 21" for the first month, "to 20" for the last.
+    private var cut: String? {
+        guard month.isPartial else { return nil }
+        if month.start != month.id { return String(localized: "from \(String(month.start.day))") }
+        return String(localized: "to \(String(month.end.day))")
+    }
+
+    /// The tile's sum leaves out what has no rate; the tooltip names how many.
+    private var sum: String {
+        if case .partial(let amount, _) = month.total.display { return Formatters.total(amount) }
+        return YearFormat.money(month.total)
+    }
+}

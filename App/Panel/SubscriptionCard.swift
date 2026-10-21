@@ -377,7 +377,7 @@ private struct ChargeStop: View {
 }
 
 /// An outline tag in the Trial tag's form, for states that are not a line colour: Ended, Inactive.
-private struct OutlineTag: View {
+struct OutlineTag: View {
     let text: String
     let color: Color
 

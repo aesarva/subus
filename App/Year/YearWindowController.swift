@@ -23,6 +23,10 @@ final class YearState {
     var path: [UUID] = []
     /// Bumped when the system locale changes: `firstWeekday` and every formatter depend on it.
     var localeTick = 0
+    /// The window's width, from which the toolbar works out how many category chips fit.
+    var windowWidth: CGFloat = 1100
+    /// The plan and rows of the last inputs, so selecting a cell does not build the year again.
+    @ObservationIgnored let cache = YearPlanCache()
 
     @ObservationIgnored private let defaults: UserDefaults
 
