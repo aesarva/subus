@@ -73,7 +73,7 @@ public struct YearPlan: Equatable, Sendable {
     public let weeks: [YearPeriod]
     public let months: [YearPeriod]
     public let total: YearMoney
-    /// Подписки, у которых хотя бы одно списание без курса.
+    /// Подписки, у которых хотя бы одно списание без курса, по имени.
     public let excludedSubscriptionIDs: [UUID]
     public let trialSubscriptionIDs: [UUID]
     /// Прошли фильтр, в том числе неактивные и без списаний в периоде.
@@ -141,7 +141,11 @@ public struct YearPlan: Equatable, Sendable {
         }
 
         return YearPlan(range: range, charges: charges, weeks: weeks, months: months, total: total,
-                        excludedSubscriptionIDs: matched.map(\.id).filter(excluded.contains),
+                        excludedSubscriptionIDs: live.filter { excluded.contains($0.id) }.sorted { a, b in
+                            let order = a.name.localizedStandardCompare(b.name)
+                            if order != .orderedSame { return order == .orderedAscending }
+                            return a.id.uuidString < b.id.uuidString
+                        }.map(\.id),
                         trialSubscriptionIDs: matched.map(\.id).filter(trials.contains),
                         matchedSubscriptionIDs: matched.map(\.id))
     }

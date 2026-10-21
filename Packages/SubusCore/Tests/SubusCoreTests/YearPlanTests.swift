@@ -173,6 +173,14 @@ private func plan(_ subs: [Subscription], filter: YearFilter = YearFilter(), tod
     #expect(p.excludedSubscriptionIDs == [s.id])
 }
 
+@Test func excludedSortedByName() {
+    let b = sub("item 10", Money(5, "XYZ"))
+    let a = sub("item 2", Money(5, "XYZ"))
+    let ok = sub("ok", rub(1))
+    let p = plan([b, ok, a])
+    #expect(p.excludedSubscriptionIDs == [a.id, b.id])
+}
+
 @Test func noRatesShowsDash() {
     let none = CurrencyConverter(table: nil)
     let p = plan([sub("X", usd(5))], converter: none)
