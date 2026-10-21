@@ -18,7 +18,7 @@ public struct YearMoney: Equatable, Sendable {
         return unconvertedCount > 0 ? .partial(amount, missing: unconvertedCount) : .amount(amount)
     }
 
-    fileprivate mutating func add(_ converted: Money?) {
+    mutating func add(_ converted: Money?) {
         if let converted {
             amount.amount += converted.amount
             convertedCount += 1
@@ -141,13 +141,16 @@ public struct YearPlan: Equatable, Sendable {
         }
 
         return YearPlan(range: range, charges: charges, weeks: weeks, months: months, total: total,
-                        excludedSubscriptionIDs: live.filter { excluded.contains($0.id) }.sorted { a, b in
-                            let order = a.name.localizedStandardCompare(b.name)
-                            if order != .orderedSame { return order == .orderedAscending }
-                            return a.id.uuidString < b.id.uuidString
-                        }.map(\.id),
+                        excludedSubscriptionIDs: live.filter { excluded.contains($0.id) }.sorted(by: byName).map(\.id),
                         trialSubscriptionIDs: matched.map(\.id).filter(trials.contains),
                         matchedSubscriptionIDs: matched.map(\.id))
+    }
+
+    /// Порядок «по имени, затем по id» для равных ключей сортировки.
+    static func byName(_ a: Subscription, _ b: Subscription) -> Bool {
+        let order = a.name.localizedStandardCompare(b.name)
+        if order != .orderedSame { return order == .orderedAscending }
+        return a.id.uuidString < b.id.uuidString
     }
 
     /// Столбцы недельной сетки: подряд идущие недели одного месяца.
