@@ -142,6 +142,22 @@ enum Snapshots {
         settingsShot("settings-payment", .paymentMethods)
         settingsShot("settings-data", .data)
         settingsShot("settings-about", .about)
+
+        // Sheets
+        func sheetShot(_ name: String, width: CGFloat, _ make: @escaping (AppModel) -> some View) {
+            each(name) { appearance, url in
+                renderWindow(make(model(base, in: directory)), width: width, appearance: appearance, to: url)
+            }
+        }
+        sheetShot("sheet-category", width: 560) { NewCategorySheet(model: $0, name: "Работа", color: .preset(1)) { _ in } }
+        sheetShot("sheet-category-custom", width: 560) {
+            NewCategorySheet(model: $0, name: "Работа", color: .custom(SRGBColor(hex: "#2A9D8F")!)) { _ in }
+        }
+        sheetShot("sheet-card", width: 460) { NewCardSheet(model: $0) { _ in } }
+        sheetShot("sheet-card-filled", width: 460) {
+            NewCardSheet(model: $0, card: CardFieldParser.edited(CardFieldState(), to: "4242 4242 4242 4242"),
+                         bank: "Т-Банк") { _ in }
+        }
         var imported = ImportPreview(library: base)
         imported.errors = [ImportRowError(line: 4, field: "price"), ImportRowError(line: 9, field: "start_date")]
         each("import-preview") { appearance, url in

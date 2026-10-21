@@ -14,6 +14,126 @@
         }
       }
     },
+    "Bank or service": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Банк или сервис"
+          }
+        }
+      }
+    },
+    "Card number": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Номер карты"
+          }
+        }
+      }
+    },
+    "Color": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цвет"
+          }
+        }
+      }
+    },
+    "Custom color": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Свой цвет"
+          }
+        }
+      }
+    },
+    "Done": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Готово"
+          }
+        }
+      }
+    },
+    "Enter the last 4 digits or choose a card": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Введите последние 4 цифры или выберите карту"
+          }
+        }
+      }
+    },
+    "Label": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подпись"
+          }
+        }
+      }
+    },
+    "New Card": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новая карта"
+          }
+        }
+      }
+    },
+    "New Category": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новая категория"
+          }
+        }
+      }
+    },
+    "New card…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новая карта…"
+          }
+        }
+      }
+    },
+    "New category…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новая категория…"
+          }
+        }
+      }
+    },
+    "Other color…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Другой цвет…"
+          }
+        }
+      }
+    },
     "Settings…": {
       "localizations": {
         "ru": {
@@ -40,6 +160,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lldд"
+          }
+        }
+      }
+    },
+    "macOS suggests your saved cards. Subus keeps only the last 4 digits.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS предложит сохранённые карты. Subus хранит только последние 4 цифры."
           }
         }
       }
