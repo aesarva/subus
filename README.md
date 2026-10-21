@@ -42,6 +42,7 @@ If you pay for a dozen services, you lose count: a forgotten trial, a service yo
 | | |
 |---|---|
 | **Upcoming** | A timeline of charges grouped as Today & tomorrow / This week / This month / Later (up to 30 days; each subscription once, at its nearest charge), with monthly and yearly totals on top. |
+| **Year** | A window with the next 12 months as a commit-calendar grid of weeks or months, toned by the number of charges. Filters, a side pane with the charges of a period, and a page per subscription. Open it from the panel footer, the quick menu, ⌘Y or a Dock click. |
 | **Reminders** | 5, 3 and 1 day before each charge by default (0–30 days, configurable), at 10:00 by default. Trial ends get their own reminder: cancel now if you do not need it. |
 | **Currencies** | Any ISO currency; totals use the daily CBR rates, cached, so they work offline. |
 | **Spending** | Monthly breakdown by category and by payment method, plus a list of price increases over the last year. |
@@ -49,6 +50,10 @@ If you pay for a dozen services, you lose count: a forgotten trial, a service yo
 | **Import / export** | JSON (complete, with logos — a real backup) and CSV (UTF-8, opens in Excel and Numbers). Import shows a preview before anything changes. |
 | **Safe data** | Atomic writes, an automatic backup and recovery from a corrupted file. |
 | **Languages** | English and Russian, following the system language, with an in-app override. |
+
+<p>
+  <img src="docs/images/year-weeks-light-en.png" width="640" alt="Year window: the next 12 months by week, toned by the number of charges">
+</p>
 
 <p>
   <img src="docs/images/spending-light-en.png" width="300" alt="Spending tab: breakdown by category and payment method">
