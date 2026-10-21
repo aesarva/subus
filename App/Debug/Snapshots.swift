@@ -268,6 +268,7 @@ enum Snapshots {
         let window = KeyWindow(contentViewController: host)
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
         window.title = String(localized: "Year")
+        YearWindowTitle.track(window, model: content.model, state: content.state)
         window.appearance = NSAppearance(named: appearance)
         window.setContentSize(NSSize(width: 1100, height: 720))
         window.setFrameOrigin(NSPoint(x: -4000, y: -4000))

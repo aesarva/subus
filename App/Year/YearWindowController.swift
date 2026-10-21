@@ -52,6 +52,23 @@ final class YearState {
     }
 }
 
+/// The window's title follows the page on top: the subscription's name over its page, «Year» under none.
+/// The hosting bridge carries the year's title but not a pushed page's, so the title is set on the window,
+/// re-armed on every change of the path or the library (a rename while the page is open).
+@MainActor
+enum YearWindowTitle {
+    static func track(_ window: NSWindow, model: AppModel, state: YearState) {
+        let name = withObservationTracking {
+            state.path.last.flatMap { id in model.library.subscriptions.first { $0.id == id }?.name }
+        } onChange: { [weak window] in
+            Task { @MainActor in
+                if let window { track(window, model: model, state: state) }
+            }
+        }
+        window.title = name ?? String(localized: "Year")
+    }
+}
+
 /// The one Year window: a resizable `NSWindow` whose SwiftUI content drives its own toolbar and title.
 /// While it is open the app keeps its Dock icon.
 @MainActor
@@ -101,6 +118,7 @@ final class YearWindowController: NSObject, NSWindowDelegate {
             if !window.setFrameUsingName(Self.autosaveName) { window.center() }
             window.setFrameAutosaveName(Self.autosaveName)
             self.window = window
+            YearWindowTitle.track(window, model: model, state: state)
             window.delegate = self
         }
         NSApp.activate()

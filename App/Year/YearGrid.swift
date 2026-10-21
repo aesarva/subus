@@ -20,7 +20,8 @@ struct YearGrid: View {
     let width: CGFloat
     var height: CGFloat = .infinity
     var highlight: Highlight? = nil
-    var onOpen: (UUID) -> Void = { _ in }
+    /// Return opens the selected cell's first subscription; without it Return passes on.
+    var onOpen: ((UUID) -> Void)? = nil
 
     @FocusState private var focused: Bool
 
@@ -146,7 +147,7 @@ struct YearGrid: View {
         let periods = mode == .weeks ? plan.weeks : plan.months
         guard let index = periods.firstIndex(where: { $0.id == selection }) else { return .ignored }
         if key == .return {
-            guard let id = periods[index].charges.first?.charge.subscriptionID else { return .ignored }
+            guard let onOpen, let id = periods[index].charges.first?.charge.subscriptionID else { return .ignored }
             onOpen(id)
             return .handled
         }

@@ -33,7 +33,6 @@ struct SubscriptionPage: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .navigationTitle(subscription?.name ?? "")
     }
 
     private var subscription: Subscription? { model.library.subscriptions.first { $0.id == id } }
@@ -109,11 +108,12 @@ struct SubscriptionPage: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(YearCard())
             } else {
+                let sum = sum(year)
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Text(verbatim: sum(year).main)
+                        Text(verbatim: sum.main)
                             .font(.system(size: 22, weight: .semibold).monospacedDigit())
-                        if let approx = sum(year).approx {
+                        if let approx = sum.approx {
                             Text(verbatim: approx)
                                 .font(.system(size: 13).monospacedDigit())
                                 .foregroundStyle(.secondary)
