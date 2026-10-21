@@ -1,3 +1,4 @@
+import SubusCore
 import SwiftUI
 
 /// Metro line colours (8 indices), monogram tiles and the resting rail.
@@ -14,10 +15,25 @@ enum LinePalette {
 
     static func tile(_ index: Int) -> Color { tiles[wrap(index)] }
 
-    /// The line colour of a category index; no category rides the rail colour.
-    static func line(_ index: Int?, _ scheme: ColorScheme) -> Color {
-        guard let index else { return rail(scheme) }
-        return scheme == .dark ? bright[wrap(index)] : tiles[wrap(index)]
+    /// The line colour of a category; no category rides the rail colour. A custom colour is fitted to 3:1
+    /// against the scheme's reference ground, keeping its hue.
+    @MainActor static func line(_ color: CategoryColor?, _ scheme: ColorScheme) -> Color {
+        switch color {
+        case nil: rail(scheme)
+        case .preset(let index): scheme == .dark ? bright[wrap(index)] : tiles[wrap(index)]
+        case .custom(let rgb): fitted(rgb, scheme)
+        }
+    }
+
+    @MainActor private static var fittedCache: [ColorScheme: [SRGBColor: Color]] = [:]
+
+    @MainActor private static func fitted(_ rgb: SRGBColor, _ scheme: ColorScheme) -> Color {
+        if let cached = fittedCache[scheme]?[rgb] { return cached }
+        let ground = scheme == .dark ? LineContrast.darkGround : LineContrast.lightGround
+        let fit = LineContrast.adjusted(rgb, against: ground)
+        let color = Color(.sRGB, red: Double(fit.red) / 255, green: Double(fit.green) / 255, blue: Double(fit.blue) / 255)
+        fittedCache[scheme, default: [:]][rgb] = color
+        return color
     }
 
     static func rail(_ scheme: ColorScheme) -> Color {
@@ -61,7 +77,7 @@ enum StationState {
 
 /// A station ring as a category marker in rows and facts: 13 pt, the line stroke, the line colour.
 struct StationRing: View {
-    let lineIndex: Int?
+    let lineColor: CategoryColor?
 
     @Environment(\.colorScheme) private var scheme
     @Environment(\.colorSchemeContrast) private var contrast
@@ -70,7 +86,7 @@ struct StationRing: View {
 
     var body: some View {
         Circle()
-            .strokeBorder(LinePalette.line(lineIndex, scheme), lineWidth: LinePalette.stroke(contrast))
+            .strokeBorder(LinePalette.line(lineColor, scheme), lineWidth: LinePalette.stroke(contrast))
             .frame(width: Self.diameter, height: Self.diameter)
             .accessibilityHidden(true)
     }

@@ -17,7 +17,7 @@ struct SpendingBar: Identifiable {
     let name: String
     let kind: Kind
     /// The category's line colour index; nil rides the rail colour. Always nil for a payment method.
-    let lineIndex: Int?
+    let lineColor: CategoryColor?
     let monthly: Money
     let share: Double
 }
@@ -100,7 +100,7 @@ struct SpendingTab: View {
 
     static func categoryBars(_ model: AppModel, _ summary: SpendingSummary) -> [SpendingBar] {
         bars(summary.byCategory, total: summary.monthly, kind: .category) { id in
-            model.category(id).map { ($0.name, $0.colorIndex) }
+            model.category(id).map { ($0.name, $0.color) }
         } unassigned: { String(localized: "No category") }
     }
 
@@ -114,10 +114,10 @@ struct SpendingTab: View {
     }
 
     /// Slices whose category or method no longer exists join the unassigned one.
-    private static func bars(_ slices: [Slice], total: Money, kind: SpendingBar.Kind, resolve: (UUID?) -> (String, Int?)?,
+    private static func bars(_ slices: [Slice], total: Money, kind: SpendingBar.Kind, resolve: (UUID?) -> (String, CategoryColor?)?,
                              unassigned: () -> String) -> [SpendingBar] {
         guard total.amount > 0 else { return [] }
-        var amounts: [UUID?: Decimal] = [:], names: [UUID?: (String, Int?)] = [:], order: [UUID?] = []
+        var amounts: [UUID?: Decimal] = [:], names: [UUID?: (String, CategoryColor?)] = [:], order: [UUID?] = []
         for slice in slices where slice.monthly.amount > 0 {
             let resolved = resolve(slice.id)
             let id = resolved == nil ? nil : slice.id
@@ -131,7 +131,7 @@ struct SpendingTab: View {
         return order
             .map { id in
                 let amount = amounts[id] ?? 0
-                return SpendingBar(id: id, name: names[id]?.0 ?? unassigned(), kind: kind, lineIndex: names[id]?.1,
+                return SpendingBar(id: id, name: names[id]?.0 ?? unassigned(), kind: kind, lineColor: names[id]?.1,
                                    monthly: Money(amount, total.currency),
                                    share: NSDecimalNumber(decimal: amount).doubleValue / totalValue)
             }
@@ -214,7 +214,7 @@ private struct SpendingBarRow: View {
                     .layoutPriority(1)
             }
             ShareLine(share: bar.share,
-                      color: bar.kind == .category ? LinePalette.line(bar.lineIndex, scheme) : neutral,
+                      color: bar.kind == .category ? LinePalette.line(bar.lineColor, scheme) : neutral,
                       track: LinePalette.rail(scheme), trackOpacity: contrast == .increased ? 0.45 : 0.28)
                 .padding(.leading, StationRing.diameter + Self.gap)
         }
@@ -228,7 +228,7 @@ private struct SpendingBarRow: View {
     @ViewBuilder private var marker: some View {
         switch bar.kind {
         case .category:
-            StationRing(lineIndex: bar.lineIndex)
+            StationRing(lineColor: bar.lineColor)
         case .paymentMethod:
             RoundedRectangle(cornerRadius: 1.5, style: .continuous)
                 .strokeBorder(Color(nsColor: .secondaryLabelColor), lineWidth: contrast == .increased ? 2 : 1.5)

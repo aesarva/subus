@@ -36,7 +36,7 @@ FIRST VIEWPORT (360 pt wide):
 - Header row:
   - Left: the month total ("6 870 ₽ in a month", 17 pt semibold) and under it the year total plus "CBR rate on …" and trial/excluded notes (11 pt secondary).
   - Right: the days-to-next figure, the panel's only large number (~44 pt semibold), with "days until charge" under it.
-- 60-day overview line:
+- 30-day overview line:
   - Week ticks and month labels.
   - A station per charge in its line colour, and the "you are here" ring at the left.
   - Only the leg from today to the next station is drawn in full ink (5 pt); the rest of the rail stays quiet.
@@ -87,14 +87,14 @@ These bind the UI tasks together with the direction contract. Where they differ 
    - The relative date ("in N days · date") is always present. The payment-method label is appended after it.
    - Full name is in the card and in VoiceOver.
 7. **Overview geometry.**
-   - x = daysFromToday × (railWidth / 60). Today is fixed at the left edge.
+   - x = daysFromToday × (railWidth / 30). Today is fixed at the left edge.
    - Stations closer than 14 pt merge into one cluster ring showing a count. Hover or arrow keys reveal the cluster's charges in a tooltip.
    - Only the next station is labelled. The label clamps inside the rail ends.
    - Repeats of the same subscription are separate stations.
 8. **VoiceOver.**
    - Each strip row is one button. Label: "name, in N days, date, amount, category[, trial]". Action: open card.
    - Stations and the spine are hidden from VoiceOver.
-   - The overview is one element: "Next 60 days: N charges; next in N days: name, amount".
+   - The overview is one element: "Next 30 days: N charges; next in N days: name, amount".
 9. **Keyboard.**
    - Tab and Shift-Tab cycle segmented control → search (All tab) → list → footer.
    - ↑ and ↓ move the list selection and auto-scroll to it. Enter opens the card. Esc goes back from the card, otherwise closes the panel.
@@ -106,7 +106,7 @@ These bind the UI tasks together with the direction contract. Where they differ 
     - Category, trial, "next" and selection are always also carried by text, a tag or shape.
 11. **Empty and edge states.**
     - No subscriptions: the empty state with a "Add your first subscription" button. The overview is hidden.
-    - Subscriptions exist but no charge in 60 days: a calm line "No charges in the next 60 days — next: name, date" (the real nearest charge). The overview shows today only.
+    - Subscriptions exist but no charge in 30 days: a calm line "No charges in the next 30 days — next: name, date" (the real nearest charge). The overview shows today only.
     - All inactive: "All subscriptions are paused" plus a link to All.
     - One charge: the leg is drawn to it.
     - Today and tomorrow: the accent from the status-item rule.
@@ -141,6 +141,7 @@ These bind the UI tasks together with the direction contract. Where they differ 
 
 18. **Accent exclusivity (user decision, 2026-10-20, after the finish review).** Red is reserved for the brand accent: the menu-bar dot, today/tomorrow, the days figure at 0–1, and price-increase % text. Category palette index 0 changes from red to magenta: tile/light line `#AD1457`, dark line `#F06292`. Payment methods no longer use line colours. Their bars are neutral (secondary label colour) and their marker is card-shaped, so line colour means category only. Mixed-category clusters on the overview are interchange capsules in the rail colour. Full ink is reserved for the today ring, the leg and the next-station emphasis.
 19. **Orange accent (user decision, 2026-10-21).** The brand accent changes from red to orange: graphics `#E8590C` (3.31:1 on `#F6F6F3`, 4.75:1 on `#1C1C1E`), text `#A84300` in light (5.59:1) and `#FF8A3D` in dark (7.26:1). It keeps every role amendment 18 gave the red: the menu-bar dot, the app icon's dot, today/tomorrow, the days figure at 0–1, and price-increase % text. Orange is now reserved for the accent, so category index 3 changes from orange to red: tile/light line `#C62828` (5.62:1 under a white letter, 5.19:1 on `#F6F6F3`), dark line `#EF5350` (4.88:1 on `#1C1C1E`). Index 0 stays magenta.
+20. **Custom category colours (user decision, 2026-10-21).** A category may carry any colour the user picks, next to the eight presets. Line contrast ≥ 3:1 comes from fitting the colour's lightness per theme against the reference grounds; the hue does not change. The "orange is the accent" rule is not enforced on custom colours: the user may pick orange. The presets still contain no orange.
 
 ## Unresolved
 - The exact panel height cap and the scroll behaviour on long lists. This is set at build time, but the first viewport must hold as above.

@@ -24,6 +24,25 @@ public struct Library: Equatable, Codable, Sendable {
         })
     }
 
+    /// The id of the category with this name (case-insensitive, trimmed), appending one when there is none.
+    public mutating func addCategory(name: String, color: CategoryColor) -> UUID {
+        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let same = categories.first(where: { $0.name.caseInsensitiveCompare(name) == .orderedSame }) { return same.id }
+        var category = Category(name: name, colorIndex: categories.count % Category.paletteCount)
+        category.setColor(color)
+        categories.append(category)
+        return category.id
+    }
+
+    /// The id of the payment method with this label (case-insensitive, trimmed), appending one when there is none.
+    public mutating func addPaymentMethod(label: String) -> UUID {
+        let label = label.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let same = paymentMethods.first(where: { $0.label.caseInsensitiveCompare(label) == .orderedSame }) { return same.id }
+        let method = PaymentMethod(label: label, colorIndex: paymentMethods.count % Category.paletteCount)
+        paymentMethods.append(method)
+        return method.id
+    }
+
     public mutating func upsert(_ s: Subscription) {
         if let i = subscriptions.firstIndex(where: { $0.id == s.id }) {
             subscriptions[i] = s

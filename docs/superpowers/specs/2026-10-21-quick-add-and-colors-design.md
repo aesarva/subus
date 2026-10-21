@@ -32,21 +32,21 @@
 
 ## 2. Модель данных (SubusCore)
 
-### 2.1. `RGBColor`
+### 2.1. `SRGBColor`
 
-`RGBColor` — новый тип в `Model/`. Это три компонента sRGB по 0…255, `Hashable`, `Codable`, `Sendable`.
+`SRGBColor` — новый тип в `Model/`. Это три компонента sRGB по 0…255, `Hashable`, `Codable`, `Sendable`.
 
 - В JSON кодируется строкой `"#RRGGBB"` (верхний регистр).
 - Декодирование принимает `#RRGGBB` и `RRGGBB` в любом регистре. Любая другая строка — ошибка декодирования поля. Обработку этой ошибки описывает §2.2.
 
 ### 2.2. `Category.customColor`
 
-`Category` получает поле `customColor: RGBColor?`.
+`Category` получает поле `customColor: SRGBColor?`.
 
 - Если оно задано, линия категории рисуется этим цветом.
 - Если нет, используется пресет `colorIndex`, как в v1.
 - `colorIndex` остаётся обязательным и при выборе своего цвета не сбрасывается. Он нужен как запасной цвет для старых версий Subus, которые не знают `customColor`.
-- У `Category` появляется собственный `init(from:)`. `customColor` читается как `(try? c.decodeIfPresent(RGBColor.self, forKey: .customColor)) ?? nil`: некорректное значение не ломает файл, поле становится `nil`, и категория получает свой пресет. Остальные поля декодируются как в v1. `sanitized()` поле не трогает.
+- У `Category` появляется собственный `init(from:)`. `customColor` читается как `(try? c.decodeIfPresent(SRGBColor.self, forKey: .customColor)) ?? nil`: некорректное значение не ломает файл, поле становится `nil`, и категория получает свой пресет. Остальные поля декодируются как в v1. `sanitized()` поле не трогает.
 - `Library.currentSchemaVersion` остаётся `1`. Изменение аддитивное: v1 игнорирует неизвестный ключ.
 
 `Category` получает вычисляемое свойство `color: CategoryColor`:
@@ -54,7 +54,7 @@
 ```swift
 public enum CategoryColor: Hashable, Sendable {
     case preset(Int)        // 0..<Category.paletteCount
-    case custom(RGBColor)
+    case custom(SRGBColor)
 }
 ```
 
@@ -67,7 +67,7 @@ public enum CategoryColor: Hashable, Sendable {
 ```swift
 public enum LineContrast {
     /// The colour moved in OKLCH lightness only, the hue kept, until it reaches `minimum` against `ground`.
-    public static func adjusted(_ color: RGBColor, against ground: RGBColor, minimum: Double = 3.0) -> RGBColor
+    public static func adjusted(_ color: SRGBColor, against ground: SRGBColor, minimum: Double = 3.0) -> SRGBColor
 }
 ```
 
@@ -212,7 +212,7 @@ public enum CardFieldParser {
 
 **SubusCore (Swift Testing):**
 
-- `RGBColor`: кодирование и декодирование, регистр, строка без `#`, отказ на мусоре.
+- `SRGBColor`: кодирование и декодирование, регистр, строка без `#`, отказ на мусоре.
 - `Category`: `customColor` отсутствует, задан или некорректен (в последнем случае `nil`, остальной файл читается). Старый JSON v1 декодируется. Круговой проход через `Transfer` JSON сохраняет цвет. Импорт в режиме «Добавить» с совпадением по ID и по названию оставляет локальный цвет, в режиме «Заменить» берёт цвет из файла.
 - `LineContrast`: цвет с достаточным контрастом не меняется. Светлый жёлтый на светлом фоне темнеет до ≥ 3:1, тёмно-синий на тёмном фоне светлеет до ≥ 3:1, оттенок отклоняется не больше чем на 2°. Недостижимый `minimum` (например, 25) даёт крайнюю точку: чёрный на светлом фоне, белый на тёмном.
 - Разбор поля номера (чистая логика вынесена в `CardFieldParser` в SubusCore): постепенный набор 12+ цифр не разбирается до конца редактирования; вставка за раз разбирается сразу; маска `"•• 4242"` распознаётся обратно; правка сбрасывает `last4`.

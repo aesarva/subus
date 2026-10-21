@@ -1,7 +1,7 @@
 import SubusCore
 import SwiftUI
 
-/// "Upcoming": the totals header, the 60-day overview line and the strip map of charges.
+/// "Upcoming": the totals header, the 30-day overview line and the strip map of charges.
 /// Its children flow into the panel's `CappedColumn`; only the strip map scrolls.
 struct UpcomingTab: View {
     let model: AppModel
@@ -42,7 +42,7 @@ struct UpcomingTab: View {
         let text: String
         if let nearest = model.nearestCharge {
             let name = nearest.0.name, date = Formatters.shortDate(nearest.1.date)
-            text = String(localized: "No charges in the next 60 days — next: \(name), \(date)")
+            text = String(localized: "No charges in the next 30 days — next: \(name), \(date)")
         } else {
             text = String(localized: "No upcoming charges")
         }

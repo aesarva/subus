@@ -5,7 +5,7 @@ import SwiftUI
 struct NamedColorItem: Identifiable {
     var id: UUID
     var name: String
-    var colorIndex: Int
+    var color: CategoryColor
 }
 
 struct NamedColorList: View {
@@ -16,11 +16,13 @@ struct NamedColorList: View {
     let error: String?
     let onRename: (UUID, String) -> Bool
     /// nil hides the colour column: payment methods carry no line colour in the UI.
-    let onRecolor: ((UUID, Int) -> Void)?
+    let onRecolor: ((UUID, CategoryColor) -> Void)?
     let onDelete: (UUID) -> Void
-    let onAdd: () -> Void
+    /// The New Category or New Card sheet behind the add button.
+    let addSheet: AnyView
 
     @State private var confirming: UUID?
+    @State private var adding = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -28,7 +30,7 @@ struct NamedColorList: View {
                 ForEach(items) { item in
                     HStack(spacing: 10) {
                         if let onRecolor {
-                            SwatchButton(index: item.colorIndex) { onRecolor(item.id, $0) }
+                            SwatchButton(name: item.name, color: item.color) { onRecolor(item.id, $0) }
                         }
                         NameField(name: item.name) { onRename(item.id, $0) }
                         Button {
@@ -46,13 +48,14 @@ struct NamedColorList: View {
             .frame(height: 260)
 
             HStack {
-                Button(action: onAdd) { Label(addTitle, systemImage: "plus") }
+                Button { adding = true } label: { Label(addTitle, systemImage: "plus") }
                 if let error {
                     Text(error).font(.callout).foregroundStyle(.red).lineLimit(2)
                 }
                 Spacer()
             }
         }
+        .sheet(isPresented: $adding) { addSheet }
         .alert(confirming.map { deleteMessage(usage($0)) } ?? "", isPresented: Binding(
             get: { confirming != nil }, set: { if !$0 { confirming = nil } })) {
             Button("Delete", role: .destructive) {
@@ -98,43 +101,45 @@ private struct NameField: View {
     }
 }
 
+/// The row's colour dot; it opens a sheet rather than a popover, because the system colour panel outlives
+/// a popover but not a sheet, and the colour is written once, on Done.
 private struct SwatchButton: View {
-    let index: Int
-    let pick: (Int) -> Void
+    let name: String
+    let color: CategoryColor
+    let pick: (CategoryColor) -> Void
     @State private var open = false
+    @State private var draft: CategoryColor = .preset(0)
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        Button { open = true } label: {
-            Circle().fill(LinePalette.line(index, scheme)).frame(width: 16, height: 16)
+        Button {
+            draft = color
+            open = true
+        } label: {
+            Circle().fill(LinePalette.line(color, scheme)).frame(width: 16, height: 16)
         }
         .buttonStyle(.plain)
-        .help(Self.colorName(index))
-        .accessibilityLabel(Text("Color: \(Self.colorName(index))"))
-        .popover(isPresented: $open, arrowEdge: .bottom) {
-            HStack(spacing: 8) {
-                ForEach(0..<Category.paletteCount, id: \.self) { i in
-                    Button {
-                        pick(i)
+        .help(color.displayName)
+        .accessibilityLabel(Text("Color: \(color.displayName)"))
+        .sheet(isPresented: $open) {
+            VStack(alignment: .leading, spacing: 16) {
+                Text(name).font(.headline)
+                HStack(spacing: 12) {
+                    StationRing(lineColor: draft)
+                    CategoryColorPicker(color: $draft)
+                }
+                HStack {
+                    Spacer()
+                    Button("Cancel", role: .cancel) { open = false }
+                        .keyboardShortcut(.cancelAction)
+                    Button("Done") {
+                        if draft != color { pick(draft) }
                         open = false
-                    } label: {
-                        Circle().fill(LinePalette.line(i, scheme)).frame(width: 20, height: 20)
-                            .overlay {
-                                if i == index { Image(systemName: "checkmark").font(.caption.bold()).foregroundStyle(.white) }
-                            }
                     }
-                    .buttonStyle(.plain)
-                    .help(Self.colorName(i))
-                    .accessibilityLabel(Text(Self.colorName(i)))
+                    .keyboardShortcut(.defaultAction)
                 }
             }
-            .padding(12)
+            .padding(20)
         }
-    }
-
-    static func colorName(_ i: Int) -> String {
-        [String(localized: "Magenta"), String(localized: "Green"), String(localized: "Blue"), String(localized: "Red"),
-         String(localized: "Violet"), String(localized: "Cyan"), String(localized: "Brown"),
-         String(localized: "Yellow")][((i % Category.paletteCount) + Category.paletteCount) % Category.paletteCount]
     }
 }

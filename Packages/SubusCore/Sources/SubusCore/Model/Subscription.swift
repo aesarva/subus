@@ -148,12 +148,39 @@ public struct Category: Identifiable, Hashable, Codable, Sendable {
 
     public var id: UUID
     public var name: String
+    /// Always set: the preset an older Subus falls back to when it does not know `customColor`.
     public var colorIndex: Int
+    public var customColor: SRGBColor?
 
-    public init(id: UUID = UUID(), name: String, colorIndex: Int) {
+    public init(id: UUID = UUID(), name: String, colorIndex: Int, customColor: SRGBColor? = nil) {
         self.id = id
         self.name = name
         self.colorIndex = colorIndex
+        self.customColor = customColor
+    }
+
+    public var color: CategoryColor { customColor.map(CategoryColor.custom) ?? .preset(colorIndex) }
+
+    /// A preset replaces the custom colour; a custom colour keeps the preset as the fallback.
+    public mutating func setColor(_ color: CategoryColor) {
+        switch color {
+        case .preset(let index):
+            colorIndex = index
+            customColor = nil
+        case .custom(let rgb):
+            customColor = rgb
+        }
+    }
+
+    private enum CodingKeys: String, CodingKey { case id, name, colorIndex, customColor }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        colorIndex = try c.decode(Int.self, forKey: .colorIndex)
+        // A damaged colour costs only the colour, never the file.
+        customColor = (try? c.decodeIfPresent(SRGBColor.self, forKey: .customColor)) ?? nil
     }
 }
 

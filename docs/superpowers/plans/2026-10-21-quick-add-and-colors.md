@@ -38,24 +38,24 @@
 ### Task 1: Custom category colour in the model
 
 **Files:**
-- Create: `Packages/SubusCore/Sources/SubusCore/Model/RGBColor.swift`
+- Create: `Packages/SubusCore/Sources/SubusCore/Model/SRGBColor.swift`
 - Modify: `Packages/SubusCore/Sources/SubusCore/Model/Subscription.swift` (the `Category` struct, around line 146)
 - Modify: `Packages/SubusCore/Sources/SubusCore/Model/Library.swift`
 - Test: `Packages/SubusCore/Tests/SubusCoreTests/CategoryColorTests.swift`
 
 **Interfaces:**
 - Produces:
-  - `public struct RGBColor: Hashable, Codable, Sendable { public var red, green, blue: UInt8; public init(red: UInt8, green: UInt8, blue: UInt8); public init?(hex: String); public var hex: String }`. `hex` is `"#RRGGBB"` in upper case. `init?(hex:)` accepts an optional `#` and either case, and nothing else. `Codable` goes through `hex`.
-  - `public enum CategoryColor: Hashable, Sendable { case preset(Int); case custom(RGBColor) }`
-  - `Category.customColor: RGBColor?`; `Category.color: CategoryColor { get }`, which is `.custom` when set and otherwise `.preset(colorIndex)`; `mutating func setColor(_ color: CategoryColor)`. A preset sets `colorIndex` and clears `customColor`. A custom colour sets `customColor` and leaves `colorIndex` alone.
-  - `Category.init(id: UUID = UUID(), name: String, colorIndex: Int, customColor: RGBColor? = nil)`
+  - `public struct SRGBColor: Hashable, Codable, Sendable { public var red, green, blue: UInt8; public init(red: UInt8, green: UInt8, blue: UInt8); public init?(hex: String); public var hex: String }`. `hex` is `"#RRGGBB"` in upper case. `init?(hex:)` accepts an optional `#` and either case, and nothing else. `Codable` goes through `hex`.
+  - `public enum CategoryColor: Hashable, Sendable { case preset(Int); case custom(SRGBColor) }`
+  - `Category.customColor: SRGBColor?`; `Category.color: CategoryColor { get }`, which is `.custom` when set and otherwise `.preset(colorIndex)`; `mutating func setColor(_ color: CategoryColor)`. A preset sets `colorIndex` and clears `customColor`. A custom colour sets `customColor` and leaves `colorIndex` alone.
+  - `Category.init(id: UUID = UUID(), name: String, colorIndex: Int, customColor: SRGBColor? = nil)`
   - `Library.addCategory(name: String, color: CategoryColor) -> UUID`. It returns the id of an existing category whose name matches case-insensitively after trimming, and otherwise appends a new one. A new one with a `.custom` colour gets `colorIndex = categories.count % Category.paletteCount`.
   - `Library.addPaymentMethod(label: String) -> UUID`. Same matching on `label`; a new one gets `colorIndex = paymentMethods.count % Category.paletteCount`.
 
 - [ ] **Step 1: Write the failing tests** in `CategoryColorTests.swift`:
-  - `rgbHexRoundTrip`: `RGBColor(hex: "#2a9d8f")?.hex == "#2A9D8F"`; `RGBColor(hex: "2A9D8F") != nil`; `RGBColor(hex: "#GGHHII") == nil`, and the same for `"#FFF"` and `""`.
+  - `rgbHexRoundTrip`: `SRGBColor(hex: "#2a9d8f")?.hex == "#2A9D8F"`; `SRGBColor(hex: "2A9D8F") != nil`; `SRGBColor(hex: "#GGHHII") == nil`, and the same for `"#FFF"` and `""`.
   - `v1CategoryDecodes`: the JSON `{"id":"…","name":"Music","colorIndex":2}` decodes with `customColor == nil` and `color == .preset(2)`.
-  - `customColorRoundTrips`: encoding writes `"customColor":"#2A9D8F"`, and decoding gives `color == .custom(RGBColor(red: 0x2A, green: 0x9D, blue: 0x8F))`.
+  - `customColorRoundTrips`: encoding writes `"customColor":"#2A9D8F"`, and decoding gives `color == .custom(SRGBColor(red: 0x2A, green: 0x9D, blue: 0x8F))`.
   - `badCustomColorFallsBackToPreset`: a whole `Library` JSON with one category at `"customColor": 42` and another at `"#GGHHII"` decodes; both have `customColor == nil`, and the subscriptions are intact.
   - `setColorPresetClearsCustom` and `setColorCustomKeepsIndex`.
   - `addCategoryReusesNamesake`: given "Music", `addCategory(name: " music ", color: .preset(5))` returns the existing id and the count is unchanged.
@@ -63,8 +63,8 @@
   - `addImportKeepsLocalColor`: the local category "Music" is `.custom(#112233)`, and the imported "Music" (another id) is `.custom(#445566)`. After `Transfer.apply(preview, to: local, mode: .add)`, "Music" is still `#112233`.
   - `replaceImportTakesFileColor`: the same inputs with `.replace` give `#445566`.
   - `jsonExportKeepsCustomColor`: a round trip through `Transfer`'s JSON export and `parseJSON` keeps `customColor`. Use the existing `TransferTests` helpers for the export and parse calls.
-- [ ] **Step 2: Run** `cd Packages/SubusCore && swift test --filter CategoryColorTests`. Expected: FAIL to compile (`RGBColor` is undefined).
-- [ ] **Step 3: Implement** `RGBColor` and the `Category` changes, with a hand-written `init(from:)` that reads `customColor` as `(try? c.decodeIfPresent(RGBColor.self, forKey: .customColor)) ?? nil`. Add the two `Library` helpers. The `Transfer.apply` merge needs no code change; the tests pin its current behaviour.
+- [ ] **Step 2: Run** `cd Packages/SubusCore && swift test --filter CategoryColorTests`. Expected: FAIL to compile (`SRGBColor` is undefined).
+- [ ] **Step 3: Implement** `SRGBColor` and the `Category` changes, with a hand-written `init(from:)` that reads `customColor` as `(try? c.decodeIfPresent(SRGBColor.self, forKey: .customColor)) ?? nil`. Add the two `Library` helpers. The `Transfer.apply` merge needs no code change; the tests pin its current behaviour.
 - [ ] **Step 4: Run** `make test`. Expected: every suite passes, the 184 existing tests plus the new ones.
 - [ ] **Step 5: Commit** `feat(core): optional custom category colour`.
 
@@ -75,10 +75,10 @@
 - Test: `Packages/SubusCore/Tests/SubusCoreTests/LineContrastTests.swift`
 
 **Interfaces:**
-- Consumes: `RGBColor` (Task 1).
+- Consumes: `SRGBColor` (Task 1).
 - Produces:
-  - `public enum LineContrast { public static let lightGround = RGBColor(hex: "#F6F6F3")!; public static let darkGround = RGBColor(hex: "#1C1C1E")!; public static func ratio(_ a: RGBColor, _ b: RGBColor) -> Double; public static func adjusted(_ color: RGBColor, against ground: RGBColor, minimum: Double = 3.0) -> RGBColor }`
-  - `internal enum OKLCH { static func from(_ c: RGBColor) -> (l: Double, c: Double, h: Double); static func rgb(l: Double, c: Double, h: Double) -> RGBColor? }`. Here `h` is in degrees. `rgb` returns `nil` when the colour is out of the sRGB gamut.
+  - `public enum LineContrast { public static let lightGround = SRGBColor(hex: "#F6F6F3")!; public static let darkGround = SRGBColor(hex: "#1C1C1E")!; public static func ratio(_ a: SRGBColor, _ b: SRGBColor) -> Double; public static func adjusted(_ color: SRGBColor, against ground: SRGBColor, minimum: Double = 3.0) -> SRGBColor }`
+  - `internal enum OKLCH { static func from(_ c: SRGBColor) -> (l: Double, c: Double, h: Double); static func rgb(l: Double, c: Double, h: Double) -> SRGBColor? }`. Here `h` is in degrees. `rgb` returns `nil` when the colour is out of the sRGB gamut.
 
 - [ ] **Step 1: Write the failing tests:**
   - `ratioMatchesWCAG`: `ratio(#FFFFFF, #000000)` is 21 ± 0.01; `ratio(#E8590C, #F6F6F3)` is 3.31 ± 0.01.
@@ -176,7 +176,7 @@
   - `App/Panel/Components/LinePalette.swift`: `line(_:_:)` and `StationRing`.
   - `App/Panel/Components/UpcomingItem.swift`, `App/Panel/AllTab.swift`, `App/Panel/SpendingTab.swift` (`SpendingBar`, `categoryBars`), `App/Panel/SubscriptionCard.swift` (`ChargeStop`, the details ring).
   - `App/Panel/Components/StripMap.swift` (`StationAnchor`, `StripCanvas.stations`, `TrialTag`), `App/Panel/Components/OverviewLine.swift` (clusters).
-  - `App/Debug/PreviewSupport.swift`: give the demo category `work` the colour `.custom(RGBColor(hex: "#2A9D8F")!)`.
+  - `App/Debug/PreviewSupport.swift`: give the demo category `work` the colour `.custom(SRGBColor(hex: "#2A9D8F")!)`.
 - Modify docs:
   - `DESIGN.md` (Colors: custom category colours and the fit rule).
   - `.impeccable/design.json` (the same rule text).
@@ -185,7 +185,7 @@
 **Interfaces:**
 - Consumes: `CategoryColor`, `Category.color` (Task 1); `LineContrast.adjusted`, `lightGround`, `darkGround` (Task 2).
 - Produces:
-  - `LinePalette.line(_ color: CategoryColor?, _ scheme: ColorScheme) -> Color`. Presets work as before. A custom colour goes through `LineContrast.adjusted` against the ground for `scheme`, cached in a `[RGBColor: Color]` dictionary per scheme on the main actor. `nil` gives `rail(scheme)`.
+  - `LinePalette.line(_ color: CategoryColor?, _ scheme: ColorScheme) -> Color`. Presets work as before. A custom colour goes through `LineContrast.adjusted` against the ground for `scheme`, cached in a `[SRGBColor: Color]` dictionary per scheme on the main actor. `nil` gives `rail(scheme)`.
   - Every UI model field `lineIndex: Int?` becomes `lineColor: CategoryColor?`, filled from `category?.color`.
   - `StationRing(lineColor:)`.
   - `TrialTag` uses `.preset(LinePalette.violet)`.
@@ -220,7 +220,7 @@
 - Produces:
   - `struct CategoryColorPicker: View { @Binding var color: CategoryColor }`
     - `Color` → `NSColor(color).usingColorSpace(.sRGB)`, with components clamped to 0…1 and rounded to `UInt8`.
-    - `RGBColor` → `Color(.sRGB, red:green:blue:)`.
+    - `SRGBColor` → `Color(.sRGB, red:green:blue:)`.
   - `struct NewCategorySheet: View { init(model: AppModel, onCreated: @escaping (UUID) -> Void) }`
     - Fields: a name field with initial focus; `CategoryColorPicker`, defaulting to `.preset(model.library.categories.count % Category.paletteCount)`; a `StationRing(lineColor:)` preview.
     - Buttons: Cancel and Add. Add is disabled while the trimmed name is empty.

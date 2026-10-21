@@ -14,6 +14,126 @@
         }
       }
     },
+    "Bank or service": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Банк или сервис"
+          }
+        }
+      }
+    },
+    "Card number": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Номер карты"
+          }
+        }
+      }
+    },
+    "Color": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цвет"
+          }
+        }
+      }
+    },
+    "Custom color": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Свой цвет"
+          }
+        }
+      }
+    },
+    "Done": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Готово"
+          }
+        }
+      }
+    },
+    "Enter the last 4 digits or choose a card": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Введите последние 4 цифры или выберите карту"
+          }
+        }
+      }
+    },
+    "Label": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подпись"
+          }
+        }
+      }
+    },
+    "New Card": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новая карта"
+          }
+        }
+      }
+    },
+    "New Category": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новая категория"
+          }
+        }
+      }
+    },
+    "New card…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новая карта…"
+          }
+        }
+      }
+    },
+    "New category…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новая категория…"
+          }
+        }
+      }
+    },
+    "Other color…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Другой цвет…"
+          }
+        }
+      }
+    },
     "Settings…": {
       "localizations": {
         "ru": {
@@ -40,6 +160,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lldд"
+          }
+        }
+      }
+    },
+    "macOS suggests your saved cards. Subus keeps only the last 4 digits.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS предложит сохранённые карты. Subus хранит только последние 4 цифры."
           }
         }
       }
@@ -838,12 +968,12 @@
         }
       }
     },
-    "No charges in the next 60 days — next: %@, %@": {
+    "No charges in the next 30 days — next: %@, %@": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "В ближайшие 60 дней списаний нет — следующее: %1$@, %2$@"
+            "value": "В ближайшие 30 дней списаний нет — следующее: %1$@, %2$@"
           }
         }
       }
@@ -998,12 +1128,12 @@
         }
       }
     },
-    "Next 60 days: no charges": {
+    "Next 30 days: no charges": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ближайшие 60 дней: списаний нет"
+            "value": "Ближайшие 30 дней: списаний нет"
           }
         }
       }
@@ -1164,7 +1294,7 @@
         }
       }
     },
-    "Next 60 days: %lld charges; next %@: %@, %@": {
+    "Next 30 days: %lld charges; next %@: %@, %@": {
       "localizations": {
         "en": {
           "variations": {
@@ -1172,13 +1302,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Next 60 days: %lld charge; next %@: %@, %@"
+                  "value": "Next 30 days: %lld charge; next %@: %@, %@"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Next 60 days: %lld charges; next %@: %@, %@"
+                  "value": "Next 30 days: %lld charges; next %@: %@, %@"
                 }
               }
             }
@@ -1190,25 +1320,25 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Ближайшие 60 дней: %lld списание; следующее %@: %@, %@"
+                  "value": "Ближайшие 30 дней: %lld списание; следующее %@: %@, %@"
                 }
               },
               "few": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Ближайшие 60 дней: %lld списания; следующее %@: %@, %@"
+                  "value": "Ближайшие 30 дней: %lld списания; следующее %@: %@, %@"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Ближайшие 60 дней: %lld списаний; следующее %@: %@, %@"
+                  "value": "Ближайшие 30 дней: %lld списаний; следующее %@: %@, %@"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Ближайшие 60 дней: %lld списаний; следующее %@: %@, %@"
+                  "value": "Ближайшие 30 дней: %lld списаний; следующее %@: %@, %@"
                 }
               }
             }

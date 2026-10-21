@@ -62,13 +62,23 @@ struct EditorView: View {
                     }
                 }
                 Section {
-                    Picker("Category", selection: $state.draft.categoryID) {
-                        Text("None").tag(UUID?.none)
-                        ForEach(state.model.library.categories) { Text($0.name).tag(UUID?.some($0.id)) }
+                    Picker("Category", selection: $state.categoryChoice) {
+                        Text("None").tag(PickerChoice.none)
+                        ForEach(state.model.library.categories) { Text($0.name).tag(PickerChoice.existing($0.id)) }
+                        Divider()
+                        Text("New category…").tag(PickerChoice.create)
                     }
-                    Picker("Payment method", selection: $state.draft.paymentMethodID) {
-                        Text("None").tag(UUID?.none)
-                        ForEach(state.model.library.paymentMethods) { Text($0.label).tag(UUID?.some($0.id)) }
+                    .sheet(isPresented: $state.creatingCategory) {
+                        NewCategorySheet(model: state.model) { state.draft.categoryID = $0 }
+                    }
+                    Picker("Payment method", selection: $state.paymentChoice) {
+                        Text("None").tag(PickerChoice.none)
+                        ForEach(state.model.library.paymentMethods) { Text($0.label).tag(PickerChoice.existing($0.id)) }
+                        Divider()
+                        Text("New card…").tag(PickerChoice.create)
+                    }
+                    .sheet(isPresented: $state.creatingPayment) {
+                        NewCardSheet(model: state.model) { state.draft.paymentMethodID = $0 }
                     }
                 }
                 Section {

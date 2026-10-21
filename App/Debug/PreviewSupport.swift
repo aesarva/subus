@@ -6,6 +6,8 @@ enum PreviewSupport {
         var library = Library.initial(categoryNames: AppModel.defaultCategoryNames())
         let software = library.categories[0].id, entertainment = library.categories[1].id
         let music = library.categories[2].id, cloud = library.categories[3].id, work = library.categories[4].id
+        // One custom colour, so every snapshot shows a fitted line next to the presets.
+        library.categories[4].setColor(.custom(SRGBColor(hex: "#2A9D8F")!))
         let bankMethod = PaymentMethod(label: "Т-Банк •• 4242", colorIndex: 0), bank = bankMethod.id
         let revolutMethod = PaymentMethod(label: "Revolut •• 0815", colorIndex: 3), revolut = revolutMethod.id
         library.paymentMethods = [bankMethod, revolutMethod]

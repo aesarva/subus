@@ -54,7 +54,7 @@ struct StripMap: View {
         .padding(.bottom, 8)
         .backgroundPreferenceValue(StationAnchors.self) { stations in
             GeometryReader { proxy in
-                StripCanvas(stations: stations.map { ($0.key, proxy[$0.bounds], $0.lineIndex) }, focus: focus)
+                StripCanvas(stations: stations.map { ($0.key, proxy[$0.bounds], $0.lineColor) }, focus: focus)
             }
         }
     }
@@ -83,7 +83,7 @@ struct StripMap: View {
 private struct StationAnchor {
     let key: ChargeKey
     let bounds: Anchor<CGRect>
-    let lineIndex: Int?
+    let lineColor: CategoryColor?
 }
 
 private struct StationAnchors: PreferenceKey {
@@ -95,7 +95,7 @@ private struct StationAnchors: PreferenceKey {
 
 /// Row highlight, spine and stations, drawn behind the rows so text keeps full opacity.
 private struct StripCanvas: View {
-    let stations: [(key: ChargeKey, rect: CGRect, lineIndex: Int?)]
+    let stations: [(key: ChargeKey, rect: CGRect, lineColor: CategoryColor?)]
     let focus: Set<ChargeKey>
 
     @Environment(\.colorScheme) private var scheme
@@ -123,7 +123,7 @@ private struct StripCanvas: View {
                                                     lineCap: .round))
                 }
                 for s in stations {
-                    layer.drawStation(at: CGPoint(x: x, y: s.rect.midY), color: LinePalette.line(s.lineIndex, scheme),
+                    layer.drawStation(at: CGPoint(x: x, y: s.rect.midY), color: LinePalette.line(s.lineColor, scheme),
                                       StationState(lifted: focus.contains(s.key), anyLifted: anyLifted),
                                       contrast: contrast)
                 }
@@ -174,7 +174,7 @@ private struct StripRow: View {
             }
         }
         .anchorPreference(key: StationAnchors.self, value: .bounds) {
-            [StationAnchor(key: item.id, bounds: $0, lineIndex: item.lineIndex)]
+            [StationAnchor(key: item.id, bounds: $0, lineColor: item.lineColor)]
         }
         .accessibilityLabel(accessibilityText)
     }
@@ -247,7 +247,7 @@ struct TrialTag: View {
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        let color = LinePalette.line(LinePalette.violet, scheme)
+        let color = LinePalette.line(.preset(LinePalette.violet), scheme)
         Text("Trial")
             .font(.system(size: 11, weight: .semibold))
             .tracking(0.4)

@@ -41,7 +41,7 @@ If you pay for a dozen services, you lose count: a forgotten trial, a service yo
 
 | | |
 |---|---|
-| **Upcoming** | A timeline of charges grouped as Today & tomorrow / This week / This month / Later (60 days), with monthly and yearly totals on top. |
+| **Upcoming** | A timeline of charges grouped as Today & tomorrow / This week / This month / Later (up to 30 days; each subscription once, at its nearest charge), with monthly and yearly totals on top. |
 | **Reminders** | 5, 3 and 1 day before each charge by default (0–30 days, configurable), at 10:00 by default. Trial ends get their own reminder: cancel now if you do not need it. |
 | **Currencies** | Any ISO currency; totals use the daily CBR rates, cached, so they work offline. |
 | **Spending** | Monthly breakdown by category and by payment method, plus a list of price increases over the last year. |

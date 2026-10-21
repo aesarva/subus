@@ -57,3 +57,23 @@ private let today = d("2026-10-20")
     ending.endDate = d("2026-11-25")
     #expect(Upcoming.nextCharges(for: ending, today: today).map(\.date) == [d("2026-10-25"), d("2026-11-25")])
 }
+
+@Test func eachSubscriptionOnceWithItsNearestCharge() {
+    let weekly = Subscription(name: "W", price: rub(100), cycle: BillingCycle(1, .week), startDate: d("2026-10-21"))
+    let monthly = Subscription(name: "M", price: rub(100), cycle: .monthly, startDate: d("2026-09-25"))
+    let sections = Upcoming.sections(library: Library(subscriptions: [weekly, monthly]), today: today, calendar: mondayFirst)
+    let charges = sections.flatMap(\.charges)
+    #expect(charges.map(\.subscriptionID) == [weekly.id, monthly.id])
+    #expect(charges.map(\.date) == [d("2026-10-21"), d("2026-10-25")])
+}
+
+@Test func horizonIsThirtyDays() {
+    #expect(Upcoming.horizonDays == 30)
+    let inside = yearly("in", charging: "2026-11-19"), outside = yearly("out", charging: "2026-11-20")
+    let sections = Upcoming.sections(library: Library(subscriptions: [inside, outside]), today: today, calendar: mondayFirst)
+    #expect(sections.flatMap(\.charges).map(\.subscriptionID) == [inside.id])
+}
+
+@Test func remindersKeepTheirOwnSixtyDayHorizon() {
+    #expect(ReminderPlanner.horizonDays == 60)
+}
