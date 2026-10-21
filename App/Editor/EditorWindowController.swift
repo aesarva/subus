@@ -50,6 +50,9 @@ final class EditorWindowController: NSObject, NSWindowDelegate {
                               backing: .buffered, defer: false)
         window.title = subscription.map { String(localized: "Edit “\($0.name)”") } ?? String(localized: "New Subscription")
         window.isReleasedWhenClosed = false
+        window.identifier = DockPresence.identifier
+        // Stays above the browser while the user looks up a price or a date.
+        window.level = .floating
         window.delegate = self
         window.contentViewController = NSHostingController(
             rootView: EditorView(state: state, onCancel: { [weak window] in window?.close() }))

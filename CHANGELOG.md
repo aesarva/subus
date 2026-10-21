@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- The add, edit and Settings windows stay above other apps' windows, so you can copy a price or a date from the browser without losing what you typed.
+- While an add, edit or Settings window is open, Subus shows in the Dock and in ⌘Tab; it returns to the menu bar alone when the last one closes.
+- The brand accent is now orange (#E8590C): the menu-bar dot, the app icon, today and tomorrow, and the days figure at 0–1. The orange category colour becomes red.
+
 ## 0.1.0 — 2026-10-20
 
 - Menu-bar panel with Upcoming, All and Spending tabs; charges grouped as Today & tomorrow, This week, This month and Later.

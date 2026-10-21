@@ -14,6 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panel: PanelController!
     private var editor: EditorWindowController!
     private var settings: SettingsWindowController!
+    private var dockPresence: DockPresence?
 
     @objc func newSubscription() { editor?.open(editing: nil) }
     @objc func openSettings() { settings?.show() }
@@ -41,6 +42,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #endif
 
         model = makeModel()
+        dockPresence = DockPresence()
         notifier.onOpen = { [weak model] id in model?.openSubscriptionRequest = id }
 
         editor = EditorWindowController(model: model, closePanel: { [weak self] in self?.panel.close() })
@@ -73,6 +75,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #if DEBUG
         if args.contains("-OpenPanelOnLaunch") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in self?.panel.toggle() }
+        }
+        if args.contains("-OpenEditorOnLaunch") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in self?.editor.open(editing: nil) }
         }
         if args.contains("-SendTestNotification") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [notifier] in notifier.sendTest() }

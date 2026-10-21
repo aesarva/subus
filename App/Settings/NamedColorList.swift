@@ -133,7 +133,7 @@ private struct SwatchButton: View {
     }
 
     static func colorName(_ i: Int) -> String {
-        [String(localized: "Magenta"), String(localized: "Green"), String(localized: "Blue"), String(localized: "Orange"),
+        [String(localized: "Magenta"), String(localized: "Green"), String(localized: "Blue"), String(localized: "Red"),
          String(localized: "Violet"), String(localized: "Cyan"), String(localized: "Brown"),
          String(localized: "Yellow")][((i % Category.paletteCount) + Category.paletteCount) % Category.paletteCount]
     }

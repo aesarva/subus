@@ -2216,12 +2216,12 @@
         }
       }
     },
-    "Orange": {
+    "Red": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Оранжевый"
+            "value": "Красный"
           }
         }
       }

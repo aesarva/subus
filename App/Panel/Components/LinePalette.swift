@@ -2,13 +2,13 @@ import SwiftUI
 
 /// Metro line colours (8 indices), monogram tiles and the resting rail.
 /// Light uses the tile set for lines; dark uses the bright set. Each line stroke reaches ≥ 3:1 on its ground.
-/// Index 0 is magenta, not red: red belongs to the brand accent alone.
+/// No index is orange: orange belongs to the brand accent alone.
 enum LinePalette {
     static let count = 8
 
     /// Monogram tiles: a white letter on each reaches ≥ 4.5:1.
-    static let tiles: [Color] = [0xAD1457, 0x2E7D32, 0x005A94, 0xA85600, 0x7B3A96, 0x0A6F99, 0x7A4E26, 0x7D6300].map(Color.init(hex:))
-    static let bright: [Color] = [0xF06292, 0x3FA34D, 0x3D9BE9, 0xED9121, 0xB57BD6, 0x1EBCEF, 0xC08A55, 0xF2C200].map(Color.init(hex:))
+    static let tiles: [Color] = [0xAD1457, 0x2E7D32, 0x005A94, 0xC62828, 0x7B3A96, 0x0A6F99, 0x7A4E26, 0x7D6300].map(Color.init(hex:))
+    static let bright: [Color] = [0xF06292, 0x3FA34D, 0x3D9BE9, 0xEF5350, 0xB57BD6, 0x1EBCEF, 0xC08A55, 0xF2C200].map(Color.init(hex:))
 
     static let violet = 4
 

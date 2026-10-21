@@ -65,7 +65,7 @@ If you pay for a dozen services, you lose count: a forgotten trial, a service yo
 ## Install
 
 1. Download `Subus.dmg` from [Releases](https://github.com/aesarva/subus/releases) and open it.
-2. Drag **Subus** onto the **Applications** shortcut, then launch it. It lives only in the menu bar (no Dock icon).
+2. Drag **Subus** onto the **Applications** shortcut, then launch it. It lives in the menu bar; a Dock icon shows only while an add, edit or Settings window is open.
 3. Releases are not yet notarized, so Gatekeeper blocks the first launch. On macOS 15–26: open the app and dismiss the warning, then go to **System Settings → Privacy & Security**, scroll to **Security**, click **Open Anyway** and confirm. On macOS 14, right-click the app and choose **Open**.
 
 Requires macOS 14 Sonoma or later. Liquid Glass on macOS 26+, a plain material on 14–15.

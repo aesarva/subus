@@ -6,47 +6,47 @@
     "colorMeta": {
       "accent": {
         "role": "primary",
-        "displayName": "Signal Red",
-        "canonical": "#E5352B",
+        "displayName": "Signal Orange",
+        "canonical": "#E8590C",
         "tonalRamp": [
-          "#310000",
-          "#5D0000",
-          "#8B0000",
-          "#BB0000",
-          "#E6362C",
-          "#FF6454",
-          "#FF9582",
-          "#FFC3B1"
+          "#2B0A01",
+          "#501A02",
+          "#7A2A01",
+          "#A53D07",
+          "#D54F00",
+          "#FC6B2B",
+          "#FCA483",
+          "#FED3C3"
         ]
       },
       "accent-text-light": {
         "role": "primary",
-        "displayName": "Signal Red Text (light)",
-        "canonical": "#C4271D",
+        "displayName": "Signal Orange Text (light)",
+        "canonical": "#A84300",
         "tonalRamp": [
-          "#320000",
-          "#5D0000",
-          "#8A0000",
-          "#B6120C",
-          "#DE4436",
-          "#FF7261",
-          "#FF9F8D",
-          "#FFCCBB"
+          "#2A0B00",
+          "#4E1C02",
+          "#772E01",
+          "#A14207",
+          "#C65E2A",
+          "#E87D4B",
+          "#FEA47C",
+          "#FFD3C0"
         ]
       },
       "accent-text-dark": {
         "role": "primary",
-        "displayName": "Signal Red Text (dark)",
-        "canonical": "#FF6B5E",
+        "displayName": "Signal Orange Text (dark)",
+        "canonical": "#FF8A3D",
         "tonalRamp": [
-          "#290000",
-          "#510000",
-          "#7D0F0F",
-          "#AB2D27",
-          "#DA493F",
-          "#FF6F62",
-          "#FF9686",
-          "#FFC3B3"
+          "#280E00",
+          "#4B2001",
+          "#723300",
+          "#9B4805",
+          "#C46013",
+          "#ED7A29",
+          "#FDA673",
+          "#FED4BD"
         ]
       },
       "tile-magenta": {
@@ -94,19 +94,19 @@
           "#C3F5FF"
         ]
       },
-      "tile-orange": {
+      "tile-red": {
         "role": "secondary",
-        "displayName": "Line Orange tile / light line",
-        "canonical": "#A85600",
+        "displayName": "Line Red tile / light line",
+        "canonical": "#C62828",
         "tonalRamp": [
-          "#260000",
-          "#4B0800",
-          "#732600",
-          "#984700",
-          "#BE6A24",
-          "#E28E4F",
-          "#FFB57F",
-          "#FFDEAE"
+          "#320002",
+          "#5D0005",
+          "#89080F",
+          "#B8141B",
+          "#DC403B",
+          "#FC675D",
+          "#FDA298",
+          "#FED2CC"
         ]
       },
       "tile-violet": {
@@ -214,19 +214,19 @@
           "#A9F6FF"
         ]
       },
-      "bright-orange": {
+      "bright-red": {
         "role": "secondary",
-        "displayName": "Line Orange dark line",
-        "canonical": "#ED9121",
+        "displayName": "Line Red dark line",
+        "canonical": "#EF5350",
         "tonalRamp": [
-          "#210000",
-          "#451300",
-          "#6C2E00",
-          "#954B00",
-          "#C16900",
-          "#E88C18",
-          "#FFB14C",
-          "#FFD982"
+          "#320003",
+          "#5C0009",
+          "#890815",
+          "#B81522",
+          "#DC4040",
+          "#FC6761",
+          "#FDA29A",
+          "#FED2CD"
         ]
       },
       "bright-violet": {
@@ -519,7 +519,7 @@
       "refersTo": "station-ring",
       "description": "Hollow 13 pt ring, 3 pt stroke in the category line colour; lifts to 16 pt with a 1 pt ink halo, recedes to 9 pt at 1.5 pt.",
       "html": "<span class=\"ds-station\"></span><span class=\"ds-station ds-station-lifted\"></span><span class=\"ds-station ds-station-receded\"></span>",
-      "css": ":host{--accent:#E5352B;--accent-text:#C4271D;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-station{display:inline-block;box-sizing:border-box;width:13px;height:13px;border:3px solid #AD1457;border-radius:50%;margin:6px;vertical-align:middle;transition:none;}.ds-station-lifted{width:16px;height:16px;box-shadow:0 0 0 2px var(--ground),0 0 0 3px var(--ink);}.ds-station-receded{width:9px;height:9px;border-width:1.5px;}"
+      "css": ":host{--accent:#E8590C;--accent-text:#A84300;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-station{display:inline-block;box-sizing:border-box;width:13px;height:13px;border:3px solid #AD1457;border-radius:50%;margin:6px;vertical-align:middle;transition:none;}.ds-station-lifted{width:16px;height:16px;box-shadow:0 0 0 2px var(--ground),0 0 0 3px var(--ink);}.ds-station-receded{width:9px;height:9px;border-width:1.5px;}"
     },
     {
       "name": "Interchange Capsule",
@@ -527,7 +527,7 @@
       "refersTo": "interchange-capsule",
       "description": "Merged stations closer than 14 pt: an 18 pt capsule in the shared line colour, or the rail colour when categories mix, with a secondary count.",
       "html": "<span class=\"ds-interchange\">2</span>",
-      "css": ":host{--accent:#E5352B;--accent-text:#C4271D;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-interchange{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:18px;box-sizing:border-box;border:3px solid var(--rail);border-radius:9px;background:var(--ground);color:var(--ink-2);font-size:11px;font-weight:600;padding:0 6px;}.ds-interchange:hover{height:21px;box-shadow:0 0 0 2px var(--ground),0 0 0 3px var(--ink);}"
+      "css": ":host{--accent:#E8590C;--accent-text:#A84300;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-interchange{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:18px;box-sizing:border-box;border:3px solid var(--rail);border-radius:9px;background:var(--ground);color:var(--ink-2);font-size:11px;font-weight:600;padding:0 6px;}.ds-interchange:hover{height:21px;box-shadow:0 0 0 2px var(--ground),0 0 0 3px var(--ink);}"
     },
     {
       "name": "Overview Line",
@@ -535,7 +535,7 @@
       "refersTo": "overview-line",
       "description": "60-day rail: today ring in full ink at the left, the leg to the next station in full ink, stations in line colours, next station labelled.",
       "html": "<div class=\"ds-overview\"><div class=\"ds-ov-label\">23 · ChatGPT Plus +1</div><div class=\"ds-ov-rail\"><span class=\"ds-ov-leg\"></span><span class=\"ds-ov-today\"></span><span class=\"ds-ov-st\" style=\"left:40%;border-color:#2E7D32\"></span><span class=\"ds-ov-st\" style=\"left:70%;border-color:#7B3A96\"></span></div><div class=\"ds-ov-month\">OCT</div></div>",
-      "css": ":host{--accent:#E5352B;--accent-text:#C4271D;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-overview{position:relative;width:328px;height:60px;}.ds-ov-label{font-size:11px;font-weight:600;color:var(--ink);}.ds-ov-rail{position:absolute;left:10px;right:8px;top:24px;height:3px;background:var(--rail);border-radius:2px;}.ds-ov-leg{position:absolute;left:0;width:30%;top:-1px;height:5px;background:var(--ink);border-radius:3px;}.ds-ov-today{position:absolute;left:-7.5px;top:-6px;width:15px;height:15px;box-sizing:border-box;border:3px solid var(--ink);border-radius:50%;background:var(--ground);}.ds-ov-st{position:absolute;top:-5px;width:13px;height:13px;box-sizing:border-box;border:3px solid;border-radius:50%;background:var(--ground);margin-left:-6.5px;}.ds-ov-st:hover{width:16px;height:16px;top:-6.5px;}.ds-ov-month{position:absolute;top:43px;left:2px;font-size:11px;font-weight:600;letter-spacing:.6px;color:var(--ink-2);}"
+      "css": ":host{--accent:#E8590C;--accent-text:#A84300;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-overview{position:relative;width:328px;height:60px;}.ds-ov-label{font-size:11px;font-weight:600;color:var(--ink);}.ds-ov-rail{position:absolute;left:10px;right:8px;top:24px;height:3px;background:var(--rail);border-radius:2px;}.ds-ov-leg{position:absolute;left:0;width:30%;top:-1px;height:5px;background:var(--ink);border-radius:3px;}.ds-ov-today{position:absolute;left:-7.5px;top:-6px;width:15px;height:15px;box-sizing:border-box;border:3px solid var(--ink);border-radius:50%;background:var(--ground);}.ds-ov-st{position:absolute;top:-5px;width:13px;height:13px;box-sizing:border-box;border:3px solid;border-radius:50%;background:var(--ground);margin-left:-6.5px;}.ds-ov-st:hover{width:16px;height:16px;top:-6.5px;}.ds-ov-month{position:absolute;top:43px;left:2px;font-size:11px;font-weight:600;letter-spacing:.6px;color:var(--ink-2);}"
     },
     {
       "name": "Strip Row",
@@ -543,7 +543,7 @@
       "refersTo": "strip-row",
       "description": "One charge on the spine: station, 24 pt tile, name and amount tight to the margin, caption meta; lift is a 7% highlight, text never dims.",
       "html": "<div class=\"ds-strip\"><span class=\"ds-spine\"></span><button class=\"ds-row\"><span class=\"ds-tile\">S</span><span class=\"ds-row-text\"><span class=\"ds-row-top\"><b>Spotify</b><b>RUB 169</b></span><span class=\"ds-meta\"><span class=\"ds-soon\">tomorrow</span> · Sun, Oct 25 · Т-Банк •• 4242</span></span></button></div>",
-      "css": ":host{--accent:#E5352B;--accent-text:#C4271D;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-strip{position:relative;width:360px;}.ds-spine{position:absolute;left:23.5px;top:0;bottom:0;width:3px;background:var(--rail);}.ds-row{all:unset;box-sizing:border-box;display:flex;gap:10px;align-items:center;width:100%;min-height:42px;padding:5px 16px 5px 44px;border-radius:6px;font-size:13px;color:var(--ink);cursor:default;}.ds-row:hover,.ds-row:focus-visible{background:rgba(29,29,31,.07);}.ds-tile{width:24px;height:24px;border-radius:6px;background:#0A6F99;color:#fff;font-weight:600;font-size:12.5px;display:grid;place-items:center;flex:none;}.ds-row-text{flex:1;display:flex;flex-direction:column;gap:2px;}.ds-row-top{display:flex;justify-content:space-between;font-weight:600;}.ds-meta{font-size:11px;color:var(--ink-2);}.ds-soon{color:var(--accent-text);font-weight:600;}"
+      "css": ":host{--accent:#E8590C;--accent-text:#A84300;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-strip{position:relative;width:360px;}.ds-spine{position:absolute;left:23.5px;top:0;bottom:0;width:3px;background:var(--rail);}.ds-row{all:unset;box-sizing:border-box;display:flex;gap:10px;align-items:center;width:100%;min-height:42px;padding:5px 16px 5px 44px;border-radius:6px;font-size:13px;color:var(--ink);cursor:default;}.ds-row:hover,.ds-row:focus-visible{background:rgba(29,29,31,.07);}.ds-tile{width:24px;height:24px;border-radius:6px;background:#0A6F99;color:#fff;font-weight:600;font-size:12.5px;display:grid;place-items:center;flex:none;}.ds-row-text{flex:1;display:flex;flex-direction:column;gap:2px;}.ds-row-top{display:flex;justify-content:space-between;font-weight:600;}.ds-meta{font-size:11px;color:var(--ink-2);}.ds-soon{color:var(--accent-text);font-weight:600;}"
     },
     {
       "name": "Group Head",
@@ -551,7 +551,7 @@
       "refersTo": "group-head",
       "description": "Tracked uppercase 11 pt semibold secondary head aligned to row text at 44 pt.",
       "html": "<div class=\"ds-group-head\">This week</div>",
-      "css": ":host{--accent:#E5352B;--accent-text:#C4271D;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-group-head{font-size:11px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;color:var(--ink-2);padding:12px 0 2px 44px;}"
+      "css": ":host{--accent:#E8590C;--accent-text:#A84300;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-group-head{font-size:11px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;color:var(--ink-2);padding:12px 0 2px 44px;}"
     },
     {
       "name": "Trial Tag",
@@ -559,7 +559,7 @@
       "refersTo": "trial-tag",
       "description": "Outline tag carried by its text; violet line colour frames it. Ended/Inactive use the same form in secondary.",
       "html": "<span class=\"ds-tag\">Trial</span> <span class=\"ds-tag ds-tag-quiet\">Inactive</span>",
-      "css": ":host{--accent:#E5352B;--accent-text:#C4271D;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-tag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:#7B3A96;border:1px solid #7B3A96;border-radius:3px;padding:1px 5px;}.ds-tag-quiet{color:var(--ink-2);border-color:var(--ink-2);}"
+      "css": ":host{--accent:#E8590C;--accent-text:#A84300;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-tag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:#7B3A96;border:1px solid #7B3A96;border-radius:3px;padding:1px 5px;}.ds-tag-quiet{color:var(--ink-2);border-color:var(--ink-2);}"
     },
     {
       "name": "Summary Header",
@@ -567,7 +567,7 @@
       "refersTo": "summary-header",
       "description": "Month total with growing notes on the left; the 44 pt days figure, the only large number, on the right (accent text at 0-1).",
       "html": "<div class=\"ds-header\"><div><div class=\"ds-total\">RUB 6,381 / month</div><div class=\"ds-notes\">RUB 76,571 / year<br>CBR rate on Oct 20<br>includes 1 trial at its future price</div></div><div class=\"ds-days\"><div class=\"ds-days-n\">3</div><div class=\"ds-notes\">days until charge</div></div></div>",
-      "css": ":host{--accent:#E5352B;--accent-text:#C4271D;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;width:328px;padding:12px 16px 6px;color:var(--ink);}.ds-total{font-size:17px;font-weight:600;}.ds-notes{font-size:11px;color:var(--ink-2);line-height:1.35;}.ds-days{text-align:right;}.ds-days-n{font-size:44px;font-weight:600;letter-spacing:-1px;line-height:1;}"
+      "css": ":host{--accent:#E8590C;--accent-text:#A84300;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;width:328px;padding:12px 16px 6px;color:var(--ink);}.ds-total{font-size:17px;font-weight:600;}.ds-notes{font-size:11px;color:var(--ink-2);line-height:1.35;}.ds-days{text-align:right;}.ds-days-n{font-size:44px;font-weight:600;letter-spacing:-1px;line-height:1;}"
     },
     {
       "name": "Spending Bar (category vs payment)",
@@ -575,7 +575,7 @@
       "refersTo": "spending-bar-category",
       "description": "Category: station ring and 6 pt share line in its line colour. Payment method: card-shaped mark and neutral secondary-label line.",
       "html": "<div class=\"ds-bar\"><span class=\"ds-bar-ring\"></span><span class=\"ds-bar-name\">Work</span><b>RUB 2,358</b><span class=\"ds-share\">37%</span><span class=\"ds-track\"><span style=\"width:37%;background:#7B3A96\"></span></span></div><div class=\"ds-bar\"><span class=\"ds-bar-card\"></span><span class=\"ds-bar-name\">Revolut •• 0815</span><b>RUB 5,365</b><span class=\"ds-share\">84%</span><span class=\"ds-track\"><span style=\"width:84%;background:var(--ink-2)\"></span></span></div>",
-      "css": ":host{--accent:#E5352B;--accent-text:#C4271D;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-bar{display:grid;grid-template-columns:13px 1fr auto 34px;column-gap:9px;align-items:center;width:328px;padding:6px 16px;font-size:13px;color:var(--ink);}.ds-bar-ring{width:13px;height:13px;box-sizing:border-box;border:3px solid #7B3A96;border-radius:50%;}.ds-bar-card{width:10px;height:7px;box-sizing:border-box;border:1.5px solid var(--ink-2);border-radius:1.5px;justify-self:center;}.ds-share{font-size:11px;color:var(--ink-2);text-align:right;}.ds-track{grid-column:2/5;margin-top:5px;height:6px;border-radius:3px;background:rgba(138,138,131,.28);overflow:hidden;}.ds-track span{display:block;height:100%;border-radius:3px;}"
+      "css": ":host{--accent:#E8590C;--accent-text:#A84300;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-bar{display:grid;grid-template-columns:13px 1fr auto 34px;column-gap:9px;align-items:center;width:328px;padding:6px 16px;font-size:13px;color:var(--ink);}.ds-bar-ring{width:13px;height:13px;box-sizing:border-box;border:3px solid #7B3A96;border-radius:50%;}.ds-bar-card{width:10px;height:7px;box-sizing:border-box;border:1.5px solid var(--ink-2);border-radius:1.5px;justify-self:center;}.ds-share{font-size:11px;color:var(--ink-2);text-align:right;}.ds-track{grid-column:2/5;margin-top:5px;height:6px;border-radius:3px;background:rgba(138,138,131,.28);overflow:hidden;}.ds-track span{display:block;height:100%;border-radius:3px;}"
     },
     {
       "name": "Panel Footer",
@@ -583,24 +583,24 @@
       "refersTo": "panel-footer",
       "description": "Borderless native buttons: + Add, the subscription count, Settings gear.",
       "html": "<div class=\"ds-footer\"><button class=\"ds-fbtn\">+ Add</button><span class=\"ds-count\">Total 10 · inactive 2</span><button class=\"ds-fbtn\" aria-label=\"Settings\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1\"/></svg></button></div>",
-      "css": ":host{--accent:#E5352B;--accent-text:#C4271D;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-footer{display:flex;align-items:center;justify-content:space-between;width:328px;padding:9px 16px;border-top:1px solid rgba(0,0,0,.1);font-size:12px;font-weight:500;color:var(--ink);}.ds-fbtn{all:unset;cursor:default;display:inline-flex;align-items:center;}.ds-fbtn:hover{color:#000;}.ds-fbtn:focus-visible{outline:3px solid rgba(0,122,255,.5);border-radius:4px;}.ds-count{font-weight:400;color:var(--ink-2);}"
+      "css": ":host{--accent:#E8590C;--accent-text:#A84300;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-footer{display:flex;align-items:center;justify-content:space-between;width:328px;padding:9px 16px;border-top:1px solid rgba(0,0,0,.1);font-size:12px;font-weight:500;color:var(--ink);}.ds-fbtn{all:unset;cursor:default;display:inline-flex;align-items:center;}.ds-fbtn:hover{color:#000;}.ds-fbtn:focus-visible{outline:3px solid rgba(0,122,255,.5);border-radius:4px;}.ds-count{font-weight:400;color:var(--ink-2);}"
     },
     {
       "name": "Menu-bar Glyph and Counter",
       "kind": "custom",
       "refersTo": "menu-bar-glyph",
-      "description": "18 pt renewal ring in label colour with a #E5352B centre dot, non-template; counter in accent text, semibold, at 0-1 days.",
-      "html": "<span class=\"ds-mb\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 18 18\" fill=\"none\"><path d=\"M15 9a6 6 0 1 1-2.2-4.65\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"/><path d=\"M13.6 1.9v3.2h-3.2\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"9\" cy=\"9\" r=\"2.6\" fill=\"#E5352B\"/></svg><span class=\"ds-mb-n ds-mb-soon\">1d</span></span>",
-      "css": ":host{--accent:#E5352B;--accent-text:#C4271D;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-mb{display:inline-flex;align-items:center;gap:4px;color:var(--ink);font-size:13px;}.ds-mb-soon{color:var(--accent-text);font-weight:600;}"
+      "description": "18 pt renewal ring in label colour with a #E8590C centre dot, non-template; counter in accent text, semibold, at 0-1 days.",
+      "html": "<span class=\"ds-mb\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 18 18\" fill=\"none\"><path d=\"M15 9a6 6 0 1 1-2.2-4.65\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"/><path d=\"M13.6 1.9v3.2h-3.2\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"9\" cy=\"9\" r=\"2.6\" fill=\"#E8590C\"/></svg><span class=\"ds-mb-n ds-mb-soon\">1d</span></span>",
+      "css": ":host{--accent:#E8590C;--accent-text:#A84300;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-mb{display:inline-flex;align-items:center;gap:4px;color:var(--ink);font-size:13px;}.ds-mb-soon{color:var(--accent-text);font-weight:600;}"
     }
   ],
   "narrative": {
     "northStar": "The Line",
-    "overview": "Subus draws the next sixty days as a transit strip map. Today is the station you are at, on the left of a short horizontal line. Each upcoming charge is a station in its category's line colour. Below, the same charges hang off a vertical spine, grouped like the stops of a route. The world deliberately avoids the category default: a stack of rounded cards with brand-coloured logo tiles under a big total. There are no cards, boxes or row backgrounds in the panel. Hierarchy comes from scale and weight alone, and one large number answers \"how long until the next charge\".\n\nThe ground belongs to the system. The panel is a plain `NSPopover`: Liquid Glass on macOS 26, popover vibrancy on 14 and 15, and an opaque system popover under Reduce Transparency. Text uses semantic label colours, never hex inks. The only custom colours are the eight line colours, the eight monogram tiles, the rail grey, and one brand red. Native controls carry everything interactive: the segmented control, search field, menu picker, switch, link buttons and borderless buttons.\n\nMotion is stepped and minimal. When the day changes, the horizon slides one day left in two 90 ms steps with no easing, and it moves instantly under Reduce Motion. A lifted station grows. The other stations and rails recede by thinning; they never fade.",
+    "overview": "Subus draws the next sixty days as a transit strip map. Today is the station you are at, on the left of a short horizontal line. Each upcoming charge is a station in its category's line colour. Below, the same charges hang off a vertical spine, grouped like the stops of a route. The world deliberately avoids the category default: a stack of rounded cards with brand-coloured logo tiles under a big total. There are no cards, boxes or row backgrounds in the panel. Hierarchy comes from scale and weight alone, and one large number answers \"how long until the next charge\".\n\nThe ground belongs to the system. The panel is a plain `NSPopover`: Liquid Glass on macOS 26, popover vibrancy on 14 and 15, and an opaque system popover under Reduce Transparency. Text uses semantic label colours, never hex inks. The only custom colours are the eight line colours, the eight monogram tiles, the rail grey, and one brand orange. Native controls carry everything interactive: the segmented control, search field, menu picker, switch, link buttons and borderless buttons.\n\nMotion is stepped and minimal. When the day changes, the horizon slides one day left in two 90 ms steps with no easing, and it moves instantly under Reduce Motion. A lifted station grows. The other stations and rails recede by thinning; they never fade.",
     "keyCharacteristics": [
       "A 360 pt column on a system-material ground, with semantic text colours.",
       "Eight line colours. A line colour means a category and nothing else.",
-      "One brand red (#E5352B). It is spent on \"now\": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises.",
+      "One brand orange (#E8590C). It is spent on \"now\": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises.",
       "Full ink (the label colour) on graphics is reserved for the today ring, the leg to the next station, and the next station's label.",
       "Text never dims. Focus changes only graphics and a faint row highlight.",
       "Tabular figures on every number."
@@ -612,8 +612,8 @@
         "section": "colors"
       },
       {
-        "name": "The Red Is the Accent Rule",
-        "body": "No custom red exists apart from #E5352B and its text variant. Line index 0 is magenta. The panel's custom red means \"now\": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises. A new surface does not get red for emphasis, errors or decoration. Errors (the save-error banner, the editor's field and logo messages) use system red, NSColor.systemRed, never the accent or a line colour.",
+        "name": "The Orange Is the Accent Rule",
+        "body": "No custom orange exists apart from #E8590C and its text variant; no category line is orange. The panel's custom orange means \"now\": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises. A new surface does not get the accent orange for emphasis, errors or decoration. Errors (the save-error banner, the editor's field and logo messages) use system red, NSColor.systemRed, never the accent or a line colour.",
         "section": "colors"
       },
       {
@@ -640,7 +640,7 @@
     "dos": [
       "Do get every stroke colour from `LinePalette.line(index, scheme)`: the tile set in light, the bright set in dark, and the rail for no category.",
       "Do keep strokes at 3 pt and move them to 4 pt under Increase Contrast. Let receded graphics thin to 1.5 / 2 pt rather than fade.",
-      "Do use `accentText` for any red text and `accent` (#E5352B) for red graphics.",
+      "Do use `accentText` for any accent text and `accent` (#E8590C) for accent graphics.",
       "Do pair every colour state with words: \"today\" / \"tomorrow\", \"Trial\", \"+33 %\", the category name.",
       "Do use tabular digits on every number, and keep amounts uncompressed and tight to the right margin.",
       "Do let the `NSPopover` own the ground and use semantic label colours for text.",
@@ -651,7 +651,7 @@
       "Don't put cards, boxes, borders or row backgrounds in the panel. The 7 % / 11 % row highlight is the only fill.",
       "Don't lower the opacity of text or amounts on hover, selection or press.",
       "Don't give a payment method, an error, a state or a decoration a line colour.",
-      "Don't add another custom red, or spend the accent outside \"now\" and steep price rises.",
+      "Don't add another custom orange, or spend the accent outside \"now\" and steep price rises.",
       "Don't put full label-colour ink on graphics other than the today ring, the leg, the next-station label and the lifted halo.",
       "Don't add a second large number. The 44 pt days figure is alone.",
       "Don't set text below 11 pt.",

@@ -2,13 +2,13 @@
 name: Subus
 description: A menu-bar subscription tracker drawn as a transit strip map; upcoming charges ride one line and today is the station you are at.
 colors:
-  accent: "#E5352B"
-  accent-text-light: "#C4271D"
-  accent-text-dark: "#FF6B5E"
+  accent: "#E8590C"
+  accent-text-light: "#A84300"
+  accent-text-dark: "#FF8A3D"
   tile-magenta: "#AD1457"
   tile-green: "#2E7D32"
   tile-blue: "#005A94"
-  tile-orange: "#A85600"
+  tile-red: "#C62828"
   tile-violet: "#7B3A96"
   tile-cyan: "#0A6F99"
   tile-brown: "#7A4E26"
@@ -16,7 +16,7 @@ colors:
   bright-magenta: "#F06292"
   bright-green: "#3FA34D"
   bright-blue: "#3D9BE9"
-  bright-orange: "#ED9121"
+  bright-red: "#EF5350"
   bright-violet: "#B57BD6"
   bright-cyan: "#1EBCEF"
   bright-brown: "#C08A55"
@@ -196,30 +196,30 @@ components:
 
 Subus draws the next sixty days as a transit strip map. Today is the station you are at, on the left of a short horizontal line. Each upcoming charge is a station in its category's line colour. Below, the same charges hang off a vertical spine, grouped like the stops of a route. The world deliberately avoids the category default: a stack of rounded cards with brand-coloured logo tiles under a big total. There are no cards, boxes or row backgrounds in the panel. Hierarchy comes from scale and weight alone, and one large number answers "how long until the next charge".
 
-The ground belongs to the system. The panel is a plain `NSPopover`: Liquid Glass on macOS 26, popover vibrancy on 14 and 15, and an opaque system popover under Reduce Transparency. Text uses semantic label colours, never hex inks. The only custom colours are the eight line colours, the eight monogram tiles, the rail grey, and one brand red. Native controls carry everything interactive: the segmented control, search field, menu picker, switch, link buttons and borderless buttons.
+The ground belongs to the system. The panel is a plain `NSPopover`: Liquid Glass on macOS 26, popover vibrancy on 14 and 15, and an opaque system popover under Reduce Transparency. Text uses semantic label colours, never hex inks. The only custom colours are the eight line colours, the eight monogram tiles, the rail grey, and one brand orange. Native controls carry everything interactive: the segmented control, search field, menu picker, switch, link buttons and borderless buttons.
 
 Motion is stepped and minimal. When the day changes, the horizon slides one day left in two 90 ms steps with no easing, and it moves instantly under Reduce Motion. A lifted station grows. The other stations and rails recede by thinning; they never fade.
 
 **Key Characteristics:**
 - A 360 pt column on a system-material ground, with semantic text colours.
 - Eight line colours. A line colour means a category and nothing else.
-- One brand red (#E5352B). It is spent on "now": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises.
+- One brand orange (#E8590C). It is spent on "now": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises.
 - Full ink (the label colour) on graphics is reserved for the today ring, the leg to the next station, and the next station's label.
 - Text never dims. Focus changes only graphics and a faint row highlight.
 - Tabular figures on every number.
 
 ## Colors
 
-The ground is system material, and colour comes from a metro map: eight line colours, a grey rail, and one red that means "now".
+The ground is system material, and colour comes from a metro map: eight line colours, a grey rail, and one orange that means "now".
 
 ### Primary
-- **Signal Red** (`accent`): the brand accent, for graphics only. It fills the menu-bar glyph's centre dot, the accent dot inside today's ring on the overview, the accent dot inside a card stop due today or tomorrow, and the app icon's dot. It reaches 3.98:1 on #F6F6F3 and 3.95:1 on #1C1C1E, which passes for graphics but not for text.
-- **Signal Red Text** (`accent-text-light` / `accent-text-dark`): the accent wherever it is text. It reaches 5.31:1 on #F6F6F3 in light and 6.09:1 on #1C1C1E in dark. It colours the relative date "today" / "tomorrow" (semibold) in strip rows and card stops, the days figure at 0–1, the menu-bar counter at 0–1 (semibold), and a price rise of 10 % or more (semibold). It is a dynamic `NSColor` that resolves per appearance.
+- **Signal Orange** (`accent`): the brand accent, for graphics only. It fills the menu-bar glyph's centre dot, the accent dot inside today's ring on the overview, the accent dot inside a card stop due today or tomorrow, and the app icon's dot. It reaches 3.31:1 on #F6F6F3 and 4.75:1 on #1C1C1E, which passes for graphics but not for text in light.
+- **Signal Orange Text** (`accent-text-light` / `accent-text-dark`): the accent wherever it is text. It reaches 5.59:1 on #F6F6F3 in light and 7.26:1 on #1C1C1E in dark. It colours the relative date "today" / "tomorrow" (semibold) in strip rows and card stops, the days figure at 0–1, the menu-bar counter at 0–1 (semibold), and a price rise of 10 % or more (semibold). It is a dynamic `NSColor` that resolves per appearance.
 
 ### Secondary: the line set
-Each of the eight category indices has a colour pair: a **tile** colour that is also the light-theme line, and a **bright** colour for dark-theme lines. The indices run Magenta, Green, Blue, Orange, Violet, Cyan, Brown, Yellow. Index 0 is magenta, not red.
+Each of the eight category indices has a colour pair: a **tile** colour that is also the light-theme line, and a **bright** colour for dark-theme lines. The indices run Magenta, Green, Blue, Red, Violet, Cyan, Brown, Yellow. No index is orange.
 - **Tiles** (`tile-*`): the monogram tile ground behind a white letter. Each reaches at least 4.74:1 against white (5.13–7.27:1). The same colours are the line strokes in light, at 4.74–6.72:1 on #F6F6F3.
-- **Bright** (`bright-*`): line strokes in dark, at 5.31–10.12:1 on #1C1C1E.
+- **Bright** (`bright-*`): line strokes in dark, at 4.88–10.12:1 on #1C1C1E.
 - Strokes come from `LinePalette.line(index, scheme)`: the tile set in light, the bright set in dark. Tiles always use the tile set.
 - Violet (index 4) also outlines the Trial tag. The tag's text says "Trial", so the colour only frames it.
 
@@ -232,7 +232,7 @@ Each of the eight category indices has a colour pair: a **tile** colour that is 
 ### Named Rules
 **The One Reserved Ink Rule.** Full label colour on graphics appears in only three places: the today ring, the leg from today to the next station (5 pt, or 6 pt under Increase Contrast), and the next station's label. Cluster counts, ticks and month labels are secondary ink.
 
-**The Red Is the Accent Rule.** No custom red exists apart from #E5352B and its text variant. Line index 0 is magenta. The panel's custom red means "now": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises. A new surface does not get the accent red for emphasis, errors or decoration. Errors (the save-error banner, the editor's field and logo messages) use system red, `NSColor.systemRed`, never the accent or a line colour.
+**The Orange Is the Accent Rule.** No custom orange exists apart from #E8590C and its text variant; no category line is orange. The panel's custom orange means "now": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises. A new surface does not get the accent orange for emphasis, errors or decoration. Errors (the save-error banner, the editor's field and logo messages) use system red, `NSColor.systemRed`, never the accent or a line colour.
 
 **The Line Means Category Rule.** A line colour on a station, spine, ring or bar always means the subscription's category. A subscription without a category rides the rail grey. Payment methods never take a line colour; their bars are secondary-label grey behind a card-shaped mark. Monogram tiles are the one separate use: a tile's colour is the subscription's own `colorIndex` (or a hash of its name), and two subscriptions may share one.
 
@@ -351,8 +351,8 @@ Pushed inside the panel, never a separate surface:
 ### Menu-bar Glyph and Counter
 An 18 × 18 pt renewal ring:
 - **Ring and arrow:** a radius-6 open arc and an arrow head at the top right, both 2 pt round-capped strokes in `labelColor`.
-- **Dot:** a filled 5.2 pt centre dot in #E5352B.
-- **Drawing:** non-template, so the dot stays red on light and dark menu bars.
+- **Dot:** a filled 5.2 pt centre dot in #E8590C.
+- **Drawing:** non-template, so the dot stays orange on light and dark menu bars.
 - **Counter:** " Nd" after the glyph, in tabular digits. It is label colour normally, and semibold accent text at 0–1 days. With no future charge, or with the setting off, only the glyph shows.
 - **Accessibility label:** "Subus, next charge in N days: name".
 
@@ -360,7 +360,7 @@ An 18 × 18 pt renewal ring:
 An Icon Composer `.icon` with no glass and no translucency, and a neutral shadow at 50 %:
 - **Light:** a #F4F3EF ground with the renewal ring and arrow in #1D1D1F (88/1024 stroke).
 - **Dark:** a #1C1C1E ground with the ring in #F2F2F0.
-- **Dot:** a #E5352B centre dot (r 114.4/1024) in both.
+- **Dot:** a #E8590C centre dot (r 114.4/1024) in both.
 
 The dark Dock/Finder rendition is unverified; no capture of it exists.
 
@@ -377,7 +377,7 @@ Payment methods in Settings show no colour swatch. None of the panel's line draw
 ### Do:
 - **Do** get every stroke colour from `LinePalette.line(index, scheme)`: the tile set in light, the bright set in dark, and the rail for no category.
 - **Do** keep strokes at 3 pt and move them to 4 pt under Increase Contrast. Let receded graphics thin to 1.5 / 2 pt rather than fade.
-- **Do** use `accentText` for any red text and `accent` (#E5352B) for red graphics.
+- **Do** use `accentText` for any accent text and `accent` (#E8590C) for accent graphics.
 - **Do** pair every colour state with words: "today" / "tomorrow", "Trial", "+33 %", the category name.
 - **Do** use tabular digits on every number, and keep amounts uncompressed and tight to the right margin.
 - **Do** let the `NSPopover` own the ground and use semantic label colours for text.
@@ -388,7 +388,7 @@ Payment methods in Settings show no colour swatch. None of the panel's line draw
 - **Don't** put cards, boxes, borders or row backgrounds in the panel. The 7 % / 11 % row highlight is the only fill.
 - **Don't** lower the opacity of text or amounts on hover, selection or press.
 - **Don't** give a payment method, an error, a state or a decoration a line colour.
-- **Don't** add another custom red, or spend the accent outside "now" and steep price rises.
+- **Don't** add another custom orange, or spend the accent outside "now" and steep price rises.
 - **Don't** put full label-colour ink on graphics other than the today ring, the leg, the next-station label and the lifted halo.
 - **Don't** add a second large number. The 44 pt days figure is alone.
 - **Don't** set text below 11 pt.

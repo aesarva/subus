@@ -9,7 +9,7 @@ struct LogoField: View {
     @State private var targeted = false
 
     private static let colorNames: [LocalizedStringResource] = [
-        "Magenta", "Green", "Blue", "Orange", "Violet", "Cyan", "Brown", "Yellow",
+        "Magenta", "Green", "Blue", "Red", "Violet", "Cyan", "Brown", "Yellow",
     ]
 
     var body: some View {

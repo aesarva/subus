@@ -40,6 +40,9 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
             window.styleMask = [.titled, .closable]
             window.title = String(localized: "Subus Settings")
             window.isReleasedWhenClosed = false
+            window.identifier = DockPresence.identifier
+            // Same level as the floating editors, so whichever was opened last comes to the front.
+            window.level = .floating
             window.center()
             self.window = window
             window.delegate = self

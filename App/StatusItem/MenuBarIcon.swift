@@ -1,15 +1,15 @@
 import AppKit
 
 enum Brand {
-    /// Brand accent red #E5352B.
-    static let accent = NSColor(srgbRed: 0xE5 / 255, green: 0x35 / 255, blue: 0x2B / 255, alpha: 1)
+    /// Brand accent orange #E8590C: 3.3:1 on #F6F6F3, 4.8:1 on #1C1C1E.
+    static let accent = NSColor(srgbRed: 0xE8 / 255, green: 0x59 / 255, blue: 0x0C / 255, alpha: 1)
 
-    /// The accent for text: #E5352B reaches only ~4:1, so text takes #C4271D in light (5.3:1 on #F6F6F3)
-    /// and #FF6B5E in dark (6.1:1 on #1C1C1E). Graphics keep `accent`.
+    /// The accent for text: #E8590C reaches only 3.3:1 in light, so text takes #A84300 in light (5.6:1 on #F6F6F3)
+    /// and #FF8A3D in dark (7.3:1 on #1C1C1E). Graphics keep `accent`.
     static let accentText = NSColor(name: "Brand.accentText") { appearance in
         appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            ? NSColor(srgbRed: 0xFF / 255, green: 0x6B / 255, blue: 0x5E / 255, alpha: 1)
-            : NSColor(srgbRed: 0xC4 / 255, green: 0x27 / 255, blue: 0x1D / 255, alpha: 1)
+            ? NSColor(srgbRed: 0xFF / 255, green: 0x8A / 255, blue: 0x3D / 255, alpha: 1)
+            : NSColor(srgbRed: 0xA8 / 255, green: 0x43 / 255, blue: 0x00 / 255, alpha: 1)
     }
 }
 
