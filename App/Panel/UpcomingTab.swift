@@ -1,7 +1,7 @@
 import SubusCore
 import SwiftUI
 
-/// "Upcoming": the totals header, the 60-day overview line and the strip map of charges.
+/// "Upcoming": the totals header, the 30-day overview line and the strip map of charges.
 /// Its children flow into the panel's `CappedColumn`; only the strip map scrolls.
 struct UpcomingTab: View {
     let model: AppModel

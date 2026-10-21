@@ -333,7 +333,7 @@ private struct ChargeStop: View {
         .accessibilityLabel(accessibilityText(days: days))
     }
 
-    /// "in 22 days · Wed, Nov 11", past the 60-day horizon too ("in 83 days · Mon, Jan 11, 2027").
+    /// "in 22 days · Wed, Nov 11", past the 30-day horizon too ("in 83 days · Mon, Jan 11, 2027").
     /// A date never breaks across lines.
     private func dateLine(days: Int, soon: Bool) -> Text {
         let date = Formatters.shortDate(charge.date, today: today).replacingOccurrences(of: " ", with: "\u{00A0}")
