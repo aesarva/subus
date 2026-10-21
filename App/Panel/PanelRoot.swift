@@ -225,26 +225,7 @@ struct PanelRoot: View {
 
     /// Priority order: save error, then recovered data, then notifications off.
     private var banners: [IdentifiedBanner] {
-        var result: [IdentifiedBanner] = []
-        if let error = model.saveError {
-            let folder = model.dataDirectory
-            result.append(IdentifiedBanner(id: "save", banner: PanelBanner(
-                systemImage: "exclamationmark.triangle.fill", tint: Color(nsColor: .systemRed), message: error,
-                actionTitle: String(localized: "Show data folder"),
-                action: { if let folder { NSWorkspace.shared.activateFileViewerSelecting([folder]) } })))
-        }
-        if let recovery = model.recovery {
-            let (message, file): (String, URL) = switch recovery {
-            case .restoredFromBackup(let file):
-                (String(localized: "The data file was damaged. Subus restored the latest backup and kept the damaged copy."), file)
-            case .resetEmpty(let file):
-                (String(localized: "The data file was damaged and no backup was usable. Subus started over and kept the damaged copy."), file)
-            }
-            result.append(IdentifiedBanner(id: "recovery", banner: PanelBanner(
-                systemImage: "arrow.counterclockwise.circle.fill", tint: .orange, message: message,
-                actionTitle: String(localized: "Show in Finder"),
-                action: { NSWorkspace.shared.activateFileViewerSelecting([file]) })))
-        }
+        var result = DataBanners.make(model: model)
         if !model.library.subscriptions.isEmpty, !model.notificationsAuthorized, !state.notificationsBannerDismissed {
             result.append(IdentifiedBanner(id: "notifications", banner: PanelBanner(
                 systemImage: "bell.slash.fill", tint: .secondary,
@@ -259,12 +240,6 @@ struct PanelRoot: View {
         }
         return result
     }
-}
-
-private struct IdentifiedBanner: View, Identifiable {
-    let id: String
-    let banner: PanelBanner
-    var body: some View { banner }
 }
 
 /// Marks the one child that scrolls; it gets what is left under the height cap.
