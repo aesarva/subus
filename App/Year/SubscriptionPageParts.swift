@@ -194,7 +194,7 @@ struct SubscriptionPageFacts: View {
                 Text(verbatim: Formatters.date(s.startDate, today: today))
             }
             if let trial = s.trialEndDate {
-                row(trial >= today ? String(localized: "Trial ends") : String(localized: "Trial ended")) {
+                row(trial > today ? String(localized: "Trial ends") : String(localized: "Trial ended")) {
                     Text(verbatim: Formatters.date(trial, today: today))
                 }
             }

@@ -6,7 +6,7 @@
 
 macos
 
-Native macOS 14+ app (SwiftUI + AppKit). Lives only in the menu bar (`LSUIElement`): a status item with an optional "days until next charge" counter, a panel opened by left click (tabs: Upcoming, All, Spending; a subscription card inside), a quick menu on right click, a main window «Year» (a grid of weeks or months, filters, a subscription page) opened from the panel footer, the quick menu, ⌘Y or a Dock click, a separate window for adding and editing a subscription, and a native Settings window. A Dock icon and a ⌘Tab entry appear while the Year window, an editor or Settings is open. Liquid Glass on macOS 26+, with a fallback on 14–15.
+Native macOS 14+ app (SwiftUI + AppKit). Lives only in the menu bar (`LSUIElement`): a status item with an optional "days until next charge" counter, a panel opened by left click (tabs: Upcoming, All, Spending; a subscription card inside), a quick menu on right click, a main window «Year» (a grid of weeks or months, filters, a subscription page) opened from the panel footer, the quick menu, ⌘Y or a Dock click while the app is in the Dock (relaunching from Finder/Launchpad also shows it), a separate window for adding and editing a subscription, and a native Settings window. A Dock icon and a ⌘Tab entry appear while the Year window, an editor or Settings is open. Liquid Glass on macOS 26+, with a fallback on 14–15.
 
 ## Users
 

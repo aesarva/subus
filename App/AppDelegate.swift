@@ -21,10 +21,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func openSettings() { settings?.show() }
     @objc func openYear() { year?.show() }
 
-    /// A Dock click with none of our windows on screen (only minimised ones) opens the Year window.
+    /// A Dock click with none of our windows on screen: restores a minimised one, else opens the Year window.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        let visible = NSApp.windows.contains { $0.identifier == DockPresence.identifier && $0.isVisible }
-        if !visible { openYear() }
+        let ours = NSApp.windows.filter { $0.identifier == DockPresence.identifier }
+        if ours.contains(where: \.isVisible) { return false }
+        if let minimised = ours.last(where: \.isMiniaturized) { minimised.deminiaturize(nil) } else { openYear() }
         return false
     }
 

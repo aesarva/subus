@@ -55,6 +55,15 @@ private func styleSub(_ name: String = "X", end: String? = nil) -> Subscription 
     #expect(YearSelection.carry(d("2027-02-08"), from: .weeks, to: .weeks, plan: p, today: styleToday) == d("2027-02-08"))
 }
 
+@Test func lastWeekCarriesToLastMonthWhenItsMonthKeyIsOutsidePlan() {
+    // Range ends Wed 2027-03-31: the last week (Mon 03-29) has its 4th day in April, a month the plan lacks.
+    let today = d("2026-04-01")
+    let p = YearPlan.build(library: Library(), filter: YearFilter(), today: today, calendar: mondayFirst,
+                           baseCurrency: "RUB", converter: styleConverter)
+    #expect(p.weeks.last?.id == d("2027-03-29"))
+    #expect(YearSelection.carry(d("2027-03-29"), from: .weeks, to: .months, plan: p, today: today) == d("2027-03-01"))
+}
+
 @Test func selectionFallsBackToCurrent() {
     let p = stylePlan(Library())
     #expect(YearSelection.carry(d("2026-10-12"), from: .weeks, to: .weeks, plan: p, today: styleToday) == d("2026-10-19"))

@@ -1,10 +1,10 @@
 import AppKit
 
-/// While an editor or Settings window is open the app is a regular one, so a window that slips behind
+/// While an editor, Settings or the Year window is open the app is a regular one, so a window that slips behind
 /// the browser stays reachable from the Dock and ⌘Tab; with none open it lives only in the menu bar.
 @MainActor
 final class DockPresence {
-    /// Marks the windows that keep the Dock icon: editors and Settings, never alerts or open panels.
+    /// Marks the windows that keep the Dock icon: editors, Settings and Year, never alerts or open panels.
     static let identifier = NSUserInterfaceItemIdentifier("io.github.aesarva.Subus.window")
 
     private var observers: [NSObjectProtocol] = []

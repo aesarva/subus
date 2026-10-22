@@ -42,7 +42,7 @@ If you pay for a dozen services, you lose count: a forgotten trial, a service yo
 | | |
 |---|---|
 | **Upcoming** | A timeline of charges grouped as Today & tomorrow / This week / This month / Later (up to 30 days; each subscription once, at its nearest charge), with monthly and yearly totals on top. |
-| **Year** | A window with the next 12 months as a commit-calendar grid of weeks or months, toned by the number of charges. Filters, a side pane with the charges of a period, and a page per subscription. Open it from the panel footer, the quick menu, ⌘Y or a Dock click. |
+| **Year** | A window with the next 12 months as a commit-calendar grid of weeks or months, toned by the number of charges. Filters, a side pane with the charges of a period, and a page per subscription. Open it from the panel footer, the quick menu or with ⌘Y, and from a Dock click while Subus is in the Dock (relaunching it from Finder or Launchpad also shows it). |
 | **Reminders** | 5, 3 and 1 day before each charge by default (0–30 days, configurable), at 10:00 by default. Trial ends get their own reminder: cancel now if you do not need it. |
 | **Currencies** | Any ISO currency; totals use the daily CBR rates, cached, so they work offline. |
 | **Spending** | Monthly breakdown by category and by payment method, plus a list of price increases over the last year. |

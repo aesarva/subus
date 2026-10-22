@@ -21,7 +21,7 @@ run: build
 # Renders the full state matrix (light/dark x en/ru) into build/snapshots/.
 SNAPSHOT_BIN = build/Build/Products/Debug/Subus.app/Contents/MacOS/Subus
 SNAPSHOT_SRC = $(HOME)/Library/Containers/io.github.aesarva.Subus/Data/tmp/Snapshots
-# appicon.png is language-independent: both runs write the same file, so it counts once (168 localized + 1).
+# appicon.png is language-independent: both runs write the same file, so it counts once (180 localized + 1).
 SNAPSHOT_EXPECTED = 181
 
 .PHONY: snapshots

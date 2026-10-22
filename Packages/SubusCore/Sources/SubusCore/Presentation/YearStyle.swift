@@ -59,8 +59,13 @@ public enum YearSelection {
             return periods(plan, to).contains { $0.id == selected } ? selected : fallback
         case (.weeks, .months):
             // Неделя рисуется в колонке своего `monthKey`, поэтому переносим в тот же месяц.
-            let key = plan.weeks.first { $0.id == selected }?.monthKey ?? MonthKey(selected)
-            return plan.months.first { $0.monthKey == key }?.id ?? fallback
+            // У последней недели 4-й день может выпасть за конец диапазона: тогда берём месяц её последнего дня в плане.
+            let week = plan.weeks.first { $0.id == selected }
+            let key = week?.monthKey ?? MonthKey(selected)
+            if let month = plan.months.first(where: { $0.monthKey == key }) { return month.id }
+            guard let week else { return fallback }
+            let inRange = MonthKey(min(week.end, plan.range.upperBound))
+            return plan.months.first { $0.monthKey == inRange }?.id ?? fallback
         case (.months, .weeks):
             guard let month = plan.months.first(where: { $0.id == selected }) else { return fallback }
             if month.start <= today && today <= month.end { return current(in: plan, mode: .weeks, today: today) }
