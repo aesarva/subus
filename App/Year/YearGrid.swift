@@ -53,15 +53,13 @@ struct YearGrid: View {
     /// The height of a month label over its column; the gap follows it.
     static let labelHeight: CGFloat = 14
 
-    /// A week cell for the room: as wide as the columns allow and the rows still fit (36–56 pt), and, when the
-    /// room has a height, taller than wide up to 56 pt so the grid takes the height a wide pane leaves.
+    /// A week cell for the room: a square as large as both the columns and the rows allow, 36–56 pt.
     static func cell(width: CGFloat, height: CGFloat = .infinity, columns: Int, rows: Int) -> CGSize {
         guard columns > 0 else { return CGSize(width: 36, height: 36) }
         let widthFit = (width - gap * CGFloat(columns - 1)) / CGFloat(columns)
         let heightFit = height.isFinite && rows > 0 ? (height - labelHeight - gap * CGFloat(rows)) / CGFloat(rows) : .infinity
         let side = min(56, max(36, min(widthFit, heightFit).rounded(.down)))
-        guard heightFit.isFinite else { return CGSize(width: side, height: side) }
-        return CGSize(width: side, height: min(56, max(side, heightFit.rounded(.down))))
+        return CGSize(width: side, height: side)
     }
 
     /// The grid's own width for its cells, so the card and the legend under it hug the grid.
