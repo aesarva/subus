@@ -4346,16 +4346,6 @@
         }
       }
     },
-    "In the next 12 months": {
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "За 12 месяцев"
-          }
-        }
-      }
-    },
     "Charges": {
       "localizations": {
         "ru": {

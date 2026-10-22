@@ -16,7 +16,8 @@ struct YearGrid: View {
     let mode: YearMode
     @Binding var selection: LocalDate?
     let today: LocalDate
-    /// The room the cells may take: week cells grow from 36 to 56 pt with the width; month tiles grow with both.
+    /// The room the cells may take: week cells grow from 36 to 56 pt with the width and the height; month tiles grow
+    /// with both.
     let width: CGFloat
     var height: CGFloat = .infinity
     var highlight: Highlight? = nil
@@ -37,6 +38,8 @@ struct YearGrid: View {
             }
         }
         .focusable()
+        // The selection ring carries the focus: no system rectangle over the month labels and the rings.
+        .focusEffectDisabled()
         .focused($focused)
         .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow, .return]) { press in
             handle(press.key, columns: columns)
@@ -47,26 +50,36 @@ struct YearGrid: View {
 
     // MARK: Weeks
 
-    /// The side of a week cell for the room and the column count.
-    static func side(width: CGFloat, columns: Int) -> CGFloat {
-        guard columns > 0 else { return 36 }
-        let fit = (width - gap * CGFloat(columns - 1)) / CGFloat(columns)
-        return min(56, max(36, fit.rounded(.down)))
+    /// The height of a month label over its column; the gap follows it.
+    static let labelHeight: CGFloat = 14
+
+    /// A week cell for the room: as wide as the columns allow and the rows still fit (36–56 pt), and, when the
+    /// room has a height, taller than wide up to 56 pt so the grid takes the height a wide pane leaves.
+    static func cell(width: CGFloat, height: CGFloat = .infinity, columns: Int, rows: Int) -> CGSize {
+        guard columns > 0 else { return CGSize(width: 36, height: 36) }
+        let widthFit = (width - gap * CGFloat(columns - 1)) / CGFloat(columns)
+        let heightFit = height.isFinite && rows > 0 ? (height - labelHeight - gap * CGFloat(rows)) / CGFloat(rows) : .infinity
+        let side = min(56, max(36, min(widthFit, heightFit).rounded(.down)))
+        guard heightFit.isFinite else { return CGSize(width: side, height: side) }
+        return CGSize(width: side, height: min(56, max(side, heightFit.rounded(.down))))
     }
 
     /// The grid's own width for its cells, so the card and the legend under it hug the grid.
-    /// `weekColumns` is the plan's `weekColumns().count`, counted once by the caller.
-    static func contentWidth(weekColumns columns: Int, mode: YearMode, width: CGFloat) -> CGFloat {
+    /// `weekColumns` and `weekRows` are the plan's `weekColumns()` count and its longest column, counted once by the caller.
+    static func contentWidth(weekColumns columns: Int, weekRows rows: Int, mode: YearMode, width: CGFloat,
+                             height: CGFloat = .infinity) -> CGFloat {
         switch mode {
         case .weeks:
-            return side(width: width, columns: columns) * CGFloat(columns) + gap * CGFloat(max(columns - 1, 0))
+            return cell(width: width, height: height, columns: columns, rows: rows).width * CGFloat(columns)
+                + gap * CGFloat(max(columns - 1, 0))
         case .months:
             return tileWidth(width: width) * 4 + tileGap * 3
         }
     }
 
     private func weeks(_ columns: [(month: MonthKey, weeks: [YearPeriod])]) -> some View {
-        let side = Self.side(width: width, columns: columns.count)
+        let size = Self.cell(width: width, height: height, columns: columns.count,
+                             rows: columns.map(\.weeks.count).max() ?? 0)
         return HStack(alignment: .top, spacing: Self.gap) {
             ForEach(columns, id: \.month) { column in
                 VStack(spacing: Self.gap) {
@@ -75,11 +88,11 @@ struct YearGrid: View {
                         .tracking(0.6)
                         .foregroundStyle(.secondary)
                         .fixedSize()
-                        .frame(width: side)
+                        .frame(width: size.width, height: Self.labelHeight)
                         .accessibilityHidden(true)
                     ForEach(column.weeks) { week in
                         cell(week, cornerRadius: 7) {
-                            Color.clear.frame(width: side, height: side)
+                            Color.clear.frame(width: size.width, height: size.height)
                         }
                     }
                 }
@@ -99,7 +112,8 @@ struct YearGrid: View {
         let tile = Self.tileWidth(width: width)
         let rows = stride(from: 0, to: plan.months.count, by: 4).map { Array(plan.months[$0..<min($0 + 4, plan.months.count)]) }
         let fit = (height - Self.tileGap * CGFloat(max(rows.count - 1, 0))) / CGFloat(max(rows.count, 1))
-        let tileHeight = min(128, max(96, min(tile * 0.72, fit).rounded(.down)))
+        // Tiles take the height the rows leave, up to nearly square.
+        let tileHeight = min(144, max(96, min(tile * 0.9, fit).rounded(.down)))
         return VStack(alignment: .leading, spacing: Self.tileGap) {
             ForEach(rows, id: \.first!.id) { row in
                 HStack(spacing: Self.tileGap) {
@@ -130,7 +144,7 @@ struct YearGrid: View {
                 .overlay {
                     if let highlight, period.count > 0 { YearCellStation(lineColor: highlight.lineColor) }
                 }
-                .overlay(YearCellRings(current: current, selected: selected, cornerRadius: cornerRadius))
+                .overlay(YearCellRings(current: current, selected: selected, focused: focused, cornerRadius: cornerRadius))
                 .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         }
         .buttonStyle(PlainRowButtonStyle())
@@ -222,21 +236,34 @@ private struct YearCellStation: View {
 
 /// Rings outside the cell, through a gap of the card ground: this week or month in the accent
 /// (gap 1.5, ring 2.5), the selection in ink (gap 2, ring 2); both — the ink ring 1.5 pt behind the accent one.
+/// While the grid has the keyboard focus the selection ring takes the focus colour, opaque, in place of the ink.
 struct YearCellRings: View {
     let current: Bool
     let selected: Bool
+    var focused = false
     let cornerRadius: CGFloat
 
     var body: some View {
+        let selection = focused ? Color(nsColor: Self.focusColor) : Color.primary
         ZStack {
             if current {
                 ring(gap: 1.5, width: 2.5, color: LinePalette.accent)
-                if selected { ring(gap: 1.5 + 2.5 + 1.5, width: 1.5, color: .primary) }
+                if selected { ring(gap: 1.5 + 2.5 + 1.5, width: 1.5, color: selection) }
             } else if selected {
-                ring(gap: 2, width: 2, color: .primary)
+                ring(gap: 2, width: 2, color: selection)
             }
         }
         .allowsHitTesting(false)
+    }
+
+    /// The system's focus colour at full opacity: at its own 50 % it falls under 3:1 on the card ground;
+    /// opaque it holds 4.8:1 in light and 6:1 in dark with the blue accent.
+    private static let focusColor = NSColor(name: nil) { appearance in
+        var color = NSColor.keyboardFocusIndicatorColor
+        appearance.performAsCurrentDrawingAppearance {
+            color = NSColor.keyboardFocusIndicatorColor.usingColorSpace(.sRGB) ?? color
+        }
+        return color.withAlphaComponent(1)
     }
 
     private func ring(gap: CGFloat, width: CGFloat, color: Color) -> some View {

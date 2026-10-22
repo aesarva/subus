@@ -47,9 +47,11 @@ struct SubscriptionPage: View {
         let plan = YearPlan.build(library: library, filter: YearFilter(), today: today, calendar: .subus(),
                                   baseCurrency: base, converter: converter)
         // The grid takes what the charges column leaves, as on the year; at the window's minimum 14 columns still fit.
-        let weekColumns = plan.weekColumns().count
+        let columns = plan.weekColumns()
+        let weekColumns = columns.count, weekRows = columns.map(\.weeks.count).max() ?? 0
         let card = YearView.cardPadding * 2
-        let fullGrid = YearGrid.contentWidth(weekColumns: weekColumns, mode: .weeks, width: .infinity) + card
+        let fullGrid = YearGrid.contentWidth(weekColumns: weekColumns, weekRows: weekRows, mode: .weeks, width: .infinity)
+            + card
         let side = min(420, max(280, room - Self.spacing - fullGrid))
         let left = max(0, room - Self.spacing - side)
         return ScrollViewReader { proxy in
@@ -58,14 +60,16 @@ struct SubscriptionPage: View {
                     SubscriptionPageHeader(model: model, subscription: s, onEdit: onEdit)
                     if year.charges.isEmpty {
                         VStack(alignment: .leading, spacing: 24) {
-                            yearSection(s, year: year, plan: plan, weekColumns: weekColumns, cellRoom: 0)
+                            yearSection(s, year: year, plan: plan, weekColumns: weekColumns, weekRows: weekRows,
+                                        cellRoom: 0)
                             SubscriptionPageFacts(model: model, subscription: s)
                         }
                         .frame(maxWidth: 640, alignment: .leading)
                     } else {
                         HStack(alignment: .top, spacing: Self.spacing) {
                             VStack(alignment: .leading, spacing: 24) {
-                                yearSection(s, year: year, plan: plan, weekColumns: weekColumns, cellRoom: left - card)
+                                yearSection(s, year: year, plan: plan, weekColumns: weekColumns, weekRows: weekRows,
+                                            cellRoom: left - card)
                                 SubscriptionPageFacts(model: model, subscription: s)
                             }
                             .frame(width: left, alignment: .leading)
@@ -97,10 +101,9 @@ struct SubscriptionPage: View {
     // MARK: In the next 12 months
 
     @ViewBuilder
-    private func yearSection(_ s: Subscription, year: SubscriptionYear, plan: YearPlan, weekColumns: Int,
+    private func yearSection(_ s: Subscription, year: SubscriptionYear, plan: YearPlan, weekColumns: Int, weekRows: Int,
                              cellRoom: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            PageSectionHead(title: String(localized: "In the next 12 months"))
             if year.charges.isEmpty {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("No charges in the next year")
@@ -116,7 +119,11 @@ struct SubscriptionPage: View {
                 .background(YearCard())
             } else {
                 let sum = sum(year)
+                // The year's own words over the figure, as the year's summary: no eyebrow.
                 VStack(alignment: .leading, spacing: 2) {
+                    Text(String(localized: "Charged in the next 12 months"))
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         Text(verbatim: sum.main)
                             .font(.system(size: 22, weight: .semibold).monospacedDigit())
@@ -134,7 +141,8 @@ struct SubscriptionPage: View {
                 .padding(.bottom, 6)
                 YearGrid(plan: plan, mode: .weeks, selection: $selection, today: today, width: cellRoom,
                          highlight: .init(lineColor: model.category(s.categoryID)?.color))
-                    .frame(width: YearGrid.contentWidth(weekColumns: weekColumns, mode: .weeks, width: cellRoom),
+                    .frame(width: YearGrid.contentWidth(weekColumns: weekColumns, weekRows: weekRows, mode: .weeks,
+                                                        width: cellRoom),
                            alignment: .leading)
                     .padding(YearView.cardPadding)
                     .padding(.top, 2)

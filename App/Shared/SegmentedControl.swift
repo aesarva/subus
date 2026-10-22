@@ -27,6 +27,10 @@ struct SegmentedControl: NSViewRepresentable {
             control.setLabel(label, forSegment: i)
         }
         control.selectedSegment = selectedIndex
+        let enabled = context.environment.isEnabled
+        control.isEnabled = enabled
+        // The macOS 26 toolbar draws a disabled segmented control at full strength: dim it there by hand.
+        if #available(macOS 26, *) { control.alphaValue = enabled ? 1 : 0.45 }
     }
 
     func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSSegmentedControl, context: Context) -> CGSize? {

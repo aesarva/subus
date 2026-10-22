@@ -48,9 +48,12 @@ struct YearSidePane: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                     .accessibilityAddTraits(.isHeader)
-                Text(verbatim: YearFormat.countAndSum(period))
-                    .font(.system(size: 12).monospacedDigit())
-                    .foregroundStyle(.secondary)
+                // An empty cell says so once, below.
+                if !period.charges.isEmpty {
+                    Text(verbatim: YearFormat.countAndSum(period))
+                        .font(.system(size: 12).monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
             }
             if period.charges.isEmpty {
                 emptyPeriod(period)
@@ -164,7 +167,7 @@ struct YearSidePane: View {
         let tag: AnyView? = status.map { AnyView(OutlineTag(text: $0, color: .secondary)) }
             ?? (YearFilter.isTrial(s, today: today) ? AnyView(TrialTag()) : nil)
         return YearRow(subscription: s, logosDirectory: logos, lineColor: category?.color, tag: tag,
-                       details: ([price] + (category.map { [$0.name] } ?? [])).joined(separator: " · "),
+                       details: price, category: category?.name,
                        amount: YearFormat.money(row.year.total), under: next,
                        spoken: [s.name, price, YearFormat.money(row.year.total)] + [category?.name, status, next].compactMap { $0 },
                        onOpen: open)
@@ -172,14 +175,17 @@ struct YearSidePane: View {
 }
 
 /// One row of the side pane: a 28 pt logo, the name with its tag, the category ring and a details line,
-/// and on the right an amount with a line under it.
+/// and on the right an amount with a line under it. As DESIGN.md's rows: the name takes up to two lines and never
+/// gives way to its tag, which wraps under it; on the details line the card, then the category give way.
 private struct YearRow: View {
     let subscription: Subscription
     let logosDirectory: URL
     let lineColor: CategoryColor?
     let tag: AnyView?
     let details: String
-    /// The card, after the details; it gives way first and keeps its "•• 4242".
+    /// The category, after the details; it tail-truncates before anything else on the line.
+    var category: String? = nil
+    /// The card, after the details; it truncates (keeping its "•• 4242") to no shorter than 48 pt, else it is left out.
     var label: String? = nil
     let amount: String
     let under: String?
@@ -194,28 +200,10 @@ private struct YearRow: View {
             HStack(spacing: 10) {
                 LogoView(subscription: subscription, size: 28, logosDirectory: logosDirectory)
                 VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 6) {
-                        Text(verbatim: subscription.name)
-                            .font(.system(size: 13, weight: .semibold))
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                        if let tag { tag }
-                    }
+                    name
                     HStack(spacing: 5) {
                         StationRing(lineColor: lineColor)
-                        HStack(spacing: 0) {
-                            Text(verbatim: details)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .layoutPriority(1)
-                            if let label {
-                                let (head, tail) = PaymentLabel.split(label)
-                                Text(verbatim: " · " + head)
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
-                                if let tail { Text(verbatim: " " + tail).fixedSize().layoutPriority(1) }
-                            }
-                        }
+                        detailsLine
                     }
                     .font(.system(size: 11).monospacedDigit())
                     .foregroundStyle(.secondary)
@@ -250,4 +238,53 @@ private struct YearRow: View {
         .accessibilityLabel(spoken.joined(separator: ", "))
         .accessibilityAddTraits(.isButton)
     }
+
+    /// The name on one line with its tag beside it, else up to two lines with the tag under them.
+    @ViewBuilder private var name: some View {
+        let title = Text(verbatim: subscription.name).font(.system(size: 13, weight: .semibold))
+        if let tag {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 6) {
+                    title.lineLimit(1).fixedSize()
+                    tag
+                }
+                VStack(alignment: .leading, spacing: 3) {
+                    title.lineLimit(2).truncationMode(.tail).fixedSize(horizontal: false, vertical: true)
+                    tag
+                }
+            }
+        } else {
+            title.lineLimit(2).truncationMode(.tail).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// The details stay whole; after them the category tail-truncates, or the card truncates (keeping its
+    /// "•• 4242") to no shorter than 48 pt and is otherwise left out.
+    @ViewBuilder private var detailsLine: some View {
+        if let label {
+            let (head, tail) = PaymentLabel.split(label)
+            ViewThatFits(in: .horizontal) {
+                Text(verbatim: details + " · " + label).fixedSize()
+                HStack(spacing: 0) {
+                    Text(verbatim: details).fixedSize()
+                    Text(verbatim: " · " + head)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .frame(minWidth: 0, idealWidth: Self.shortestLabel, alignment: .leading)
+                    if let tail { Text(verbatim: " " + tail).fixedSize().layoutPriority(1) }
+                }
+                Text(verbatim: details).lineLimit(1).truncationMode(.tail)
+            }
+        } else {
+            HStack(spacing: 0) {
+                Text(verbatim: details).lineLimit(1).truncationMode(.tail).layoutPriority(1)
+                if let category {
+                    Text(verbatim: " · " + category).lineLimit(1).truncationMode(.tail)
+                }
+            }
+        }
+    }
+
+    /// The least of a payment label worth showing ("· Т-Ба…"); below it the label is left out.
+    private static let shortestLabel: CGFloat = 48
 }

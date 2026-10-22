@@ -40,7 +40,9 @@ struct YearView: View {
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width in
                 if state.windowWidth != width { state.windowWidth = width }
             }
-            .yearToolbar(model: model, state: state, period: plan.range)
+            // An empty or unread library has nothing to group or search.
+            .yearToolbar(model: model, state: state, period: plan.range,
+                         enabled: screen != .noSubscriptions && screen != .unreadable)
             .navigationDestination(for: UUID.self) { id in
                 SubscriptionPage(model: model, id: id, onEdit: onEdit)
                     .yearBackButton(state: state)
@@ -85,9 +87,7 @@ struct YearView: View {
                             actionTitle: String(localized: "Add your first subscription"), action: onAdd)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         case .nothingMatches:
-            summary(plan)
-                .padding(.horizontal, Self.padding)
-                .padding(.top, 16)
+            // No figure: a zero sum here would read as a year without charges, not as a filter that matched nothing.
             PanelEmptyState(systemImage: "magnifyingglass", title: String(localized: "Nothing found"), message: nil,
                             actionTitle: String(localized: "Reset filters"), action: { state.filter = YearFilter() })
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -106,18 +106,20 @@ struct YearView: View {
         YearSummary(plan: plan, ratesDate: model.rates?.date, excludedNames: names(plan.excludedSubscriptionIDs))
     }
 
-    /// The grid card takes what the side pane leaves, and the side pane takes what a full-size grid leaves
-    /// (320 pt at least): past 56 pt cells a wider window widens the pane.
+    /// The side pane takes 35 % of the room (370 pt at a 1100 pt window, 320–460 pt), and what a full-size grid
+    /// leaves when that is more: past 56 pt cells a wider window widens the pane. The grid card takes the rest.
     private func main(plan: YearPlan, inputs: YearPlanCache.Inputs, today: LocalDate, emptyYear: Bool) -> some View {
         let mode = state.mode
-        let weekColumns = plan.weekColumns().count
-        let fullGrid = YearGrid.contentWidth(weekColumns: weekColumns, mode: .weeks, width: .infinity) + Self.cardPadding * 2
-        let side = min(460, max(YearSidePane.minWidth, room.width - Self.spacing - fullGrid))
+        let columns = plan.weekColumns()
+        let weekColumns = columns.count, weekRows = columns.map(\.weeks.count).max() ?? 0
+        let fullGrid = YearGrid.contentWidth(weekColumns: weekColumns, weekRows: weekRows, mode: .weeks, width: .infinity)
+            + Self.cardPadding * 2
+        let side = min(460, max(YearSidePane.minWidth, (room.width * 0.35).rounded(), room.width - Self.spacing - fullGrid))
         let gridRoom = max(0, room.width - Self.spacing - side)
         let cellRoom = gridRoom - Self.cardPadding * 2
         let note: CGFloat = emptyYear ? 30 : 0
         // The card's padding, the legend and its spacing, and a little air under the card.
-        let cellHeight = room.height - Self.cardPadding * 2 - 2 - 28 - 12 - note
+        let cellHeight = room.height - Self.cardPadding * 2 - 2 - YearLegend.height - 14 - 12 - note
         let selection = YearSelection.carry(state.selection, from: mode, to: mode, plan: plan, today: today)
         let period = (mode == .weeks ? plan.weeks : plan.months).first { $0.id == selection }
         return HStack(alignment: .top, spacing: Self.spacing) {
@@ -134,7 +136,8 @@ struct YearView: View {
                              onOpen: { id in state.navigate(reduceMotion: reduceMotion) { $0.path.append(id) } })
                     YearLegend(mode: mode)
                 }
-                .frame(width: YearGrid.contentWidth(weekColumns: weekColumns, mode: mode, width: cellRoom),
+                .frame(width: YearGrid.contentWidth(weekColumns: weekColumns, weekRows: weekRows, mode: mode,
+                                                    width: cellRoom, height: cellHeight),
                        alignment: .leading)
                 .padding(Self.cardPadding)
                 .padding(.top, 2)

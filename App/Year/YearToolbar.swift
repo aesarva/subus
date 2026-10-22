@@ -8,9 +8,13 @@ struct YearToolbar: ViewModifier {
     let model: AppModel
     @Bindable var state: YearState
     let period: ClosedRange<LocalDate>
+    /// Off for an empty or unread library: the mode switch and the search field are dimmed, the chips and Filters gone.
+    let enabled: Bool
 
     func body(content: Content) -> some View {
         content
+            // The window's own content keeps working; only the toolbar below follows `enabled`.
+            .environment(\.isEnabled, true)
             .navigationTitle(String(localized: "Year"))
             .navigationSubtitle(Self.periodText(period))
             .toolbar {
@@ -22,9 +26,11 @@ struct YearToolbar: ViewModifier {
                                      fills: false)
                         .accessibilityLabel(String(localized: "Group by"))
                         .fixedSize()
+                        // Said on the item as well: a toolbar item need not carry this modifier's environment.
+                        .disabled(!enabled)
                 }
                 // Nothing to filter in an empty (or unread) library.
-                if !model.library.subscriptions.isEmpty {
+                if enabled {
                     ToolbarItem {
                         YearCategoryChips(model: model, state: state, room: chipRoom)
                     }
@@ -34,6 +40,7 @@ struct YearToolbar: ViewModifier {
                 }
             }
             .searchable(text: $state.filter.query)
+            .disabled(!enabled)
     }
 
     /// What the window leaves for the chips once the title, the mode switch, the Filters menu and the search
@@ -61,8 +68,8 @@ struct YearToolbar: ViewModifier {
 }
 
 extension View {
-    func yearToolbar(model: AppModel, state: YearState, period: ClosedRange<LocalDate>) -> some View {
-        modifier(YearToolbar(model: model, state: state, period: period))
+    func yearToolbar(model: AppModel, state: YearState, period: ClosedRange<LocalDate>, enabled: Bool) -> some View {
+        modifier(YearToolbar(model: model, state: state, period: period, enabled: enabled))
     }
 }
 

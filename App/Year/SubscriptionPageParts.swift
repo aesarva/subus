@@ -159,7 +159,7 @@ struct SubscriptionPageFacts: View {
         }
         return HStack(alignment: .firstTextBaseline, spacing: 0) {
             Text(verbatim: Formatters.money(step.from) + " → " + Formatters.money(step.to))
-            Text(verbatim: " · " + String(localized: "from \(Formatters.date(step.on, today: today))"))
+            Text(verbatim: " · " + String(localized: "from \(YearFormat.factDate(step.on, today: today))"))
                 .foregroundStyle(.secondary)
             if let rise {
                 Text(verbatim: " · " + rise)
@@ -191,16 +191,16 @@ struct SubscriptionPageFacts: View {
             }
             // The editor's own label: with a trial the start is not a charge.
             row(s.trialEndDate == nil ? String(localized: "First charge") : String(localized: "Start date")) {
-                Text(verbatim: Formatters.date(s.startDate, today: today))
+                Text(verbatim: YearFormat.factDate(s.startDate, today: today))
             }
             if let trial = s.trialEndDate {
                 row(trial > today ? String(localized: "Trial ends") : String(localized: "Trial ended")) {
-                    Text(verbatim: Formatters.date(trial, today: today))
+                    Text(verbatim: YearFormat.factDate(trial, today: today))
                 }
             }
             if let end = s.endDate {
                 row(end < today ? String(localized: "Ended") : String(localized: "Ends")) {
-                    Text(verbatim: Formatters.date(end, today: today))
+                    Text(verbatim: YearFormat.factDate(end, today: today))
                 }
             }
             if let url = s.websiteURL, URLNormalizer.isWeb(url) {

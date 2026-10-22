@@ -38,6 +38,18 @@ enum YearFormat {
         mode == .weeks ? week(p) : month(p)
     }
 
+    /// A date in the page's history and details: "Nov 11" for a date ahead in this year, otherwise with its year —
+    /// "Apr 2, 2026" for one already past, so a past date never reads as the coming one.
+    static func factDate(_ d: LocalDate, today: LocalDate) -> String {
+        guard d.year == today.year, d >= today else {
+            let calendar = Calendar.subus()
+            let style = Date.FormatStyle(locale: .current, calendar: calendar, timeZone: calendar.timeZone)
+                .day().month(.abbreviated).year()
+            return d.date(hour: 12, minute: 0, calendar: calendar).formatted(style)
+        }
+        return Formatters.date(d, today: today)
+    }
+
     /// "OCT", and for a January of another year than today's "JAN ’27".
     static func monthLabel(_ key: MonthKey, today: LocalDate) -> String {
         let first = LocalDate(year: key.year, month: key.month, day: 1)!
