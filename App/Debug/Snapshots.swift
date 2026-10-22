@@ -196,6 +196,7 @@ enum Snapshots {
         yearShot("year-sub-monthly", library: base) { m, s in s.path = [id(m, "Яндекс Плюс")] }
         yearShot("year-sub-yearly", library: base) { m, s in s.path = [id(m, "1Password")] }
         yearShot("year-sub-inactive", library: base) { m, s in s.path = [id(m, "Notion")] }
+        NSApp.setActivationPolicy(.accessory)
 
         // Status item: the glyph alone, "3d", and the accent "1d" and "0d", on a light and a dark menu bar.
         for (theme, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
@@ -260,8 +261,11 @@ enum Snapshots {
     }
 
     /// The Year window as the app builds it — a hosting controller that bridges the title and the toolbar —
-    /// drawn with its title bar and toolbar from the window's frame view.
+    /// shown on screen, key and active, and captured through the window server: the toolbar's glass, its
+    /// active controls and the coloured traffic lights are composited there and never reach `cacheDisplay`.
+    /// The window is briefly visible on the screen.
     private static func renderYear(_ content: YearView, appearance: NSAppearance.Name, to url: URL) {
+        let size = NSSize(width: 1100, height: 720)
         let host = NSHostingController(rootView: content)
         host.sizingOptions = []
         host.sceneBridgingOptions = [.title, .toolbars]
@@ -270,16 +274,91 @@ enum Snapshots {
         window.title = String(localized: "Year")
         YearWindowTitle.track(window, model: content.model, state: content.state)
         window.appearance = NSAppearance(named: appearance)
-        window.setContentSize(NSSize(width: 1100, height: 720))
-        window.setFrameOrigin(NSPoint(x: -4000, y: -4000))
-        NSApp.activate()
+        window.setContentSize(size)
+        // A Retina screen gives the 2× pixels; centred in its visible frame.
+        let screen = NSScreen.screens.first { $0.backingScaleFactor >= 2 } ?? NSScreen.main
+        if let visible = screen?.visibleFrame {
+            window.setFrameOrigin(NSPoint(x: (visible.midX - window.frame.width / 2).rounded(),
+                                          y: (visible.midY - window.frame.height / 2).rounded()))
+        }
+        // A regular app, as with the Year window open, so it can be the active one and draw active chrome.
+        // Launched from a shell, a cooperative `activate()` is refused while the terminal is active.
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
+        window.orderFrontRegardless()
         for _ in 0..<4 {
             host.view.layoutSubtreeIfNeeded()
-            RunLoop.main.run(until: Date().addingTimeInterval(0.25))
+            pumpEvents(for: 0.25)
         }
-        write(window.contentView?.superview ?? host.view, to: url)
+        // Activation can lag behind the previous shot's window leaving: ask again for up to 5 s.
+        for _ in 0..<10 where !NSApp.isActive {
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+            pumpEvents(for: 0.5)
+        }
+        pumpEvents(for: 0.5)
+        if !NSApp.isActive { print("\(url.lastPathComponent): the app is not active, the chrome is drawn inactive") }
+        // A locked screen composites nothing: the window server hands back a clear image. Drawn from the frame
+        // view then, without the glass.
+        let session = CGSessionCopyCurrentDictionary() as? [String: Any]
+        if session?["CGSSessionScreenIsLocked"] as? Bool == true {
+            print("\(url.lastPathComponent): the screen is locked, drawn without the window server")
+            write(window.contentView?.superview ?? host.view, to: url)
+        } else {
+            writeWindow(window, size: size, to: url)
+        }
         window.orderOut(nil)
+    }
+
+    /// Runs the loop and hands AppKit its events: activation and key status arrive as events, which a bare
+    /// `RunLoop.run` leaves in the queue while launching.
+    private static func pumpEvents(for seconds: TimeInterval) {
+        let deadline = Date().addingTimeInterval(seconds)
+        while let event = NSApp.nextEvent(matching: .any, until: deadline, inMode: .default, dequeue: true) {
+            NSApp.sendEvent(event)
+        }
+    }
+
+    /// `CGWindowListCreateImage`, looked up at run time: the SDK retires it in favour of ScreenCaptureKit, which
+    /// asks for Screen Recording. Capturing the app's own window needs no permission.
+    private typealias WindowImage = @convention(c) (CGRect, CGWindowListOption, CGWindowID, CGWindowImageOption)
+        -> Unmanaged<CGImage>?
+    private static let windowImage: WindowImage? = {
+        guard let handle = dlopen("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics", RTLD_NOW),
+              let symbol = dlsym(handle, "CGWindowListCreateImage") else { return nil }
+        return unsafeBitCast(symbol, to: WindowImage.self)
+    }()
+
+    /// The window's own pixels from the window server, at 2× of `size` points, without its shadow.
+    private static func writeWindow(_ window: NSWindow, size: NSSize, to url: URL) {
+        let width = Int(size.width * 2), height = Int(size.height * 2)
+        guard let windowImage,
+              let image = windowImage(.null, .optionIncludingWindow, CGWindowID(window.windowNumber),
+                                      [.boundsIgnoreFraming, .bestResolution])?.takeRetainedValue() else {
+            print("\(url.lastPathComponent): the window server returned no image")
+            return
+        }
+        // Any margin past the window's frame is cut evenly; a 1× screen's image is drawn up to 2×.
+        let cropped: CGImage
+        if image.width >= width, image.height >= height,
+           let cut = image.cropping(to: CGRect(x: (image.width - width) / 2, y: (image.height - height) / 2,
+                                               width: width, height: height)) {
+            cropped = cut
+        } else {
+            print("\(url.lastPathComponent): captured \(image.width) x \(image.height), drawn to \(width) x \(height)")
+            cropped = image
+        }
+        // Drawn into sRGB, as the other shots: the window server hands over the display's colour space.
+        guard let space = CGColorSpace(name: CGColorSpace.sRGB),
+              let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+                                      space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return }
+        context.interpolationQuality = .high
+        context.draw(cropped, in: CGRect(x: 0, y: 0, width: width, height: height))
+        guard let result = context.makeImage() else { return }
+        let rep = NSBitmapImageRep(cgImage: result)
+        rep.size = size
+        try? rep.representation(using: .png, properties: [:])?.write(to: url)
     }
 
     private static func renderEditor(_ state: EditorState, appearance: NSAppearance.Name, height: CGFloat, to url: URL) {
