@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A "Year" window (⌘Y, panel footer, quick menu, Dock click): the next 12 months as a commit-calendar grid of weeks or months toned by the number of charges, with filters, a side pane and a page per subscription.
 - Upcoming covers the next 30 days and shows each subscription once, at its nearest charge; reminders still plan 60 days ahead.
 - Create a category or a card right from the subscription form.
 - Add a card by choosing one of your saved cards (macOS AutoFill); Subus keeps only its last 4 digits.

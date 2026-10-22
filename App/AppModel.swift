@@ -95,6 +95,9 @@ final class AppModel {
             .min { ($0.1.date, $0.0.name) < ($1.1.date, $1.0.name) }
     }
 
+    /// The data file could not be read at launch: the library is a temporary empty one, not a new one.
+    var isUnreadable: Bool { unreadableMessage != nil }
+
     /// The data folder: the logos directory lives inside it.
     var dataDirectory: URL? { logosDirectory?.deletingLastPathComponent() }
 

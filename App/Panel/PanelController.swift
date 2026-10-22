@@ -7,6 +7,7 @@ final class PanelController: NSObject, NSPopoverDelegate {
     private let model: AppModel
     private let anchor: () -> NSStatusBarButton?
     private let onAdd: () -> Void
+    private let onYear: () -> Void
     private let onSettings: () -> Void
     private let onEdit: (UUID) -> Void
     private let state = PanelState()
@@ -20,15 +21,18 @@ final class PanelController: NSObject, NSPopoverDelegate {
     private var closedAt = Date.distantPast
 
     init(model: AppModel, anchor: @escaping () -> NSStatusBarButton?,
-         onAdd: @escaping () -> Void, onSettings: @escaping () -> Void, onEdit: @escaping (UUID) -> Void) {
+         onAdd: @escaping () -> Void, onYear: @escaping () -> Void, onSettings: @escaping () -> Void,
+         onEdit: @escaping (UUID) -> Void) {
         self.model = model
         self.anchor = anchor
         self.onAdd = onAdd
+        self.onYear = onYear
         self.onSettings = onSettings
         self.onEdit = onEdit
         super.init()
         let actions = PanelActions(
             onAdd: { [weak self] in self?.onAdd() },
+            onYear: { [weak self] in self?.onYear() },
             onSettings: { [weak self] in self?.onSettings() },
             onOpen: { [weak self] id in self?.show(subscription: id) },
             onEdit: { [weak self] id in self?.onEdit(id) },
@@ -165,6 +169,7 @@ final class PanelController: NSObject, NSPopoverDelegate {
         if key.modifiers == .command {
             switch key.code {
             case 45: onAdd(); return true // kVK_ANSI_N
+            case 16: onYear(); return true // kVK_ANSI_Y
             case 43: onSettings(); return true // kVK_ANSI_Comma
             default: return false
             }

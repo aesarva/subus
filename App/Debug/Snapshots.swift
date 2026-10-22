@@ -3,7 +3,7 @@ import AppKit
 import SubusCore
 import SwiftUI
 
-/// `-Snapshots`: renders every panel/editor/settings state and the status item with demo data, in light and dark,
+/// `-Snapshots`: renders every panel/editor/settings/Year state and the status item with demo data, in light and dark,
 /// to PNGs at 2× (`<state>-<light|dark>-<en|ru>.png`) and prints the folder. The language follows the launch
 /// (`-AppleLanguages "(ru)"`); `make snapshots` runs both languages and collects the files.
 @MainActor
@@ -165,6 +165,39 @@ enum Snapshots {
                          width: 520, appearance: appearance, to: url)
         }
 
+        // Year window
+        /// The window at its default 1100 × 720, with its toolbar; the mode lives in a scratch defaults suite.
+        func yearShot(_ name: String, library: Library, unreadable: Bool = false,
+                      configure: (AppModel, YearState) -> Void = { _, _ in }) {
+            each(name) { appearance, url in
+                let yearModel = model(library, in: directory, unreadable: unreadable)
+                let suite = "io.github.aesarva.Subus.snapshots"
+                let defaults = UserDefaults(suiteName: suite)!
+                defaults.removePersistentDomain(forName: suite)
+                let state = YearState(defaults: defaults)
+                configure(yearModel, state)
+                renderYear(YearView(model: yearModel, state: state, onEdit: { _ in }, onAdd: {}),
+                           appearance: appearance, to: url)
+                defaults.removePersistentDomain(forName: suite)
+            }
+        }
+        yearShot("year-weeks", library: base)
+        yearShot("year-months", library: base) { _, s in s.mode = .months }
+        yearShot("year-empty-week", library: base) { m, s in
+            let plan = YearPlan.build(library: m.library, filter: s.filter, today: m.today, calendar: .subus(),
+                                      baseCurrency: m.settings.baseCurrency, converter: CurrencyConverter(table: m.rates))
+            s.selection = plan.weeks.dropFirst().first { $0.count == 0 }?.id
+        }
+        yearShot("year-all", library: base) { _, s in s.pane = .all; s.filter.showInactive = true }
+        yearShot("year-nothing-found", library: base) { _, s in s.filter.query = "Disney" }
+        yearShot("year-no-subscriptions", library: initial)
+        yearShot("year-unreadable", library: .empty, unreadable: true)
+        // The subscription page, pushed over the year: monthly with a price history, yearly, and inactive.
+        yearShot("year-sub-monthly", library: base) { m, s in s.path = [id(m, "Яндекс Плюс")] }
+        yearShot("year-sub-yearly", library: base) { m, s in s.path = [id(m, "1Password")] }
+        yearShot("year-sub-inactive", library: base) { m, s in s.path = [id(m, "Notion")] }
+        NSApp.setActivationPolicy(.accessory)
+
         // Status item: the glyph alone, "3d", and the accent "1d" and "0d", on a light and a dark menu bar.
         for (theme, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
             let strip = StatusItemStrip(states: [(nil, false), (Formatters.counter(3), false),
@@ -227,6 +260,107 @@ enum Snapshots {
         window.orderOut(nil)
     }
 
+    /// The Year window as the app builds it — a hosting controller that bridges the title and the toolbar —
+    /// shown on screen, key and active, and captured through the window server: the toolbar's glass, its
+    /// active controls and the coloured traffic lights are composited there and never reach `cacheDisplay`.
+    /// The window is briefly visible on the screen.
+    private static func renderYear(_ content: YearView, appearance: NSAppearance.Name, to url: URL) {
+        let size = NSSize(width: 1100, height: 720)
+        let host = NSHostingController(rootView: content)
+        host.sizingOptions = []
+        host.sceneBridgingOptions = [.title, .toolbars]
+        let window = KeyWindow(contentViewController: host)
+        window.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
+        window.title = String(localized: "Year")
+        YearWindowTitle.track(window, model: content.model, state: content.state)
+        window.appearance = NSAppearance(named: appearance)
+        window.setContentSize(size)
+        // A Retina screen gives the 2× pixels; centred in its visible frame.
+        let screen = NSScreen.screens.first { $0.backingScaleFactor >= 2 } ?? NSScreen.main
+        if let visible = screen?.visibleFrame {
+            window.setFrameOrigin(NSPoint(x: (visible.midX - window.frame.width / 2).rounded(),
+                                          y: (visible.midY - window.frame.height / 2).rounded()))
+        }
+        // A regular app, as with the Year window open, so it can be the active one and draw active chrome.
+        // Launched from a shell, a cooperative `activate()` is refused while the terminal is active.
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+        window.orderFrontRegardless()
+        for _ in 0..<4 {
+            host.view.layoutSubtreeIfNeeded()
+            pumpEvents(for: 0.25)
+        }
+        // Activation can lag behind the previous shot's window leaving: ask again for up to 5 s.
+        for _ in 0..<10 where !NSApp.isActive {
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+            pumpEvents(for: 0.5)
+        }
+        pumpEvents(for: 0.5)
+        if !NSApp.isActive { print("\(url.lastPathComponent): the app is not active, the chrome is drawn inactive") }
+        // A locked screen composites nothing: the window server hands back a clear image. Drawn from the frame
+        // view then, without the glass.
+        let session = CGSessionCopyCurrentDictionary() as? [String: Any]
+        if session?["CGSSessionScreenIsLocked"] as? Bool == true {
+            print("\(url.lastPathComponent): the screen is locked, drawn without the window server")
+            write(window.contentView?.superview ?? host.view, to: url)
+        } else {
+            writeWindow(window, size: size, to: url)
+        }
+        window.orderOut(nil)
+    }
+
+    /// Runs the loop and hands AppKit its events: activation and key status arrive as events, which a bare
+    /// `RunLoop.run` leaves in the queue while launching.
+    private static func pumpEvents(for seconds: TimeInterval) {
+        let deadline = Date().addingTimeInterval(seconds)
+        while let event = NSApp.nextEvent(matching: .any, until: deadline, inMode: .default, dequeue: true) {
+            NSApp.sendEvent(event)
+        }
+    }
+
+    /// `CGWindowListCreateImage`, looked up at run time: the SDK retires it in favour of ScreenCaptureKit, which
+    /// asks for Screen Recording. Capturing the app's own window needs no permission.
+    private typealias WindowImage = @convention(c) (CGRect, CGWindowListOption, CGWindowID, CGWindowImageOption)
+        -> Unmanaged<CGImage>?
+    private static let windowImage: WindowImage? = {
+        guard let handle = dlopen("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics", RTLD_NOW),
+              let symbol = dlsym(handle, "CGWindowListCreateImage") else { return nil }
+        return unsafeBitCast(symbol, to: WindowImage.self)
+    }()
+
+    /// The window's own pixels from the window server, at 2× of `size` points, without its shadow.
+    private static func writeWindow(_ window: NSWindow, size: NSSize, to url: URL) {
+        let width = Int(size.width * 2), height = Int(size.height * 2)
+        guard let windowImage,
+              let image = windowImage(.null, .optionIncludingWindow, CGWindowID(window.windowNumber),
+                                      [.boundsIgnoreFraming, .bestResolution])?.takeRetainedValue() else {
+            print("\(url.lastPathComponent): the window server returned no image")
+            return
+        }
+        // Any margin past the window's frame is cut evenly; a 1× screen's image is drawn up to 2×.
+        let cropped: CGImage
+        if image.width >= width, image.height >= height,
+           let cut = image.cropping(to: CGRect(x: (image.width - width) / 2, y: (image.height - height) / 2,
+                                               width: width, height: height)) {
+            cropped = cut
+        } else {
+            print("\(url.lastPathComponent): captured \(image.width) x \(image.height), drawn to \(width) x \(height)")
+            cropped = image
+        }
+        // Drawn into sRGB, as the other shots: the window server hands over the display's colour space.
+        guard let space = CGColorSpace(name: CGColorSpace.sRGB),
+              let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+                                      space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return }
+        context.interpolationQuality = .high
+        context.draw(cropped, in: CGRect(x: 0, y: 0, width: width, height: height))
+        guard let result = context.makeImage() else { return }
+        let rep = NSBitmapImageRep(cgImage: result)
+        rep.size = size
+        try? rep.representation(using: .png, properties: [:])?.write(to: url)
+    }
+
     private static func renderEditor(_ state: EditorState, appearance: NSAppearance.Name, height: CGFloat, to url: URL) {
         let host = NSHostingView(rootView: EditorView(state: state))
         host.appearance = NSAppearance(named: appearance)
@@ -245,7 +379,7 @@ enum Snapshots {
     }
 
     private static func model(_ library: Library, in directory: URL, recovery: Recovery? = nil,
-                              failingSaves: Bool = false) -> AppModel {
+                              failingSaves: Bool = false, unreadable: Bool = false) -> AppModel {
         let storage = MemorySettingsStorage()
         let settingsStore = SettingsStore(storage: storage, locale: .current)
         var settings = AppSettings.defaults(locale: .current)
@@ -257,7 +391,8 @@ enum Snapshots {
         try? RateCache(fileURL: ratesURL).save(RateTable(
             date: today, rubPerUnit: ["RUB": 1, "USD": Decimal(string: "81.6")!, "EUR": Decimal(string: "94.3")!],
             fetchedAt: Date()))
-        return AppModel(store: MemoryStore(result: LoadResult(library: library, recovery: recovery), failing: failingSaves),
+        return AppModel(store: MemoryStore(result: LoadResult(library: library, recovery: recovery), failing: failingSaves,
+                                           unreadable: unreadable),
                         settingsStore: settingsStore, rateProvider: NoRates(), rateCache: RateCache(fileURL: ratesURL),
                         notifier: UserNotifier(), logosDirectory: directory.appendingPathComponent("Logos"),
                         stateStorage: storage)
@@ -365,9 +500,15 @@ private struct MemoryStore: SubscriptionStore {
     struct Refused: LocalizedError {
         var errorDescription: String? { "The disk is full (demo)." }
     }
+    /// The file could not be read: loading throws, as a damaged or unreachable data file does.
+    struct Unreadable: Error {}
     let result: LoadResult
     let failing: Bool
-    func load() throws -> LoadResult { result }
+    var unreadable = false
+    func load() throws -> LoadResult {
+        if unreadable { throw Unreadable() }
+        return result
+    }
     func save(_ library: Library) throws { if failing { throw Refused() } }
 }
 
