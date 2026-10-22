@@ -30,6 +30,36 @@ colors:
   icon-ink-light: "#1D1D1F"
   icon-ink-dark: "#F2F2F0"
   monogram-letter: "#FFFFFF"
+  year-card-light: "#FBFBF9"
+  year-card-dark: "#232325"
+  year-ramp-light-0: "#E8E8E4"
+  year-ramp-light-1: "#CFCFCA"
+  year-ramp-light-2: "#A3A39D"
+  year-ramp-light-3: "#5E5E5A"
+  year-ramp-light-4: "#1D1D1F"
+  year-ramp-dark-0: "#2C2C2E"
+  year-ramp-dark-1: "#48484A"
+  year-ramp-dark-2: "#6E6E73"
+  year-ramp-dark-3: "#A1A1A6"
+  year-ramp-dark-4: "#F2F2F0"
+  year-ramp-light-contrast-0: "#DADAD4"
+  year-ramp-light-contrast-1: "#B3B3AD"
+  year-ramp-light-contrast-2: "#808079"
+  year-ramp-light-contrast-3: "#45453F"
+  year-ramp-light-contrast-4: "#000000"
+  year-ramp-dark-contrast-0: "#3A3A3C"
+  year-ramp-dark-contrast-1: "#5A5A5E"
+  year-ramp-dark-contrast-2: "#8E8E93"
+  year-ramp-dark-contrast-3: "#C7C7CC"
+  year-ramp-dark-contrast-4: "#FFFFFF"
+  year-ramp-text-light-low: "#1D1D1F"
+  year-ramp-text-light-high: "#FFFFFF"
+  year-ramp-text-dark-low: "#F2F2F0"
+  year-ramp-text-dark-high: "#1C1C1E"
+  year-ramp-text-light-contrast-low: "#000000"
+  year-ramp-text-light-contrast-high: "#FFFFFF"
+  year-ramp-text-dark-contrast-low: "#FFFFFF"
+  year-ramp-text-dark-contrast-high: "#000000"
 typography:
   days-figure:
     fontFamily: "SF Pro, system-ui, sans-serif"
@@ -91,6 +121,29 @@ typography:
     fontSize: "13px"
     fontWeight: 400
     fontFeature: "tnum"
+  year-figure:
+    fontFamily: "SF Pro, system-ui, sans-serif"
+    fontSize: "28px"
+    fontWeight: 600
+    fontFeature: "tnum"
+  month-figure:
+    fontFamily: "SF Pro, system-ui, sans-serif"
+    fontSize: "26px"
+    fontWeight: 600
+    fontFeature: "tnum"
+  page-title:
+    fontFamily: "SF Pro, system-ui, sans-serif"
+    fontSize: "22px"
+    fontWeight: 600
+  period-title:
+    fontFamily: "SF Pro, system-ui, sans-serif"
+    fontSize: "20px"
+    fontWeight: 600
+  page-price:
+    fontFamily: "SF Pro, system-ui, sans-serif"
+    fontSize: "15px"
+    fontWeight: 500
+    fontFeature: "tnum"
 rounded:
   tag: "3px"
   card-mark: "1.5px"
@@ -99,6 +152,11 @@ rounded:
   tile-40: "10px"
   tile-56: "14px"
   capsule: "9999px"
+  legend-swatch: "3px"
+  year-cell: "7px"
+  year-row-highlight: "9px"
+  year-tile: "14px"
+  year-card: "16px"
 spacing:
   receded-stroke: "1.5px"
   line-stroke: "3px"
@@ -115,6 +173,26 @@ spacing:
   row-min: "42px"
   overview-height: "60px"
   panel-width: "360px"
+  year-cell-gap: "6px"
+  year-tile-gap: "10px"
+  year-card-padding: "16px"
+  year-window-margin: "20px"
+  year-cell-min: "36px"
+  year-cell-max: "56px"
+  year-tile-min-width: "120px"
+  year-tile-max-width: "180px"
+  year-tile-min-height: "96px"
+  year-tile-max-height: "144px"
+  year-side-min: "320px"
+  year-side-max: "460px"
+  year-row-min: "46px"
+  legend-swatch: "12px"
+  ring-now-gap: "1.5px"
+  ring-now-width: "2.5px"
+  ring-selection-gap: "2px"
+  ring-selection-width: "2px"
+  ring-both-offset: "5.5px"
+  ring-both-width: "1.5px"
 components:
   station-ring:
     textColor: "{colors.tile-magenta}"
@@ -186,6 +264,53 @@ components:
   app-icon:
     backgroundColor: "{colors.icon-ground-light}"
     textColor: "{colors.icon-ink-light}"
+  year-card:
+    backgroundColor: "{colors.year-card-light}"
+    rounded: "{rounded.year-card}"
+    padding: "{spacing.year-card-padding}"
+  year-card-dark:
+    backgroundColor: "{colors.year-card-dark}"
+    rounded: "{rounded.year-card}"
+  year-summary:
+    typography: "{typography.year-figure}"
+  year-week-cell:
+    backgroundColor: "{colors.year-ramp-light-0}"
+    rounded: "{rounded.year-cell}"
+    size: "{spacing.year-cell-min}"
+  year-week-cell-max:
+    rounded: "{rounded.year-cell}"
+    size: "{spacing.year-cell-max}"
+  year-month-tile:
+    backgroundColor: "{colors.year-ramp-light-2}"
+    textColor: "{colors.year-ramp-text-light-low}"
+    typography: "{typography.month-figure}"
+    rounded: "{rounded.year-tile}"
+    padding: "12px 14px"
+  year-month-tile-high:
+    backgroundColor: "{colors.year-ramp-light-4}"
+    textColor: "{colors.year-ramp-text-light-high}"
+    rounded: "{rounded.year-tile}"
+  year-legend-swatch:
+    rounded: "{rounded.legend-swatch}"
+    size: "{spacing.legend-swatch}"
+  year-ring-now:
+    textColor: "{colors.accent}"
+    rounded: "{rounded.year-cell}"
+  year-side-row:
+    typography: "{typography.body-strong}"
+    rounded: "{rounded.year-row-highlight}"
+    padding: "6px 8px"
+    height: "{spacing.year-row-min}"
+  year-period-title:
+    typography: "{typography.period-title}"
+  page-header:
+    typography: "{typography.page-title}"
+    rounded: "{rounded.tile-56}"
+  charge-line:
+    typography: "{typography.body}"
+    rounded: "{rounded.year-row-highlight}"
+    padding: "5px 8px"
+    height: "38px"
 ---
 
 # Design System: Subus
@@ -207,6 +332,7 @@ Motion is stepped and minimal. When the day changes, the horizon slides one day 
 - Full ink (the label colour) on graphics is reserved for the today ring, the leg to the next station, and the next station's label.
 - Text never dims. Focus changes only graphics and a faint row highlight.
 - Tabular figures on every number.
+- The Year window adds one card, two year figures and a neutral count ramp. The panel's rules stay as they are.
 
 ## Colors
 
@@ -226,14 +352,14 @@ Each of the eight category indices has a colour pair: a **tile** colour that is 
 
 ### Neutral
 - **Rail** (`rail-light` / `rail-dark`): the resting rail, the strip-map spine, week and month ticks, mixed-category interchange capsules, and stations with no category. It reaches 3.21:1 on #F6F6F3 and 3.71:1 on #1C1C1E, so it carries meaning rather than decoration.
-- **Ink**: `labelColor`, `secondaryLabelColor` and `tertiaryLabelColor` (SwiftUI `.primary` / `.secondary`), so themes and Increase Contrast adapt natively. Full ink on graphics belongs to the today ring, the leg, the next-station label and the 1 pt halo around a lifted station.
+- **Ink**: `labelColor`, `secondaryLabelColor` and `tertiaryLabelColor` (SwiftUI `.primary` / `.secondary`), so themes and Increase Contrast adapt natively. In the panel, full ink on graphics belongs to the today ring, the leg, the next-station label and the 1 pt halo around a lifted station. In the Year window, it belongs to ramp step 4 and the selection ring (see Year Window).
 - **Row highlight**: the label colour at 7 % in light and 11 % in dark, in a 6 pt rounded rectangle inset 6 × 1 pt. It is the only fill a row ever gets.
 - **Fallback grounds** (`ground-fallback-*`): the solid grounds the snapshot harness renders on, and the reference against which every ratio above is measured. They are not painted in the app; the popover owns its ground.
 
 ### Named Rules
-**The One Reserved Ink Rule.** Full label colour on graphics appears in only three places: the today ring, the leg from today to the next station (5 pt, or 6 pt under Increase Contrast), and the next station's label. Cluster counts, ticks and month labels are secondary ink.
+**The One Reserved Ink Rule.** In the panel, full label colour on graphics appears in only three places: the today ring, the leg from today to the next station (5 pt, or 6 pt under Increase Contrast), and the next station's label. Cluster counts, ticks and month labels are secondary ink.
 
-**The Orange Is the Accent Rule.** No custom orange exists apart from #E8590C and its text variant; no category line is orange. The panel's custom orange means "now": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises. A new surface does not get the accent orange for emphasis, errors or decoration. Errors (the save-error banner, the editor's field and logo messages) use system red, `NSColor.systemRed`, never the accent or a line colour.
+**The Orange Is the Accent Rule.** No custom orange exists apart from #E8590C and its text variant; no category line is orange. The panel's custom orange means "now": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises. In the Year window, it rings this week or this month and marks steep price rises. A new surface does not get the accent orange for emphasis, errors or decoration. Errors (the save-error banner, the editor's field and logo messages) use system red, `NSColor.systemRed`, never the accent or a line colour.
 
 **The Line Means Category Rule.** A line colour on a station, spine, ring or bar always means the subscription's category. A subscription without a category rides the rail grey. Payment methods never take a line colour; their bars are secondary-label grey behind a card-shaped mark. Monogram tiles are the one separate use: a tile's colour is the subscription's own `colorIndex` (or a hash of its name), and two subscriptions may share one.
 
@@ -243,7 +369,7 @@ Each of the eight category indices has a colour pair: a **tile** colour that is 
 
 **UI Font:** SF Pro (system), with tabular (monospaced) digits on every amount, date and count.
 
-**Character:** Hierarchy comes from scale alone, using the system's own text sizes (body 13, subheadline 12, caption 11). Only one number is large. Nothing is set below 11 pt.
+**Character:** Hierarchy comes from scale alone, using the system's own text sizes (body 13, subheadline 12, caption 11). Only one number in the panel is large; the Year window has its own two (see Year Window). Nothing is set below 11 pt.
 
 ### Hierarchy
 - **Days figure** (600, 44 pt, tracking −1, tabular): the days until the next charge, the panel's only large number. It sits on the right of the header in label colour, or in accent text at 0–1, with an 11 pt secondary caption under it.
@@ -258,9 +384,14 @@ Each of the eight category indices has a colour pair: a **tile** colour that is 
 - **Tag** (600, 11 pt, tracking 0.4, uppercase): Trial, Ended and Inactive.
 - **Station label** (600, 11 pt, primary): "23 · ChatGPT Plus +1" above the next station.
 - **Menu-bar counter** (system font size, tabular): " 3d" in label colour, or semibold accent text at 0–1.
+- **Year figure** (600, 28 pt, tabular): the Year window's summary sum, scaling to 80 % before it truncates. Year window only.
+- **Month figure** (600, 26 pt, tabular): the count on a month tile. Year window only.
+- **Page title** (600, 22 pt): the subscription page's name; with tabular figures, the page's year sum. Year window only.
+- **Period title** (600, 20 pt): the selected week's or month's title in the side pane. Year window only.
+- **Page price** (500, 15 pt, tabular): the price per cycle in the subscription page's header.
 
 ### Named Rules
-**The One Large Number Rule.** The 44 pt days figure is the only display-size number. Totals stay at 17 pt or less.
+**The One Large Number Rule.** In the panel, the 44 pt days figure is the only display-size number. Totals stay at 17 pt or less.
 
 ## Layout
 
@@ -287,7 +418,7 @@ The panel is flat. Depth belongs to the system popover: its material (glass or v
 - The only fills are the row highlight and the share-line track: the rail colour at 28 %, or 45 % under Increase Contrast.
 
 ### Named Rules
-**The System Owns the Ground Rule.** One container owns the background: the `NSPopover`. Views paint no panel background, card surface or row fill. The fallback hexes exist only for snapshots and contrast checks.
+**The System Owns the Ground Rule.** In the panel, one container owns the background: the `NSPopover`. Views paint no panel background, card surface or row fill. The Year window's one card is its named departure. The fallback hexes exist only for snapshots and contrast checks.
 
 ## Shapes
 
@@ -371,7 +502,106 @@ These stay standard SwiftUI `Form` / `TabView` in system appearance and inherit 
 - the category swatches in Settings (line colours);
 - monogram tiles.
 
-Payment methods in Settings show no colour swatch. None of the panel's line drawing, tracked heads or row grammar appears in these windows.
+Payment methods in Settings show no colour swatch. The panel's line drawing, tracked heads and row grammar do not appear in the editor or Settings. The Year window is the exception: it carries all three (see Year Window).
+
+## Year Window
+
+The Year window is the world's first large surface: a resizable window (1100 × 720 pt on first open, 960 × 600 pt minimum) on the system window ground, with a native SwiftUI toolbar that macOS 26 renders as glass. It draws the next 12 months as a commit calendar. One neutral grid counts the charges in each week or month by tone, and the selected cell's charges sit beside it. The world carries over unchanged: SF Pro with tabular figures, station rings in the category's line colour, #E8590C only for "now", semantic text colours, the panel's row grammar and its tracked heads. **The panel's rules do not change.** The departures named below stop at this window's edges.
+
+### Layout
+- **Toolbar,** left to right:
+  - the title "Year" with the period as its subtitle ("Oct 22, 2026 — Oct 21, 2027"; both ends carry the year);
+  - Weeks / Months, an AppKit `NSSegmentedControl` at its intrinsic width (the panel's control, not SwiftUI's picker);
+  - category chips: button-style toggles for "All", then each category that has subscriptions (its 13 pt station ring and name), then "No category". Chips that do not fit go into a "More" menu, then all of them into one "Categories" menu;
+  - the Filters menu (cards, billing cycle, currency, trials at future price, show inactive, reset). Its title counts the conditions in effect ("Filters · 2") and its symbol fills when any are on;
+  - the system search field.
+  With no subscriptions or an unreadable file, the mode switch and search dim (0.45 on macOS 26), and the chips and Filters are removed.
+- **Margins:** 20 pt at the sides and bottom, 16 pt at the top, 16 pt between the summary and the main row, 20 pt between the grid card and the side pane.
+- **Summary:** "Charged in the next 12 months" (13 pt secondary), the sum in the year figure (28 pt), "+ N without a rate" beside it when part of the sum has no rate, and a 12 pt secondary caption: the number of charges · "≈ … / month" · "CBR rate on …". A second caption line holds the trials at their future price and the subscriptions excluded for want of a rate; the excluded ones are named in a tooltip. A sum with no rate at all reads "—".
+- **Main row:** the side pane takes 35 % of the room, clamped to 320–460 pt. It grows beyond that only when a full-size grid leaves more room. The grid card takes the rest and scrolls both ways when it cannot fit.
+- **Week grid:** 12–14 month columns of 1–5 week cells. A week belongs to the month of its fourth day. Each column stands under its month label (month-label style, "JAN ’27" when the year turns, 14 pt row). Cells are squares of 36–56 pt, as large as both the width and the height allow, with 6 pt gaps.
+- **Month grid:** four columns of tiles with 10 pt gaps. Tiles are 120–180 pt wide and 96–144 pt tall (at most 0.9 of their width).
+- **Legend:** 14 pt under the grid: "fewer charges", five 12 pt swatches (3 pt corners), then "more", in 11 pt secondary. Each threshold sits under its own swatch in tabular figures: 0 · 1 · 2 · 3 · 4+ for weeks, 0 · 1–3 · 4–6 · 7–9 · 10+ for months. Every swatch is centred in a column as wide as the widest threshold.
+- **Side pane:** a segmented Week (or Month) | All subscriptions control above the list.
+  - **Week / Month:** the cell's title ("October 22–24", 20 pt semibold), "N charges · sum" in 12 pt secondary, then its charge rows by date, scrolling.
+  - **All subscriptions:** "N subscriptions" in 12 pt secondary with a Sort menu (by total, by date, by name), then one row per subscription that passes the filter.
+
+### Count Ramp
+The cell tone is a neutral five-step ramp. It is neutral because a line colour means a category and orange means "now". A cell's step comes from its number of charges against the thresholds: 1/2/3/4 for weeks, 1/4/7/10 for months. Step 0 means no charges.
+
+| Step | Light (`year-ramp-light-*`) | Dark (`year-ramp-dark-*`) | Light, Increase Contrast | Dark, Increase Contrast |
+|---|---|---|---|---|
+| 0 | #E8E8E4 | #2C2C2E | #DADAD4 | #3A3A3C |
+| 1 | #CFCFCA | #48484A | #B3B3AD | #5A5A5E |
+| 2 | #A3A39D | #6E6E73 | #808079 | #8E8E93 |
+| 3 | #5E5E5A | #A1A1A6 | #45453F | #C7C7CC |
+| 4 | #1D1D1F | #F2F2F0 | #000000 | #FFFFFF |
+
+Text on a month tile takes the colour set for its step (`year-ramp-text-*`). The colour is set per step, because a single "invert from step 3" does not hold for every ramp:
+- **Light:** steps 0–2 #1D1D1F; steps 3–4 #FFFFFF.
+- **Dark:** steps 0–2 #F2F2F0; steps 3–4 #1C1C1E.
+- **Light, Increase Contrast:** steps 0–2 #000000; steps 3–4 #FFFFFF.
+- **Dark, Increase Contrast:** steps 0–1 #FFFFFF; steps 2–4 #000000.
+
+All 20 step/text pairs reach at least 4.5:1 (the weakest is 4.52:1, dark step 2). Both rings reach at least 3:1 on the card ground. Under Increase Contrast every cell, tile and legend swatch also gets a 1 pt `separatorColor` edge. Values live in `YearRamp`.
+
+### Cards
+The grid sits in one card (`year-card-light` / `year-card-dark`, #FBFBF9 / #232325) with 16 pt continuous corners, 16 pt padding and a 0.5 pt hairline of the label colour (8 % light, 12 % dark). Week cells (7 pt corners) and month tiles (14 pt corners) are tone fills inside it, not separate cards. The window draws no shadow; the window and its toolbar own their depth.
+
+### Rings
+Rings are drawn outside the cell, through a gap of the card ground, so they never cover the tone:
+- **Now** (this week or this month): a 1.5 pt gap, then a 2.5 pt ring in the accent (#E8590C).
+- **Selection:** a 2 pt gap, then a 2 pt ring in full ink (the label colour).
+- **Both:** the accent ring as above, then the selection ring at 1.5 pt behind it (a 5.5 pt offset from the cell).
+- **Keyboard focus:** while the grid holds focus, the selection ring takes the system focus colour (`keyboardFocusIndicatorColor`) at full opacity, which gives 4.8:1 on the light card and 6:1 on the dark card with the blue accent. The system focus rectangle is turned off. The focus is shown on the selection ring and nowhere else.
+- A ring's corner is the cell's corner plus its offset, so it stays concentric. The column or row holding a ring draws above its neighbours.
+- Click selects a cell. The arrow keys walk the grid (in weeks, left/right keep the row and clamp to a shorter column), and Return opens the cell's first subscription.
+
+### Month Tile
+- **Text, top to bottom:** the month label (11 pt semibold, tracking 0.6), with "from 22" / "to 21" in 11 pt regular when the period cuts the month; the count in the month figure (26 pt semibold, tabular); the word "charges" (12 pt); and the sum (13 pt semibold, tabular, scaling to 80 % before it truncates).
+- **Padding:** 14 × 12 pt.
+- **Colour:** every text takes the step's ramp text colour.
+
+### Side-pane Rows
+- **Layout:** a 28 pt logo or monogram tile, then a 10 pt gap and the name (13 semibold). The name stays on one line with its tag beside it, or wraps to two lines with the tag under it.
+- **Details line:** under the name, in 11 pt tabular secondary: the station ring, then the details. A charge row reads date · "once a year" · card label. An All row reads price per cycle · category name.
+- **Amount column:** on the right, the amount (13 semibold tabular) over an 11 pt secondary line: "≈ base" for a charge in a foreign currency, "next — date" in All.
+- **Size:** rows are at least 46 pt tall, with 8 × 6 pt padding.
+- **Giving way:** the details stay whole; the category tail-truncates, and the card truncates (keeping its "•• 4242") to no shorter than 48 pt before it is dropped.
+- **Hover:** a 9 pt rounded highlight of the label colour at 6 % in light and 11 % in dark. This is the window's own fill and does not replace the panel's 6 pt, 7 % / 11 % highlight.
+- **Tags:** Trial, Ended and Inactive use the panel's outline tags.
+- **Click:** opens the subscription page.
+
+### Subscription Page
+The subscription page is pushed inside the same window. "‹ Year" sits in the toolbar's navigation place and also answers Esc and ⌘[. The push is instant under Reduce Motion.
+- **Header:**
+  - a 56 pt logo;
+  - the name at 22 pt semibold with its tag;
+  - the price per cycle in 15 pt medium tabular, with "≈ … / month" in 13 pt secondary for other cycles;
+  - "→ amount from date" when a later price is scheduled;
+  - on the right, Edit and "Manage subscription ↗" as large native buttons.
+- **Year:** the summary words, then the sum at 22 pt semibold ("≈ base" beside it when foreign) and "N charges". Under them is the week grid in a card, with every cell at step 0. A station of the subscription's line colour sits on each week it charges, in a 1 pt halo of the card ground.
+- **Charges** column (280–420 pt): a tracked head, then one charge line per charge. A line shows the date (13 pt) with "next" / "new price" outline tags and the amount over "≈ base". Lines are at least 38 pt tall. The lines of the week picked in the grid are lit (label colour at 8 % / 14 %); hover shows a fainter fill (4 % / 8 %), both with 9 pt corners. Clicking a line picks its week.
+- **Price history:** "old → new · from date · +N %". A rise of 10 % or more is set in semibold accent text.
+- **Details:** a two-column grid: secondary labels, values in 13 pt. The category shows as its station ring and name; notes appear in full and can be selected.
+- Section heads are the panel's tracked uppercase group heads (11 pt semibold, tracking 0.7, secondary).
+- With no charges in the year, the grid card is replaced by a card holding "No charges in the next year" and "next — date". The page then narrows to 640 pt.
+
+### States
+- **Unreadable file:** the shared data banner (system red, "Show data folder") and nothing under it. An empty year is not drawn as if the library were new.
+- **No subscriptions:** the panel's "You Are Here" empty state with "Add your first subscription".
+- **Nothing found:** a magnifying-glass empty state with "Reset filters", and no figure. A zero sum would read as a year without charges.
+- **No charges this year:** the summary and the card stay. "No charges in the next 12 months" (13 pt medium secondary) sits above an all-step-0 grid, and the side pane switches to All subscriptions.
+- **Empty cell:** the pane shows "No charges this week / month", then a tracked "next" head over the nearest later charge's row.
+- **Only inactive left in All:** a pause-symbol empty state with "Show inactive".
+- **Banners:** the panel's save-error and recovery banners run full width above the content, on the year and on the page.
+
+### Named Rules
+**The Window Card Rule.** In the Year window, the week grid (and the year card on the subscription page) sits on one card at 16 pt corners over the window ground. Cells and tiles are tone fills inside it. The panel stays card-free.
+
+**The Two Year Figures Rule.** In the Year window, the year figure (28 pt) is the summary sum and the month figure (26 pt) is a tile's count. Titles stay at 22 pt or less. The panel keeps its one 44 pt days figure.
+
+**The Counted Ink Rule.** In the Year window, full ink on graphics belongs to ramp step 4 and the selection ring. Step 4 is the top of a count ramp, not the "now" accent. The accent ring marks only this week or this month.
 
 ## Do's and Don'ts
 
@@ -383,6 +613,7 @@ Payment methods in Settings show no colour swatch. None of the panel's line draw
 - **Do** use tabular digits on every number, and keep amounts uncompressed and tight to the right margin.
 - **Do** let the `NSPopover` own the ground and use semantic label colours for text.
 - **Do** keep the editor and Settings native, inheriting only tiles and line swatches.
+- **Do** take the Year window's cell tones and tile text from `YearRamp` per step, appearance and Increase Contrast, and draw its rings outside the cell through a gap of the card ground.
 - **Do** step the horizon in two 90 ms unseasoned steps, and make it instant under Reduce Motion.
 
 ### Don't:
@@ -390,7 +621,8 @@ Payment methods in Settings show no colour swatch. None of the panel's line draw
 - **Don't** lower the opacity of text or amounts on hover, selection or press.
 - **Don't** give a payment method, an error, a state or a decoration a line colour.
 - **Don't** add another custom orange, or spend the accent outside "now" and steep price rises.
-- **Don't** put full label-colour ink on graphics other than the today ring, the leg, the next-station label and the lifted halo.
-- **Don't** add a second large number. The 44 pt days figure is alone.
+- **Don't** put full label-colour ink on panel graphics other than the today ring, the leg, the next-station label and the lifted halo. In the Year window, only ramp step 4 and the selection ring take it.
+- **Don't** add a second large number to the panel. The 44 pt days figure is alone there; the Year window's 28 pt and 26 pt figures stay in that window.
+- **Don't** colour the Year grid's tone with a line colour or the accent. The count ramp is neutral.
 - **Don't** set text below 11 pt.
 - **Don't** bundle third-party brand logos. Use a monogram tile, the user's image or the site's icon.

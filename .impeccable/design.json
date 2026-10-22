@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-20T20:57:10+00:00",
+  "generatedAt": "2026-10-22T08:18:29+00:00",
   "title": "Design System: Subus",
   "extensions": {
     "colorMeta": {
@@ -423,6 +423,396 @@
           "#C9C9C9",
           "#EEEEEE"
         ]
+      },
+      "year-card-light": {
+        "role": "neutral",
+        "displayName": "Year Card (light)",
+        "canonical": "#FBFBF9",
+        "tonalRamp": [
+          "#262626",
+          "#40403F",
+          "#5C5C5B",
+          "#7B7B7A",
+          "#999998",
+          "#B8B8B7",
+          "#D7D7D5",
+          "#F3F3F1"
+        ]
+      },
+      "year-card-dark": {
+        "role": "neutral",
+        "displayName": "Year Card (dark)",
+        "canonical": "#232325",
+        "tonalRamp": [
+          "#262628",
+          "#3F3F41",
+          "#5B5B5D",
+          "#7A7A7B",
+          "#99999A",
+          "#B7B7B8",
+          "#D6D6D6",
+          "#F2F2F2"
+        ]
+      },
+      "year-ramp-light-0": {
+        "role": "neutral",
+        "displayName": "Count Ramp Light, step 0",
+        "canonical": "#E8E8E4",
+        "tonalRamp": [
+          "#E8E8E4",
+          "#CFCFCA",
+          "#A3A39D",
+          "#5E5E5A",
+          "#1D1D1F"
+        ]
+      },
+      "year-ramp-light-1": {
+        "role": "neutral",
+        "displayName": "Count Ramp Light, step 1",
+        "canonical": "#CFCFCA",
+        "tonalRamp": [
+          "#E8E8E4",
+          "#CFCFCA",
+          "#A3A39D",
+          "#5E5E5A",
+          "#1D1D1F"
+        ]
+      },
+      "year-ramp-light-2": {
+        "role": "neutral",
+        "displayName": "Count Ramp Light, step 2",
+        "canonical": "#A3A39D",
+        "tonalRamp": [
+          "#E8E8E4",
+          "#CFCFCA",
+          "#A3A39D",
+          "#5E5E5A",
+          "#1D1D1F"
+        ]
+      },
+      "year-ramp-light-3": {
+        "role": "neutral",
+        "displayName": "Count Ramp Light, step 3",
+        "canonical": "#5E5E5A",
+        "tonalRamp": [
+          "#E8E8E4",
+          "#CFCFCA",
+          "#A3A39D",
+          "#5E5E5A",
+          "#1D1D1F"
+        ]
+      },
+      "year-ramp-light-4": {
+        "role": "neutral",
+        "displayName": "Count Ramp Light, step 4",
+        "canonical": "#1D1D1F",
+        "tonalRamp": [
+          "#E8E8E4",
+          "#CFCFCA",
+          "#A3A39D",
+          "#5E5E5A",
+          "#1D1D1F"
+        ]
+      },
+      "year-ramp-dark-0": {
+        "role": "neutral",
+        "displayName": "Count Ramp Dark, step 0",
+        "canonical": "#2C2C2E",
+        "tonalRamp": [
+          "#2C2C2E",
+          "#48484A",
+          "#6E6E73",
+          "#A1A1A6",
+          "#F2F2F0"
+        ]
+      },
+      "year-ramp-dark-1": {
+        "role": "neutral",
+        "displayName": "Count Ramp Dark, step 1",
+        "canonical": "#48484A",
+        "tonalRamp": [
+          "#2C2C2E",
+          "#48484A",
+          "#6E6E73",
+          "#A1A1A6",
+          "#F2F2F0"
+        ]
+      },
+      "year-ramp-dark-2": {
+        "role": "neutral",
+        "displayName": "Count Ramp Dark, step 2",
+        "canonical": "#6E6E73",
+        "tonalRamp": [
+          "#2C2C2E",
+          "#48484A",
+          "#6E6E73",
+          "#A1A1A6",
+          "#F2F2F0"
+        ]
+      },
+      "year-ramp-dark-3": {
+        "role": "neutral",
+        "displayName": "Count Ramp Dark, step 3",
+        "canonical": "#A1A1A6",
+        "tonalRamp": [
+          "#2C2C2E",
+          "#48484A",
+          "#6E6E73",
+          "#A1A1A6",
+          "#F2F2F0"
+        ]
+      },
+      "year-ramp-dark-4": {
+        "role": "neutral",
+        "displayName": "Count Ramp Dark, step 4",
+        "canonical": "#F2F2F0",
+        "tonalRamp": [
+          "#2C2C2E",
+          "#48484A",
+          "#6E6E73",
+          "#A1A1A6",
+          "#F2F2F0"
+        ]
+      },
+      "year-ramp-light-contrast-0": {
+        "role": "neutral",
+        "displayName": "Count Ramp Light, Increase Contrast, step 0",
+        "canonical": "#DADAD4",
+        "tonalRamp": [
+          "#DADAD4",
+          "#B3B3AD",
+          "#808079",
+          "#45453F",
+          "#000000"
+        ]
+      },
+      "year-ramp-light-contrast-1": {
+        "role": "neutral",
+        "displayName": "Count Ramp Light, Increase Contrast, step 1",
+        "canonical": "#B3B3AD",
+        "tonalRamp": [
+          "#DADAD4",
+          "#B3B3AD",
+          "#808079",
+          "#45453F",
+          "#000000"
+        ]
+      },
+      "year-ramp-light-contrast-2": {
+        "role": "neutral",
+        "displayName": "Count Ramp Light, Increase Contrast, step 2",
+        "canonical": "#808079",
+        "tonalRamp": [
+          "#DADAD4",
+          "#B3B3AD",
+          "#808079",
+          "#45453F",
+          "#000000"
+        ]
+      },
+      "year-ramp-light-contrast-3": {
+        "role": "neutral",
+        "displayName": "Count Ramp Light, Increase Contrast, step 3",
+        "canonical": "#45453F",
+        "tonalRamp": [
+          "#DADAD4",
+          "#B3B3AD",
+          "#808079",
+          "#45453F",
+          "#000000"
+        ]
+      },
+      "year-ramp-light-contrast-4": {
+        "role": "neutral",
+        "displayName": "Count Ramp Light, Increase Contrast, step 4",
+        "canonical": "#000000",
+        "tonalRamp": [
+          "#DADAD4",
+          "#B3B3AD",
+          "#808079",
+          "#45453F",
+          "#000000"
+        ]
+      },
+      "year-ramp-dark-contrast-0": {
+        "role": "neutral",
+        "displayName": "Count Ramp Dark, Increase Contrast, step 0",
+        "canonical": "#3A3A3C",
+        "tonalRamp": [
+          "#3A3A3C",
+          "#5A5A5E",
+          "#8E8E93",
+          "#C7C7CC",
+          "#FFFFFF"
+        ]
+      },
+      "year-ramp-dark-contrast-1": {
+        "role": "neutral",
+        "displayName": "Count Ramp Dark, Increase Contrast, step 1",
+        "canonical": "#5A5A5E",
+        "tonalRamp": [
+          "#3A3A3C",
+          "#5A5A5E",
+          "#8E8E93",
+          "#C7C7CC",
+          "#FFFFFF"
+        ]
+      },
+      "year-ramp-dark-contrast-2": {
+        "role": "neutral",
+        "displayName": "Count Ramp Dark, Increase Contrast, step 2",
+        "canonical": "#8E8E93",
+        "tonalRamp": [
+          "#3A3A3C",
+          "#5A5A5E",
+          "#8E8E93",
+          "#C7C7CC",
+          "#FFFFFF"
+        ]
+      },
+      "year-ramp-dark-contrast-3": {
+        "role": "neutral",
+        "displayName": "Count Ramp Dark, Increase Contrast, step 3",
+        "canonical": "#C7C7CC",
+        "tonalRamp": [
+          "#3A3A3C",
+          "#5A5A5E",
+          "#8E8E93",
+          "#C7C7CC",
+          "#FFFFFF"
+        ]
+      },
+      "year-ramp-dark-contrast-4": {
+        "role": "neutral",
+        "displayName": "Count Ramp Dark, Increase Contrast, step 4",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#3A3A3C",
+          "#5A5A5E",
+          "#8E8E93",
+          "#C7C7CC",
+          "#FFFFFF"
+        ]
+      },
+      "year-ramp-text-light-low": {
+        "role": "neutral",
+        "displayName": "Tile Text Light Low",
+        "canonical": "#1D1D1F",
+        "tonalRamp": [
+          "#262628",
+          "#3F3F41",
+          "#5B5B5D",
+          "#7A7A7B",
+          "#99999A",
+          "#B7B7B8",
+          "#D6D6D6",
+          "#F2F2F2"
+        ]
+      },
+      "year-ramp-text-light-high": {
+        "role": "neutral",
+        "displayName": "Tile Text Light High",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#262626",
+          "#404040",
+          "#5C5C5C",
+          "#7A7A7A",
+          "#999999",
+          "#B8B8B8",
+          "#D6D6D6",
+          "#F2F2F2"
+        ]
+      },
+      "year-ramp-text-dark-low": {
+        "role": "neutral",
+        "displayName": "Tile Text Dark Low",
+        "canonical": "#F2F2F0",
+        "tonalRamp": [
+          "#262626",
+          "#40403F",
+          "#5C5C5B",
+          "#7B7B7A",
+          "#999998",
+          "#B8B8B7",
+          "#D7D7D5",
+          "#F3F3F1"
+        ]
+      },
+      "year-ramp-text-dark-high": {
+        "role": "neutral",
+        "displayName": "Tile Text Dark High",
+        "canonical": "#1C1C1E",
+        "tonalRamp": [
+          "#262628",
+          "#3F3F41",
+          "#5B5B5D",
+          "#7A7A7B",
+          "#99999A",
+          "#B7B7B8",
+          "#D6D6D6",
+          "#F2F2F2"
+        ]
+      },
+      "year-ramp-text-light-contrast-low": {
+        "role": "neutral",
+        "displayName": "Tile Text Light Contrast Low",
+        "canonical": "#000000",
+        "tonalRamp": [
+          "#262626",
+          "#404040",
+          "#5C5C5C",
+          "#7A7A7A",
+          "#999999",
+          "#B8B8B8",
+          "#D6D6D6",
+          "#F2F2F2"
+        ]
+      },
+      "year-ramp-text-light-contrast-high": {
+        "role": "neutral",
+        "displayName": "Tile Text Light Contrast High",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#262626",
+          "#404040",
+          "#5C5C5C",
+          "#7A7A7A",
+          "#999999",
+          "#B8B8B8",
+          "#D6D6D6",
+          "#F2F2F2"
+        ]
+      },
+      "year-ramp-text-dark-contrast-low": {
+        "role": "neutral",
+        "displayName": "Tile Text Dark Contrast Low",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#262626",
+          "#404040",
+          "#5C5C5C",
+          "#7A7A7A",
+          "#999999",
+          "#B8B8B8",
+          "#D6D6D6",
+          "#F2F2F2"
+        ]
+      },
+      "year-ramp-text-dark-contrast-high": {
+        "role": "neutral",
+        "displayName": "Tile Text Dark Contrast High",
+        "canonical": "#000000",
+        "tonalRamp": [
+          "#262626",
+          "#404040",
+          "#5C5C5C",
+          "#7A7A7A",
+          "#999999",
+          "#B8B8B8",
+          "#D6D6D6",
+          "#F2F2F2"
+        ]
       }
     },
     "typographyMeta": {
@@ -473,6 +863,26 @@
       "menu-bar-counter": {
         "displayName": "Menu Bar Counter",
         "purpose": "Days counter after the menu-bar glyph."
+      },
+      "year-figure": {
+        "displayName": "Year Figure",
+        "purpose": "The Year window summary sum, 28 pt; Year window only."
+      },
+      "month-figure": {
+        "displayName": "Month Figure",
+        "purpose": "The count on a month tile, 26 pt; Year window only."
+      },
+      "page-title": {
+        "displayName": "Page Title",
+        "purpose": "The subscription page's name and, with tabular figures, its year sum."
+      },
+      "period-title": {
+        "displayName": "Period Title",
+        "purpose": "The selected week's or month's title in the Year side pane."
+      },
+      "page-price": {
+        "displayName": "Page Price",
+        "purpose": "Price per cycle in the subscription page's header."
       }
     },
     "shadows": [
@@ -485,6 +895,11 @@
         "name": "lifted-halo",
         "value": "0 0 0 2px <ground>, 0 0 0 3px labelColor",
         "purpose": "1 pt label-colour ring 2 pt outside a lifted station or capsule."
+      },
+      {
+        "name": "year-card-hairline",
+        "value": "inset 0 0 0 0.5px rgba(29,29,31,0.08) (dark: label colour at 12 %)",
+        "purpose": "Edge of the Year window card; the window draws no shadow of its own."
       }
     ],
     "motion": [
@@ -497,18 +912,45 @@
         "name": "lift",
         "value": "instant",
         "purpose": "Station lift and recede, row highlight: no transition."
+      },
+      {
+        "name": "year-push",
+        "value": "system NavigationStack push",
+        "purpose": "Subscription page in the Year window; instant under Reduce Motion. Nothing else in the window moves."
       }
     ],
     "accessibility": {
-      "increaseContrast": "Line strokes 3→4 pt, receded 1.5→2 pt, card mark 1.5→2 pt, share track opacity 0.28→0.45; system focus ring.",
+      "increaseContrast": "Line strokes 3→4 pt, receded 1.5→2 pt, card mark 1.5→2 pt, share track opacity 0.28→0.45; system focus ring. Year window: the contrast count ramp and tile text, plus a 1 pt separatorColor edge on every cell, tile and legend swatch.",
       "reduceTransparency": "System opaque NSPopover; no custom handling.",
-      "reduceMotion": "Horizon slide is instant.",
-      "liquidGlass": "macOS 26: NSPopover system glass (no custom glassEffect); 14-15: popover vibrancy."
+      "reduceMotion": "Horizon slide is instant. The Year subscription page push is instant.",
+      "liquidGlass": "macOS 26: NSPopover system glass (no custom glassEffect); 14-15: popover vibrancy.",
+      "keyboardFocus": "Year grid: focus is shown on the selection ring in keyboardFocusIndicatorColor at full opacity; the system focus rectangle is disabled. Arrows walk the grid, Return opens the first subscription."
     },
     "breakpoints": [
       {
         "name": "panel",
         "value": "360px fixed; height capped at visible screen height − 80pt"
+      },
+      {
+        "name": "year-window",
+        "value": "1100×720pt on open, 960×600pt minimum; side pane 35 % clamped 320–460pt; week cells 36–56pt"
+      }
+    ],
+    "rings": [
+      {
+        "name": "ring-now",
+        "value": "1.5px card-ground gap + 2.5px #E8590C, outside the cell",
+        "purpose": "This week or this month."
+      },
+      {
+        "name": "ring-selection",
+        "value": "2px card-ground gap + 2px label colour (focus colour while focused)",
+        "purpose": "The selected cell."
+      },
+      {
+        "name": "ring-both",
+        "value": "accent ring, then 1.5px selection ring at a 5.5px offset",
+        "purpose": "The selected cell is this week or month."
       }
     ]
   },
@@ -592,6 +1034,46 @@
       "description": "18 pt renewal ring in label colour with a #E8590C centre dot, non-template; counter in accent text, semibold, at 0-1 days.",
       "html": "<span class=\"ds-mb\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 18 18\" fill=\"none\"><path d=\"M15 9a6 6 0 1 1-2.2-4.65\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"/><path d=\"M13.6 1.9v3.2h-3.2\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"9\" cy=\"9\" r=\"2.6\" fill=\"#E8590C\"/></svg><span class=\"ds-mb-n ds-mb-soon\">1d</span></span>",
       "css": ":host{--accent:#E8590C;--accent-text:#A84300;--rail:#8A8A83;--ink:#1D1D1F;--ink-2:#62625B;--ground:#F6F6F3;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-mb{display:inline-flex;align-items:center;gap:4px;color:var(--ink);font-size:13px;}.ds-mb-soon{color:var(--accent-text);font-weight:600;}"
+    },
+    {
+      "name": "Year Card and Week Cells",
+      "kind": "card",
+      "refersTo": "year-card",
+      "description": "The grid card (16 pt corners, 16 pt padding, 0.5 pt hairline) holding week cells on the neutral count ramp, 7 pt corners, 6 pt gaps.",
+      "html": "<div class=\"ds-year-card\"><div class=\"ds-year-col\"><span class=\"ds-year-month\">OCT</span><button class=\"ds-cell s0 now\"></button><button class=\"ds-cell s3\"></button></div><div class=\"ds-year-col\"><span class=\"ds-year-month\">NOV</span><button class=\"ds-cell s1\"></button><button class=\"ds-cell s2 sel\"></button><button class=\"ds-cell s4\"></button></div></div>",
+      "css": ":host{--accent:#E8590C;--ink:#1D1D1F;--ink-2:#62625B;--card:#FBFBF9;--ground:#ECECEC;--focus:#0A64D6;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-year-card{display:inline-flex;gap:6px;padding:18px 16px 16px;background:var(--card);border-radius:16px;box-shadow:inset 0 0 0 .5px rgba(29,29,31,.08);}.ds-year-col{display:flex;flex-direction:column;gap:6px;align-items:center;}.ds-year-month{font-size:11px;font-weight:600;letter-spacing:.6px;color:var(--ink-2);height:14px;}.ds-cell{width:44px;height:44px;border:0;border-radius:7px;padding:0;cursor:pointer;}.s0{background:#E8E8E4}.s1{background:#CFCFCA}.s2{background:#A3A39D}.s3{background:#5E5E5A}.s4{background:#1D1D1F}.ds-cell.now{box-shadow:0 0 0 1.5px var(--card),0 0 0 4px var(--accent);}.ds-cell.sel{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--ink);}.ds-cell:focus-visible{outline:none;box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--focus);}"
+    },
+    {
+      "name": "Month Tile",
+      "kind": "custom",
+      "refersTo": "year-month-tile",
+      "description": "A month on the count ramp: label, 26 pt count, the word, the sum; text in the step's ramp text colour; 14 pt corners.",
+      "html": "<div class=\"ds-tiles\"><div class=\"ds-tile s2\"><span class=\"ds-tl\">NOV</span><span class=\"ds-tn\">7</span><span class=\"ds-tw\">charges</span><span class=\"ds-ts\">RUB 6,137</span></div><div class=\"ds-tile s4\"><span class=\"ds-tl\">DEC</span><span class=\"ds-tn\">12</span><span class=\"ds-tw\">charges</span><span class=\"ds-ts\">RUB 9,065</span></div></div>",
+      "css": ":host{--accent:#E8590C;--ink:#1D1D1F;--ink-2:#62625B;--card:#FBFBF9;--ground:#ECECEC;--focus:#0A64D6;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-tiles{display:flex;gap:10px;}.ds-tile{display:flex;flex-direction:column;width:150px;height:120px;padding:12px 14px;border-radius:14px;box-sizing:border-box;}.ds-tile.s2{background:#A3A39D;color:#1D1D1F}.ds-tile.s4{background:#1D1D1F;color:#FFFFFF}.ds-tl{font-size:11px;font-weight:600;letter-spacing:.6px;flex:1;}.ds-tn{font-size:26px;font-weight:600;line-height:1.1;}.ds-tw{font-size:12px;}.ds-ts{font-size:13px;font-weight:600;margin-top:2px;}"
+    },
+    {
+      "name": "Year Legend",
+      "kind": "custom",
+      "refersTo": "year-legend-swatch",
+      "description": "\"fewer charges ■■■■■ more\" with each threshold under its own 12 pt swatch.",
+      "html": "<div class=\"ds-legend\"><span>fewer charges</span><span class=\"ds-lg\"><i style=\"background:#E8E8E4\"></i>0</span><span class=\"ds-lg\"><i style=\"background:#CFCFCA\"></i>1</span><span class=\"ds-lg\"><i style=\"background:#A3A39D\"></i>2</span><span class=\"ds-lg\"><i style=\"background:#5E5E5A\"></i>3</span><span class=\"ds-lg\"><i style=\"background:#1D1D1F\"></i>4+</span><span>more</span></div>",
+      "css": ":host{--accent:#E8590C;--ink:#1D1D1F;--ink-2:#62625B;--card:#FBFBF9;--ground:#ECECEC;--focus:#0A64D6;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-legend{display:flex;align-items:flex-start;gap:4px;font-size:11px;color:var(--ink-2);line-height:12px;}.ds-lg{display:flex;flex-direction:column;align-items:center;gap:3px;width:20px;}.ds-lg i{display:block;width:12px;height:12px;border-radius:3px;}"
+    },
+    {
+      "name": "Year Summary",
+      "kind": "custom",
+      "refersTo": "year-summary",
+      "description": "Summary words, the 28 pt year figure, and a 12 pt secondary caption.",
+      "html": "<div class=\"ds-ysum\"><div class=\"ds-ysl\">Charged in the next 12 months</div><div class=\"ds-ysf\">RUB 76,571</div><div class=\"ds-ysc\">85 charges · ≈ RUB 6,381 / month · CBR rate on Oct 22</div></div>",
+      "css": ":host{--accent:#E8590C;--ink:#1D1D1F;--ink-2:#62625B;--card:#FBFBF9;--ground:#ECECEC;--focus:#0A64D6;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-ysum{display:flex;flex-direction:column;gap:2px;color:var(--ink);}.ds-ysl{font-size:13px;color:var(--ink-2);}.ds-ysf{font-size:28px;font-weight:600;}.ds-ysc{font-size:12px;color:var(--ink-2);padding-top:2px;}"
+    },
+    {
+      "name": "Year Side Row",
+      "kind": "custom",
+      "refersTo": "year-side-row",
+      "description": "28 pt tile, name, ring and details line, amount over \"≈ base\"; 9 pt hover highlight at 6 % / 11 %.",
+      "html": "<button class=\"ds-yrow\"><span class=\"ds-ytile\">S</span><span class=\"ds-ymid\"><b>Spotify</b><span class=\"ds-ymeta\"><i></i>Tue, Oct 27 · Т-Банк •• 4242</span></span><span class=\"ds-yamt\"><b>$20</b><span>≈ RUB 1,632</span></span></button>",
+      "css": ":host{--accent:#E8590C;--ink:#1D1D1F;--ink-2:#62625B;--card:#FBFBF9;--ground:#ECECEC;--focus:#0A64D6;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-variant-numeric:tabular-nums;}.ds-yrow{display:flex;align-items:center;gap:10px;width:340px;min-height:46px;padding:6px 8px;border:0;background:none;border-radius:9px;text-align:left;font:inherit;color:var(--ink);cursor:pointer;}.ds-yrow:hover,.ds-yrow:focus-visible{background:rgba(29,29,31,.06);outline:none;}.ds-ytile{width:28px;height:28px;border-radius:7px;background:#005A94;color:#fff;display:grid;place-items:center;font-weight:600;font-size:14px;}.ds-ymid{flex:1;display:flex;flex-direction:column;gap:3px;font-size:13px;}.ds-ymeta{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-2);}.ds-ymeta i{width:7px;height:7px;border:3px solid #005A94;border-radius:50%;}.ds-yamt{display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:13px;}.ds-yamt span{font-size:11px;color:var(--ink-2);}"
     }
   ],
   "narrative": {
@@ -603,22 +1085,23 @@
       "One brand orange (#E8590C). It is spent on \"now\": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises.",
       "Full ink (the label colour) on graphics is reserved for the today ring, the leg to the next station, and the next station's label.",
       "Text never dims. Focus changes only graphics and a faint row highlight.",
-      "Tabular figures on every number."
+      "Tabular figures on every number.",
+      "The Year window adds one card, two year figures and a neutral count ramp. The panel's rules stay as they are."
     ],
     "rules": [
       {
         "name": "The One Reserved Ink Rule",
-        "body": "Full label colour on graphics appears in only three places: the today ring, the leg from today to the next station (5 pt, or 6 pt under Increase Contrast), and the next station's label. Cluster counts, ticks and month labels are secondary ink.",
+        "body": "In the panel, full label colour on graphics appears in only three places: the today ring, the leg from today to the next station (5 pt, or 6 pt under Increase Contrast), and the next station's label. Cluster counts, ticks and month labels are secondary ink.",
         "section": "colors"
       },
       {
         "name": "The Orange Is the Accent Rule",
-        "body": "No custom orange exists apart from #E8590C and its text variant; no category line is orange. The panel's custom orange means \"now\": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises. A new surface does not get the accent orange for emphasis, errors or decoration. Errors (the save-error banner, the editor's field and logo messages) use system red, NSColor.systemRed, never the accent or a line colour.",
+        "body": "No custom orange exists apart from #E8590C and its text variant; no category line is orange. The panel's custom orange means \"now\": the menu-bar dot, today and tomorrow, the days figure at 0–1, and steep price rises. In the Year window, it rings this week or this month and marks steep price rises. A new surface does not get the accent orange for emphasis, errors or decoration. Errors (the save-error banner, the editor's field and logo messages) use system red, `NSColor.systemRed`, never the accent or a line colour.",
         "section": "colors"
       },
       {
         "name": "The Line Means Category Rule",
-        "body": "A line colour on a station, spine, ring or bar always means the subscription's category. A subscription without a category rides the rail grey. Payment methods never take a line colour; their bars are secondary-label grey behind a card-shaped mark. Monogram tiles are the one separate use: a tile's colour is the subscription's own `colorIndex` (or a hash of its name), and two subscriptions may share one. A category's line is a preset or a custom colour the user picked; a custom colour is fitted per theme to 3:1 on the reference ground by moving only its OKLCH lightness, and the hue stays.",
+        "body": "A line colour on a station, spine, ring or bar always means the subscription's category. A subscription without a category rides the rail grey. Payment methods never take a line colour; their bars are secondary-label grey behind a card-shaped mark. Monogram tiles are the one separate use: a tile's colour is the subscription's own `colorIndex` (or a hash of its name), and two subscriptions may share one.",
         "section": "colors"
       },
       {
@@ -628,13 +1111,28 @@
       },
       {
         "name": "The One Large Number Rule",
-        "body": "The 44 pt days figure is the only display-size number. Totals stay at 17 pt or less.",
+        "body": "In the panel, the 44 pt days figure is the only display-size number. Totals stay at 17 pt or less.",
         "section": "typography"
       },
       {
         "name": "The System Owns the Ground Rule",
-        "body": "One container owns the background: the `NSPopover`. Views paint no panel background, card surface or row fill. The fallback hexes exist only for snapshots and contrast checks.",
+        "body": "In the panel, one container owns the background: the `NSPopover`. Views paint no panel background, card surface or row fill. The Year window's one card is its named departure. The fallback hexes exist only for snapshots and contrast checks.",
         "section": "elevation"
+      },
+      {
+        "name": "The Window Card Rule",
+        "body": "In the Year window, the week grid (and the year card on the subscription page) sits on one card at 16 pt corners over the window ground. Cells and tiles are tone fills inside it. The panel stays card-free.",
+        "section": "year-window"
+      },
+      {
+        "name": "The Two Year Figures Rule",
+        "body": "In the Year window, the year figure (28 pt) is the summary sum and the month figure (26 pt) is a tile's count. Titles stay at 22 pt or less. The panel keeps its one 44 pt days figure.",
+        "section": "year-window"
+      },
+      {
+        "name": "The Counted Ink Rule",
+        "body": "In the Year window, full ink on graphics belongs to ramp step 4 and the selection ring. Step 4 is the top of a count ramp, not the \"now\" accent. The accent ring marks only this week or this month.",
+        "section": "year-window"
       }
     ],
     "dos": [
@@ -645,6 +1143,7 @@
       "Do use tabular digits on every number, and keep amounts uncompressed and tight to the right margin.",
       "Do let the `NSPopover` own the ground and use semantic label colours for text.",
       "Do keep the editor and Settings native, inheriting only tiles and line swatches.",
+      "Do take the Year window's cell tones and tile text from `YearRamp` per step, appearance and Increase Contrast, and draw its rings outside the cell through a gap of the card ground.",
       "Do step the horizon in two 90 ms unseasoned steps, and make it instant under Reduce Motion."
     ],
     "donts": [
@@ -652,8 +1151,9 @@
       "Don't lower the opacity of text or amounts on hover, selection or press.",
       "Don't give a payment method, an error, a state or a decoration a line colour.",
       "Don't add another custom orange, or spend the accent outside \"now\" and steep price rises.",
-      "Don't put full label-colour ink on graphics other than the today ring, the leg, the next-station label and the lifted halo.",
-      "Don't add a second large number. The 44 pt days figure is alone.",
+      "Don't put full label-colour ink on panel graphics other than the today ring, the leg, the next-station label and the lifted halo. In the Year window, only ramp step 4 and the selection ring take it.",
+      "Don't add a second large number to the panel. The 44 pt days figure is alone there; the Year window's 28 pt and 26 pt figures stay in that window.",
+      "Don't colour the Year grid's tone with a line colour or the accent. The count ramp is neutral.",
       "Don't set text below 11 pt.",
       "Don't bundle third-party brand logos. Use a monogram tile, the user's image or the site's icon."
     ]
