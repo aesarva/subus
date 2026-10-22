@@ -50,11 +50,12 @@ enum YearFormat {
         return Formatters.date(d, today: today)
     }
 
-    /// "OCT", and for a January of another year than today's "JAN ’27".
-    static func monthLabel(_ key: MonthKey, today: LocalDate) -> String {
+    /// "OCT", and for a January of another year than today's "JAN ’27". Month tiles pass `everyMonth`, so every
+    /// month of another year carries its year and the two Octobers of the period tell apart.
+    static func monthLabel(_ key: MonthKey, today: LocalDate, everyMonth: Bool = false) -> String {
         let first = LocalDate(year: key.year, month: key.month, day: 1)!
         let label = Formatters.monthAbbreviation(first)
-        guard key.month == 1, key.year != today.year else { return label }
+        guard key.year != today.year, everyMonth || key.month == 1 else { return label }
         return label + " ’" + String(format: "%02d", key.year % 100)
     }
 

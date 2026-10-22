@@ -283,7 +283,7 @@ private struct MonthTile: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 5) {
-                Text(verbatim: YearFormat.monthLabel(month.monthKey, today: today))
+                Text(verbatim: YearFormat.monthLabel(month.monthKey, today: today, everyMonth: true))
                     .font(.system(size: 11, weight: .semibold))
                     .tracking(0.6)
                 if let cut {
