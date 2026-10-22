@@ -78,10 +78,17 @@ struct SubscriptionPage: View {
                 .frame(maxWidth: .infinity, alignment: .topLeading)
             }
             .scrollIndicators(.automatic)
-            .onChange(of: selection) { _, week in
-                guard let week, let period = plan.weeks.first(where: { $0.id == week }),
+            // The first selection is the page's own, made on appear: the page stays at its top.
+            .onChange(of: selection) { old, week in
+                guard old != nil, let week, let period = plan.weeks.first(where: { $0.id == week }),
                       let first = period.charges.first else { return }
                 proxy.scrollTo(first.charge.date)
+            }
+            // The arrows walk from a selected week: the page opens on the week of the next charge, which is this
+            // week when it charges, so its charge is lit at once.
+            .onAppear {
+                guard selection == nil, let next = year.charges.first?.charge.date else { return }
+                selection = plan.weeks.first { $0.start <= next && next <= $0.end }?.id
             }
         }
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { room = $0 - Self.padding * 2 }

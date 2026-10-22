@@ -145,7 +145,9 @@ struct YearGrid: View {
 
     private func handle(_ key: KeyEquivalent, columns: [(month: MonthKey, weeks: [YearPeriod])]) -> KeyPress.Result {
         let periods = mode == .weeks ? plan.weeks : plan.months
-        guard let index = periods.firstIndex(where: { $0.id == selection }) else { return .ignored }
+        // Nothing selected yet: the walk starts from this week or month.
+        guard let index = periods.firstIndex(where: { $0.id == selection }) ?? periods.firstIndex(where: isCurrent)
+        else { return .ignored }
         if key == .return {
             guard let onOpen, let id = periods[index].charges.first?.charge.subscriptionID else { return .ignored }
             onOpen(id)

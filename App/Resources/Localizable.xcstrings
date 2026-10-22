@@ -4008,6 +4008,36 @@
         }
       }
     },
+    "card %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "карта %@"
+          }
+        }
+      }
+    },
+    "about %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "примерно %@"
+          }
+        }
+      }
+    },
+    "All subscriptions are inactive": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Все подписки неактивны"
+          }
+        }
+      }
+    },
     "%lld subscriptions": {
       "localizations": {
         "en": {

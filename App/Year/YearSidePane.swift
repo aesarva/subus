@@ -90,14 +90,19 @@ struct YearSidePane: View {
     @ViewBuilder private func chargeRow(_ c: YearCharge) -> some View {
         if let s = model.library.subscriptions.first(where: { $0.id == c.charge.subscriptionID }) {
             let category = model.category(s.categoryID)
-            let approx = c.charge.amount.currency != model.settings.baseCurrency
-                ? c.converted.map { "≈ " + Formatters.total($0) } : nil
+            let converted = c.charge.amount.currency != model.settings.baseCurrency ? c.converted.map(Formatters.total) : nil
+            let card = model.paymentMethod(s.paymentMethodID)?.label
+            let yearly = CycleKind(s.cycle) == .yearly
             YearRow(subscription: s, logosDirectory: logos, lineColor: category?.color,
                     tag: c.isTrialFuturePrice ? AnyView(TrialTag()) : nil,
-                    details: chargeDetails(c, s), label: model.paymentMethod(s.paymentMethodID)?.label,
-                    amount: Formatters.money(c.charge.amount), under: approx,
-                    spoken: [s.name, Formatters.shortDate(c.charge.date, today: today), Formatters.money(c.charge.amount)]
-                        + (c.isTrialFuturePrice ? [String(localized: "trial")] : []),
+                    details: chargeDetails(c, s), label: card,
+                    amount: Formatters.money(c.charge.amount), under: converted.map { "≈ " + $0 },
+                    // "Spotify, Mon, Oct 26, card T-Bank •• 4242, $20, about RUB 1,632, once a year, trial".
+                    spoken: [s.name, Formatters.shortDate(c.charge.date, today: today)]
+                        + [card.map { String(localized: "card \($0)") }, Formatters.money(c.charge.amount),
+                           converted.map { String(localized: "about \($0)") },
+                           yearly ? String(localized: "once a year") : nil,
+                           c.isTrialFuturePrice ? String(localized: "trial") : nil].compactMap { $0 },
                     onOpen: open)
         }
     }
@@ -113,6 +118,18 @@ struct YearSidePane: View {
 
     @ViewBuilder private var allPane: some View {
         let rows = rows()
+        // The filter passes only inactive or ended subscriptions, and they are hidden: say so, not an empty list.
+        if rows.isEmpty, !state.filter.showInactive, !plan.matchedSubscriptionIDs.isEmpty {
+            PanelEmptyState(systemImage: "pause.circle", title: String(localized: "All subscriptions are inactive"),
+                            message: nil, actionTitle: String(localized: "Show inactive"),
+                            action: { state.filter.showInactive = true })
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            allList(rows)
+        }
+    }
+
+    @ViewBuilder private func allList(_ rows: [YearSubscriptionRow]) -> some View {
         HStack {
             Text(verbatim: String(localized: "\(rows.count) subscriptions"))
                 .font(.system(size: 12).monospacedDigit())

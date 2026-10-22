@@ -58,12 +58,13 @@ enum YearFormat {
         String(localized: "\(p.count) charges") + " · " + money(p.total)
     }
 
-    /// The cell's tooltip: "Feb 8 – 14 · 2 charges · 8,233 ₽ · 1 without a rate".
+    /// The cell's tooltip: "Feb 8 – 14 · 2 charges · 8,233 ₽ · 1 without a rate", "… · 2 charges · — · 2 without a rate".
     static func tooltip(_ p: YearPeriod, mode: YearMode) -> String {
         var parts = [mode == .weeks ? week(p, short: true) : month(p), String(localized: "\(p.count) charges")]
         switch p.total.display {
-        case .zero, .amount, .unavailable: parts.append(money(p.total))
+        case .zero, .amount: parts.append(money(p.total))
         case .partial(let amount, let missing): parts += [Formatters.total(amount), withoutRate(missing)]
+        case .unavailable: parts += [money(p.total), withoutRate(p.total.unconvertedCount)]
         }
         return parts.joined(separator: " · ")
     }
