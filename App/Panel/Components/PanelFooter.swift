@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// "+ Add" · Year · "Total 12 · inactive 2" · Settings.
+/// "+ Add" · Year (icon) · "Total 12 · inactive 2" · Settings.
 struct PanelFooter: View {
     let total: Int
     let inactive: Int
@@ -17,9 +17,10 @@ struct PanelFooter: View {
                 }
                 .help(String(localized: "Add Subscription (⌘N)"))
                 Button(action: onYear) {
-                    Label(String(localized: "Year"), systemImage: "calendar")
+                    Image(systemName: "calendar")
                 }
                 .help(String(localized: "Year (⌘Y)"))
+                .accessibilityLabel(String(localized: "Year"))
                 Spacer(minLength: 4)
                 if total > 0 {
                     Text(verbatim: countText)
