@@ -15,13 +15,13 @@ struct YearToolbar: ViewModifier {
             .navigationSubtitle(Self.periodText(period))
             .toolbar {
                 ToolbarItem {
-                    Picker(String(localized: "Group by"), selection: $state.mode) {
-                        Text(String(localized: "Weeks")).tag(YearMode.weeks)
-                        Text(String(localized: "Months")).tag(YearMode.months)
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    .fixedSize()
+                    // AppKit's control, as the panel's tabs, at its own width.
+                    SegmentedControl(labels: [String(localized: "Weeks"), String(localized: "Months")],
+                                     selectedIndex: Binding(get: { state.mode == .weeks ? 0 : 1 },
+                                                            set: { state.mode = $0 == 0 ? .weeks : .months }),
+                                     fills: false)
+                        .accessibilityLabel(String(localized: "Group by"))
+                        .fixedSize()
                 }
                 // Nothing to filter in an empty (or unread) library.
                 if !model.library.subscriptions.isEmpty {
