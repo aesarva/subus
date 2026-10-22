@@ -30,7 +30,7 @@ FIRST VIEWPORT (1100 × 720):
 - Left, in a card: the week grid, 13–14 month columns of 1–5 cells, month labels above, legend "fewer charges ■■■■■ more" with thresholds below; this week ringed in orange, the selected cell ringed in ink.
 - Right, 320 pt min: Week | All subscriptions; the selected week's title, count and sum, its charge rows (logo, name, ring · date · card, amount and ≈ base).
 
-FORM: Commit-calendar grid, pinned by the user after two composition rounds (rounds rejected: rising line, sidebar + bars, timetable, year ribbon, orbit, overview + gallery). seed: none (unavailable)
+FORM: Commit-calendar grid, pinned by the user after two composition rounds (rounds rejected: rising line, sidebar + bars, timetable, year ribbon, orbit, overview + gallery). seed:396ef354ce8d149b (surface roll of round 1; the user then pinned the form)
 - Signature interaction: selecting a cell drives the side pane; arrow keys walk the grid; Return opens the cell's first subscription.
 - Motion: none beyond the system push to the subscription page (instant under Reduce Motion).
 
