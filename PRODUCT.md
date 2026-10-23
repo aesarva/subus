@@ -37,8 +37,9 @@ The menu bar is glanced at in passing many times a day, and the panel is opened 
 - Notifications: 5/3/1 days before by default (0–30, configurable), at 10:00 by default. Charge and trial-end reminders have different wording. There is a "Manage subscription" action.
 - Currency: CBR daily rates, cached; offline the cached rate is used. A currency CBR does not list is left out of totals and flagged, never silently miscounted.
 - Data: a local JSON file with automatic backup and recovery from corruption. JSON export/import (with logos) and CSV export/import.
-- Network: only cbr.ru for rates, and — on an explicit "Fetch icon" click — the subscription's site and the HTTPS addresses it points to for its icon.
-- Sandboxed, hardened runtime. Distributed as a DMG first; Developer ID signing and notarization are pending (account in progress). The App Store is possible later.
+- Network: only cbr.ru for rates, github.com once a day for the update feed (can be turned off), and — on an explicit "Fetch icon" click — the subscription's site and the HTTPS addresses it points to for its icon.
+- Updates: Sparkle 2 behind the app's own UI — a row in the panel, a badge on the menu-bar icon, one click to install and relaunch.
+- Sandboxed, hardened runtime. Distributed as a DMG signed with a Developer ID and notarized. The App Store is possible later.
 - Free in v1; no StoreKit.
 - Localization: English (source) and Russian, following the system language, with an in-app override.
 - Out of v1: iCloud sync, widgets, global hotkey, a catalogue of popular services (candidate for v1.1), manual payment log, shared subscriptions.
@@ -56,7 +57,7 @@ No users, testimonials, screenshots or metrics yet. No brand assets (logo, icon)
 ## Product Principles
 
 - Nothing comes as a surprise: every charge and every trial end is announced early enough to act on.
-- Private by construction: no account, no server, the network is touched only for exchange rates and an icon the user asked for.
+- Private by construction: no account, no server, the network is touched only for exchange rates, the daily update check and an icon the user asked for.
 - Honest numbers: totals never hide what they could not convert or what is still a trial; money is exact.
 - At a glance first: the menu bar and the first panel answer "what's next and how much" without a click deeper.
 - Native first: it should feel like part of macOS, with the brand carried by detail.

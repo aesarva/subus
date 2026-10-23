@@ -47,8 +47,8 @@ snapshots: build
 app:
 	scripts/build-app.sh
 
-# DMG without Developer ID: make dmg VERSION=0.1.0 → dist/Subus-0.1.0.dmg.
+# DMG without Developer ID: make dmg VERSION=1.0.0 → dist/Subus-1.0.0.dmg.
 # Signed + notarized release: scripts/release.sh <version>.
-VERSION ?= 0.1.0
+VERSION ?= 1.0.0
 dmg:
 	scripts/release.sh $(VERSION) --unsigned

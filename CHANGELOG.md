@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 — 2026-10-24
 
+- Subus updates itself: once a day it checks GitHub for a new version, shows it in the panel with a badge on the menu-bar icon, and installs it with one click on "Install and Relaunch" (Sparkle 2; every update is checked against the release signature and the Developer ID). Automatic checks can be turned off in Settings → General, next to "Check Now".
+- Signed with a Developer ID and notarized by Apple: Subus opens without a Gatekeeper workaround.
+- Settings is a standard macOS Settings window with the tabs in its toolbar.
 - A "Year" window (⌘Y, panel footer, quick menu, Dock click): the next 12 months as a commit-calendar grid of weeks or months toned by the number of charges, with filters, a side pane and a page per subscription.
 - Upcoming covers the next 30 days and shows each subscription once, at its nearest charge; reminders still plan 60 days ahead.
 - Create a category or a card right from the subscription form.
@@ -23,4 +26,4 @@
 - Optional days-until-next-charge counter in the menu bar.
 - Export to JSON (with logos) and CSV; import with a preview; automatic backup and recovery from a corrupted data file.
 - English and Russian, following the system language or chosen in Settings.
-- Universal (Apple Silicon + Intel), macOS 14+. Not notarized yet — see README for how to open it.
+- Universal (Apple Silicon + Intel), macOS 14+. Not published; first public release is 1.0.0.

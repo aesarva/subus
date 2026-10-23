@@ -31,7 +31,7 @@ targets:
         SWIFT_EMIT_LOC_STRINGS: YES
         LOCALIZATION_PREFERS_STRING_CATALOGS: YES
         CURRENT_PROJECT_VERSION: "1"
-        MARKETING_VERSION: "0.1.0"
+        MARKETING_VERSION: "1.0.0"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       # Ad-hoc signing has no Team ID, so with the hardened runtime library validation refuses Sparkle.framework.
       # Release builds are re-signed with Developer ID by scripts/build-app.sh.
