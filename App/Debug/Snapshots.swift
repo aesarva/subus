@@ -152,12 +152,9 @@ enum Snapshots {
         // Settings
         func settingsShot(_ name: String, _ tab: SettingsTab, updates: UpdateController = .preview()) {
             each(name) { appearance, url in
-                let navigation = SettingsNavigation()
-                navigation.tab = tab
-                let settingsModel = model(base, in: directory)
-                renderWindow(SettingsView(model: settingsModel, notifier: UserNotifier(), updates: updates,
-                                          navigation: navigation),
-                             width: SettingsView.width, appearance: appearance, to: url)
+                let tabs = SettingsView.makeTabs(model: model(base, in: directory), notifier: UserNotifier(),
+                                                 updates: updates, selected: tab)
+                renderSettings(tabs, appearance: appearance, to: url)
             }
         }
         settingsShot("settings-general", .general)
@@ -286,6 +283,23 @@ enum Snapshots {
             RunLoop.main.run(until: Date().addingTimeInterval(0.2))
         }
         write(host, to: url)
+        window.orderOut(nil)
+    }
+
+    /// The Settings window as the app builds it, toolbar tabs and title bar included: the whole frame view is drawn.
+    private static func renderSettings(_ tabs: NSTabViewController, appearance: NSAppearance.Name, to url: URL) {
+        let window = KeyWindow(contentViewController: tabs)
+        window.styleMask = [.titled, .closable]
+        window.toolbarStyle = .preference
+        window.appearance = NSAppearance(named: appearance)
+        window.setFrameOrigin(NSPoint(x: -4000, y: -4000))
+        activate()
+        window.makeKeyAndOrderFront(nil)
+        for _ in 0..<3 {
+            window.contentView?.layoutSubtreeIfNeeded()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.2))
+        }
+        if let frame = window.contentView?.superview { write(frame, to: url) }
         window.orderOut(nil)
     }
 
