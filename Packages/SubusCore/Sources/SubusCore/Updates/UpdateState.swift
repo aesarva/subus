@@ -32,6 +32,8 @@ public enum UpdateEvent: Equatable, Sendable {
     /// A background check finished without errors. With no update Sparkle never calls the UI, so an old result of
     /// a manual check ("failed", "up to date") would otherwise stay until the next release.
     case backgroundCheckSucceeded
+    /// An offer left unanswered for a day was withdrawn, to be checked again; its button no longer installs anything.
+    case offerExpired
     /// Sparkle closed the update session.
     case dismissed
 }
@@ -82,6 +84,8 @@ public struct UpdateModel: Equatable, Sendable {
             case .failed, .upToDate: state = .idle
             default: break
             }
+        case .offerExpired:
+            if case .available = state { state = .idle }
         case .dismissed:
             switch state {
             case .checking, .downloading, .installing: state = .idle

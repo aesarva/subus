@@ -10,7 +10,6 @@ import SubusCore
 final class AppUserDriver: NSObject, SPUUserDriver {
     private let onEvent: (UpdateEvent) -> Void
     private let onShowPanel: () -> Void
-    private let onOfferExpired: () -> Void
     /// Sparkle's reply to a found update; called exactly once.
     private var pendingChoice: ((SPUUserUpdateChoice) -> Void)?
     /// Until it is answered Sparkle checks no more. After a day the offer is dropped and checked again, so a Subus
@@ -21,11 +20,9 @@ final class AppUserDriver: NSObject, SPUUserDriver {
     private var userInitiated = false
     private let log = Logger(subsystem: "io.github.aesarva.Subus", category: "updates")
 
-    init(onEvent: @escaping (UpdateEvent) -> Void, onShowPanel: @escaping () -> Void,
-         onOfferExpired: @escaping () -> Void) {
+    init(onEvent: @escaping (UpdateEvent) -> Void, onShowPanel: @escaping () -> Void) {
         self.onEvent = onEvent
         self.onShowPanel = onShowPanel
-        self.onOfferExpired = onOfferExpired
     }
 
     func install() {
@@ -60,8 +57,9 @@ final class AppUserDriver: NSObject, SPUUserDriver {
         offerExpiry = Task { [weak self] in
             try? await Task.sleep(for: Self.offerLifetime, clock: .continuous)
             guard !Task.isCancelled, let self, self.pendingChoice != nil else { return }
+            // Reported first: the controller checks again when the session this dismissal closes is over.
+            self.onEvent(.offerExpired)
             self.reply(.dismiss)
-            self.onOfferExpired()
         }
         onEvent(.found(version: appcastItem.displayVersionString,
                        notesURL: appcastItem.releaseNotesURL ?? appcastItem.infoURL))

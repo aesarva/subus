@@ -80,8 +80,15 @@ fi
 # Лента обновлений: подписывается уже окончательный DMG (после скрепления билета нотаризации).
 echo "==> Лента обновлений"
 BUILD_NUMBER="$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP/Contents/Info.plist")"
-scripts/make-appcast.sh "$DMG" "$VERSION" "$BUILD_NUMBER" > dist/appcast.xml
-xmllint --noout dist/appcast.xml
+if scripts/make-appcast.sh "$DMG" "$VERSION" "$BUILD_NUMBER" > dist/appcast.xml; then
+    xmllint --noout dist/appcast.xml
+elif $UNSIGNED; then
+    # Без ключа подписи обновлений проверочная сборка обходится без ленты.
+    rm -f dist/appcast.xml
+    echo "    (без ленты: нет ключа подписи обновлений)" >&2
+else
+    exit 1
+fi
 
 # Копия без версии — для постоянной ссылки «Скачать».
 cp "$DMG" dist/Subus.dmg

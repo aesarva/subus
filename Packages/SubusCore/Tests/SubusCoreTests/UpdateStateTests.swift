@@ -123,4 +123,16 @@ import Testing
         let m = model(.found(version: "1.1", notesURL: nil), .downloadStarted, .expectedLength(300), .received(100))
         #expect(m.state == .downloading(version: "1.1", progress: 0.33))
     }
+
+    @Test func expiredOfferIsWithdrawn() {
+        let m = model(.found(version: "1.1", notesURL: nil), .offerExpired)
+        #expect(m.state == .idle)
+        #expect(!m.showsBadge)
+    }
+
+    @Test func expiryKeepsOtherStates() {
+        #expect(model(.locationUnsupported, .offerExpired).state == .needsMove)
+        #expect(model(.found(version: "1.1", notesURL: nil), .downloadStarted, .offerExpired).state
+            == .downloading(version: "1.1", progress: nil))
+    }
 }

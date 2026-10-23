@@ -18,7 +18,10 @@ final class UpdateController: NSObject, SPUUpdaterDelegate {
 
     @ObservationIgnored private var model = UpdateModel()
     @ObservationIgnored private let feedOverride: String?
-    @ObservationIgnored private let autoInstall: Bool
+    /// One-shot: after one install it is spent, so a cancelled password prompt does not start the next attempt.
+    @ObservationIgnored private var autoInstall: Bool
+    /// An expired offer is checked again once Sparkle has closed its session; a check started earlier is refused.
+    @ObservationIgnored private var recheckAfterCycle = false
     @ObservationIgnored private var driver: AppUserDriver?
     /// `nil` in a preview: the state is set directly and Sparkle never runs.
     @ObservationIgnored private var updater: SPUUpdater?
@@ -34,9 +37,7 @@ final class UpdateController: NSObject, SPUUpdaterDelegate {
         currentVersion = info["CFBundleShortVersionString"] as? String ?? "?"
         currentBuild = info["CFBundleVersion"] as? String ?? "?"
         super.init()
-        let driver = AppUserDriver(onEvent: { [weak self] in self?.apply($0) },
-                                   onShowPanel: onShowPanel,
-                                   onOfferExpired: { [weak self] in self?.updater?.checkForUpdatesInBackground() })
+        let driver = AppUserDriver(onEvent: { [weak self] in self?.apply($0) }, onShowPanel: onShowPanel)
         let updater = SPUUpdater(hostBundle: .main, applicationBundle: .main, userDriver: driver, delegate: self)
         self.driver = driver
         self.updater = updater
@@ -107,6 +108,11 @@ final class UpdateController: NSObject, SPUUpdaterDelegate {
 
     /// The end of every check. A background check with no update never calls the UI; this is the only word of it.
     func updater(_ updater: SPUUpdater, didFinishUpdateCycleFor updateCheck: SPUUpdateCheck, error: (any Error)?) {
+        if recheckAfterCycle {
+            recheckAfterCycle = false
+            Task { @MainActor [weak self] in self?.updater?.checkForUpdatesInBackground() }
+            return
+        }
         switch UpdateErrors.cycleOutcome(failed: error != nil, sparkleCode: Self.sparkleCode(of: error)) {
         case .succeeded:
             if updateCheck == .updatesInBackground { apply(.backgroundCheckSucceeded) }
@@ -133,6 +139,10 @@ final class UpdateController: NSObject, SPUUpdaterDelegate {
         model.apply(event)
         if model.state != state { state = model.state }
         if model.showsBadge != showsBadge { showsBadge = model.showsBadge }
-        if autoInstall, case .found = event { install() }
+        if case .offerExpired = event { recheckAfterCycle = true }
+        if autoInstall, case .found = event {
+            autoInstall = false
+            install()
+        }
     }
 }
