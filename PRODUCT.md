@@ -52,7 +52,7 @@ The menu bar is glanced at in passing many times a day, and the panel is opened 
 
 ## Evidence on Hand
 
-No users, testimonials, screenshots or metrics yet. No brand assets (logo, icon) exist yet. Third-party service logos must not be bundled; logos come only from the user or from the service's own site at the user's request.
+No users, testimonials or metrics yet. The app icon (docs/images/icon.png) and a full set of English and Russian screenshots, the Year window included, are in docs/images/. The first public release is 1.0.0, signed with a Developer ID, notarized and self-updating. Third-party service logos must not be bundled; logos come only from the user or from the service's own site at the user's request.
 
 ## Product Principles
 
