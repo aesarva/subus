@@ -6,11 +6,12 @@ struct SettingsView: View {
 
     let model: AppModel
     let notifier: UserNotifier
+    let updates: UpdateController
     @Bindable var navigation: SettingsNavigation
 
     var body: some View {
         TabView(selection: $navigation.tab) {
-            GeneralTab(model: model)
+            GeneralTab(model: model, updates: updates)
                 .tabItem { Label("General", systemImage: "gearshape") }
                 .tag(SettingsTab.general)
             NotificationsTab(model: model, notifier: notifier)

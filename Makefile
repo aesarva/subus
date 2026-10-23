@@ -21,23 +21,25 @@ run: build
 # Renders the full state matrix (light/dark x en/ru) into build/snapshots/.
 SNAPSHOT_BIN = build/Build/Products/Debug/Subus.app/Contents/MacOS/Subus
 SNAPSHOT_SRC = $(HOME)/Library/Containers/io.github.aesarva.Subus/Data/tmp/Snapshots
-# appicon.png is language-independent: both runs write the same file, so it counts once (180 localized + 1).
-SNAPSHOT_EXPECTED = 181
+# appicon.png is language-independent: both runs write the same file, so it counts once (200 localized + 1).
+SNAPSHOT_EXPECTED = 201
 
+# make snapshots ONLY=update renders only the states named with "update", without taking focus.
+SNAPSHOT_ONLY = $(if $(ONLY),-SnapshotOnly $(ONLY) ,)
 .PHONY: snapshots
 snapshots: build
 	rm -rf build/snapshots "$(SNAPSHOT_SRC)"
 	mkdir -p build/snapshots
-	$(SNAPSHOT_BIN) -Snapshots -AppleLanguages "(en)" -AppleLocale en_US
+	$(SNAPSHOT_BIN) -Snapshots $(SNAPSHOT_ONLY)-AppleLanguages "(en)" -AppleLocale en_US
 	cp "$(SNAPSHOT_SRC)"/*.png build/snapshots/
 	rm -rf "$(SNAPSHOT_SRC)"
-	$(SNAPSHOT_BIN) -Snapshots -AppleLanguages "(ru)" -AppleLocale ru_RU
+	$(SNAPSHOT_BIN) -Snapshots $(SNAPSHOT_ONLY)-AppleLanguages "(ru)" -AppleLocale ru_RU
 	cp "$(SNAPSHOT_SRC)"/*.png build/snapshots/
 	@count=$$(ls build/snapshots/*.png 2>/dev/null | wc -l | tr -d ' '); \
 	empty=$$(find build/snapshots -name '*.png' -size 0); \
 	ls build/snapshots; \
 	if [ -n "$$empty" ]; then echo "empty snapshots:"; echo "$$empty"; exit 1; fi; \
-	if [ "$$count" -ne $(SNAPSHOT_EXPECTED) ]; then echo "expected $(SNAPSHOT_EXPECTED) snapshots, got $$count"; exit 1; fi; \
+	if [ -z "$(ONLY)" ] && [ "$$count" -ne $(SNAPSHOT_EXPECTED) ]; then echo "expected $(SNAPSHOT_EXPECTED) snapshots, got $$count"; exit 1; fi; \
 	echo "$$count snapshots in build/snapshots"
 
 .PHONY: app dmg

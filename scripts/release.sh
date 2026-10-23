@@ -77,8 +77,17 @@ if ! $UNSIGNED; then
     spctl --assess --type open --context context:primary-signature --verbose "$DMG"
 fi
 
+# Лента обновлений: подписывается уже окончательный DMG (после скрепления билета нотаризации).
+echo "==> Лента обновлений"
+BUILD_NUMBER="$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP/Contents/Info.plist")"
+scripts/make-appcast.sh "$DMG" "$VERSION" "$BUILD_NUMBER" > dist/appcast.xml
+xmllint --noout dist/appcast.xml
+
 # Копия без версии — для постоянной ссылки «Скачать».
 cp "$DMG" dist/Subus.dmg
 
-echo "==> Готово: $(pwd)/$DMG (и dist/Subus.dmg)"
+echo "==> Готово. К релизу v$VERSION на GitHub прикрепите три файла:"
+echo "    $(pwd)/$DMG"
+echo "    $(pwd)/dist/Subus.dmg"
+echo "    $(pwd)/dist/appcast.xml"
 shasum -a 256 "$DMG"

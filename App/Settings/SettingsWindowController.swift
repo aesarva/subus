@@ -12,13 +12,15 @@ final class SettingsNavigation {
 final class SettingsWindowController: NSObject, NSWindowDelegate {
     private let model: AppModel
     private let notifier: UserNotifier
+    private let updates: UpdateController
     private let closePanel: () -> Void
     private let navigation = SettingsNavigation()
     private(set) var window: NSWindow?
 
-    init(model: AppModel, notifier: UserNotifier, closePanel: @escaping () -> Void) {
+    init(model: AppModel, notifier: UserNotifier, updates: UpdateController, closePanel: @escaping () -> Void) {
         self.model = model
         self.notifier = notifier
+        self.updates = updates
         self.closePanel = closePanel
         super.init()
     }
@@ -33,7 +35,8 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     func show() {
         closePanel()
         if window == nil {
-            let host = NSHostingController(rootView: SettingsView(model: model, notifier: notifier, navigation: navigation))
+            let host = NSHostingController(rootView: SettingsView(model: model, notifier: notifier, updates: updates,
+                                                                  navigation: navigation))
             // The window follows each tab's natural height, so no tab is ever clipped.
             host.sizingOptions = [.preferredContentSize]
             let window = NSWindow(contentViewController: host)

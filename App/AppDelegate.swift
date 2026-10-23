@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var editor: EditorWindowController!
     private var settings: SettingsWindowController!
     private var year: YearWindowController!
+    private var updates: UpdateController!
     private var dockPresence: DockPresence?
 
     @objc func newSubscription() { editor?.open(editing: nil) }
@@ -55,9 +56,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         dockPresence = DockPresence()
         notifier.onOpen = { [weak model] id in model?.openSubscriptionRequest = id }
 
+        // Debug arguments come only from the command line (argument domain), never from saved defaults.
+        let arguments = UserDefaults.standard.volatileDomain(forName: UserDefaults.argumentDomain)
+        updates = UpdateController(feedOverride: arguments["UpdateFeedURL"] as? String,
+                                   autoInstall: (arguments["UpdateAutoInstall"] as? String) == "YES") { [weak self] in
+            self?.panel.show(subscription: nil)
+        }
         editor = EditorWindowController(model: model, closePanel: { [weak self] in self?.panel.close() })
         let onAdd: () -> Void = { [weak self] in self?.editor.open(editing: nil) }
-        settings = SettingsWindowController(model: model, notifier: notifier,
+        settings = SettingsWindowController(model: model, notifier: notifier, updates: updates,
                                             closePanel: { [weak self] in self?.panel.close() })
         let onSettings: () -> Void = { [weak self] in self?.settings.show() }
         let onEdit: (UUID) -> Void = { [weak self] id in
@@ -73,7 +80,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             onYear: onYear,
             onSettings: onSettings
         )
-        panel = PanelController(model: model, anchor: { [weak self] in self?.statusItem.button },
+        panel = PanelController(model: model, updates: updates, anchor: { [weak self] in self?.statusItem.button },
                                 onAdd: onAdd, onYear: onYear, onSettings: onSettings, onEdit: onEdit)
         refreshStatusItem()
         observeOpenRequests()
@@ -85,6 +92,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         #endif
         model.start()
+        updates.start()
         #if DEBUG
         if args.contains("-OpenPanelOnLaunch") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in self?.panel.toggle() }
@@ -147,16 +155,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Re-runs whenever the observed model state changes.
     private func refreshStatusItem() {
         let state = withObservationTracking {
-            (model.settings.showMenuBarCounter ? model.daysToNearest : nil, model.nearestCharge?.0.name)
+            (model.settings.showMenuBarCounter ? model.daysToNearest : nil, model.nearestCharge?.0.name,
+             updates.showsBadge)
         } onChange: { [weak self] in
             Task { @MainActor in self?.refreshStatusItem() }
         }
         guard let days = state.0 else {
-            statusItem.update(counterText: nil, accent: false)
+            statusItem.update(counterText: nil, accent: false, badge: state.2)
             return
         }
         let label = String(localized: "Subus, next charge \(Formatters.relativeDays(days)): \(state.1 ?? "")")
-        statusItem.update(counterText: Formatters.counter(days), accent: days <= 1, accessibilityLabel: label)
+        statusItem.update(counterText: Formatters.counter(days), accent: days <= 1, badge: state.2,
+                          accessibilityLabel: label)
     }
 }
 

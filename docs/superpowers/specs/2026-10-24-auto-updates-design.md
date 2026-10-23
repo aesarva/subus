@@ -172,7 +172,7 @@ Sparkle 2 в песочнице устанавливает обновление 
 1. Создать ключ: `generate_keys --account io.github.aesarva.Subus`. Пара EdDSA отдельная от Ochre. Приватный ключ хранится в связке ключей, публичный записывается в Info.plist.
 2. Сделать резервную копию: `generate_keys --account io.github.aesarva.Subus -x <файл>`. Файл пользователь уносит с этого Mac. Без копии после потери ключа сменить его можно только релизом, подписанным тем же Developer ID (правила ротации Sparkle). Если утеряны и ключ, и сертификат, установленные копии не примут ни одного обновления.
 
-**Нотаризация.** Профиля `Subus` в связке ключей нет. Учётные данные notarytool привязаны к Apple ID и команде, а не к приложению, поэтому годится профиль `Ochre`. `release.sh` по-прежнему читает `NOTARY_PROFILE`, и релиз запускается с `NOTARY_PROFILE=Ochre`.
+**Нотаризация.** Профиль notarytool `Subus` создан пользователем; `release.sh` берёт его по умолчанию.
 
 **`release.sh`.** После нотаризации и скрепления DMG вызывается `scripts/make-appcast.sh` — перенос из Ochre. Он печатает `dist/appcast.xml` с одним элементом:
 
@@ -190,7 +190,7 @@ Sparkle 2 в песочнице устанавливает обновление 
    - в CHANGELOG `## Unreleased` становится `## 1.0.0 — <дата>`, туда же пункт об автообновлениях;
    - `make test`, `make snapshots`.
 2. Слить в `main` с `--no-ff`, поставить тег `v1.0.0`.
-3. `NOTARY_PROFILE=Ochre scripts/release.sh 1.0.0`.
+3. `scripts/release.sh 1.0.0`.
 4. Запушить `main` и тег, перемотать `develop` на `main`, запушить `develop`.
 5. `gh release create v1.0.0` с файлами `Subus-1.0.0.dmg`, `Subus.dmg` и `appcast.xml`. Заметки к релизу — раздел 1.0.0 из CHANGELOG.
 6. В README (EN/RU) ссылка на DMG последнего релиза. Раздел про обход Gatekeeper убирается: сборка нотаризована.

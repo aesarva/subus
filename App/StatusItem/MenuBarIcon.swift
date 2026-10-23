@@ -16,7 +16,8 @@ enum Brand {
 @MainActor
 enum MenuBarIcon {
     /// Renewal ring with arrow head and an accent centre dot; 18×18 pt, drawn non-template in the label colour.
-    static func image() -> NSImage {
+    /// `badge` adds the update badge: a 5 pt dot in the system accent at the bottom right, in a gap cut out of the ring.
+    static func image(badge: Bool = false) -> NSImage {
         let image = NSImage(size: NSSize(width: 18, height: 18), flipped: true) { @Sendable _ in
             NSColor.labelColor.setStroke()
             let ring = NSBezierPath()
@@ -44,6 +45,15 @@ enum MenuBarIcon {
 
             Brand.accent.setFill()
             NSBezierPath(ovalIn: NSRect(x: 6.4, y: 6.4, width: 5.2, height: 5.2)).fill()
+
+            if badge {
+                // A 1 pt gap cut out of the ring keeps the dot apart from the ring's line.
+                NSGraphicsContext.current?.compositingOperation = .clear
+                NSBezierPath(ovalIn: NSRect(x: 12, y: 12, width: 7, height: 7)).fill()
+                NSGraphicsContext.current?.compositingOperation = .sourceOver
+                NSColor.controlAccentColor.setFill()
+                NSBezierPath(ovalIn: NSRect(x: 13, y: 13, width: 5, height: 5)).fill()
+            }
             return true
         }
         image.isTemplate = false

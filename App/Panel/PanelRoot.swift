@@ -182,6 +182,8 @@ struct PanelRoot: View {
     let model: AppModel
     @Bindable var state: PanelState
     let actions: PanelActions
+    /// `nil` where there is no updater (snapshots of other states).
+    var updates: UpdateController?
 
     var body: some View {
         CappedColumn(maxHeight: state.maxHeight) {
@@ -190,6 +192,7 @@ struct PanelRoot: View {
                 ForEach(banners.prefix(2)) { $0 }
                 SubscriptionCard(model: model, state: state, subscription: subscription, actions: actions,
                                  onDeleted: { back(deleted: true) })
+                if let updates { UpdateRow(updates: updates) }
             } else {
                 TabSwitcher(selection: $state.tab)
                 ForEach(banners.prefix(2)) { $0 }
@@ -201,6 +204,7 @@ struct PanelRoot: View {
                 case .spending:
                     SpendingTab(model: model, state: state, actions: actions)
                 }
+                if let updates { UpdateRow(updates: updates) }
                 PanelFooter(total: model.library.subscriptions.count, inactive: inactiveCount,
                             onAdd: actions.onAdd, onYear: actions.onYear, onSettings: actions.onSettings)
             }
