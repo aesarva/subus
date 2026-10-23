@@ -21,7 +21,7 @@ struct AboutTab: View {
             Text("Version \(version)").foregroundStyle(.secondary).monospacedDigit()
             Text("License: GPL-3.0").foregroundStyle(.secondary)
             Link(Self.repository.absoluteString, destination: Self.repository)
-            Text("Subus connects only to cbr.ru for exchange rates, and — when you click Fetch icon — to the subscription's website and the HTTPS addresses it points to for its icon.")
+            Text("Subus connects only to cbr.ru for exchange rates, to GitHub once a day to check for updates (unless you turn it off in General), and — when you click Fetch icon — to the subscription's website and the HTTPS addresses it points to for its icon.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

@@ -24,10 +24,10 @@ final class StatusItemController {
         }
     }
 
-    /// `nil` counter text shows the glyph alone.
-    func update(counterText: String?, accent: Bool, accessibilityLabel: String? = nil) {
+    /// `nil` counter text shows the glyph alone; `badge` marks an update not installed yet.
+    func update(counterText: String?, accent: Bool, badge: Bool, accessibilityLabel: String? = nil) {
         guard let button = item.button else { return }
-        button.image = MenuBarIcon.image()
+        button.image = MenuBarIcon.image(badge: badge)
         if let counterText {
             button.attributedTitle = Self.title(counterText, accent: accent)
             button.imagePosition = .imageLeading
@@ -35,7 +35,8 @@ final class StatusItemController {
             button.title = ""
             button.imagePosition = .imageOnly
         }
-        button.setAccessibilityLabel(accessibilityLabel ?? "Subus")
+        let label = accessibilityLabel ?? "Subus"
+        button.setAccessibilityLabel(badge ? label + ", " + String(localized: "update available") : label)
     }
 
     /// The counter after the glyph: label colour, or the accent in semibold for today and tomorrow.

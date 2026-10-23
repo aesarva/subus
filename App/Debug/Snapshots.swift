@@ -6,8 +6,19 @@ import SwiftUI
 /// `-Snapshots`: renders every panel/editor/settings/Year state and the status item with demo data, in light and dark,
 /// to PNGs at 2× (`<state>-<light|dark>-<en|ru>.png`) and prints the folder. The language follows the launch
 /// (`-AppleLanguages "(ru)"`); `make snapshots` runs both languages and collects the files.
+/// `-SnapshotOnly <text>` renders only the states whose name contains it, without activating Subus, so the run
+/// takes no focus from the app in front (`make snapshots ONLY=update`).
 @MainActor
 enum Snapshots {
+    private static let only = UserDefaults.standard.volatileDomain(forName: UserDefaults.argumentDomain)["SnapshotOnly"]
+        as? String
+
+    /// Brings Subus forward for active-state control colours, except in a filtered run.
+    private static func activate() {
+        guard only == nil else { return }
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
     static func run() {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("Snapshots", isDirectory: true)
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -17,12 +28,13 @@ enum Snapshots {
 
         /// Runs `body` once per theme with the target file for that theme.
         func each(_ name: String, _ body: (NSAppearance.Name, URL) -> Void) {
+            if let only, !name.contains(only) { return }
             for (theme, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
                 body(appearance, directory.appendingPathComponent("\(name)-\(theme)-\(language).png"))
             }
         }
         func panel(_ name: String, _ library: Library, maxHeight: CGFloat = 640, quiet: Bool = true,
-                   recovery: Recovery? = nil, failingSaves: Bool = false,
+                   recovery: Recovery? = nil, failingSaves: Bool = false, updates: UpdateController? = nil,
                    _ configure: (AppModel, PanelState) -> Void = { _, _ in }) {
             each(name) { appearance, url in
                 let appModel = model(library, in: directory, recovery: recovery, failingSaves: failingSaves)
@@ -31,7 +43,8 @@ enum Snapshots {
                 state.notificationsBannerDismissed = quiet
                 state.maxHeight = maxHeight
                 configure(appModel, state)
-                render(PanelRoot(model: appModel, state: state, actions: PanelActions()), appearance: appearance, to: url)
+                render(PanelRoot(model: appModel, state: state, actions: PanelActions(), updates: updates),
+                       appearance: appearance, to: url)
             }
         }
         /// The demo's first subscription (a trial) moved so its first charge falls `days` from today.
@@ -61,6 +74,16 @@ enum Snapshots {
         var paused = base
         for i in paused.subscriptions.indices { paused.subscriptions[i].isActive = false }
         panel("paused", paused)
+
+        // Updates
+        let notes = URL(string: "https://github.com/aesarva/subus/releases/tag/v1.1.0")!
+        panel("update-available", base, updates: .preview(.found(version: "1.1.0", notesURL: notes)))
+        panel("update-downloading", base, updates: .preview(.found(version: "1.1.0", notesURL: notes),
+                                                            .downloadStarted, .expectedLength(100), .received(40)))
+        panel("update-failed", base, updates: .preview(.checkStarted(userInitiated: true),
+                                                       .error(message: "The network connection was lost.",
+                                                              userInitiated: true)))
+        panel("update-needsmove", base, updates: .preview(.locationUnsupported))
         var distant = initial
         var yearly = Subscription(name: "1Password", price: Money(Decimal(string: "35.88")!, "USD"), cycle: .yearly,
                                   startDate: today.adding(days: 100).adding(months: -12))
@@ -127,16 +150,16 @@ enum Snapshots {
         }
 
         // Settings
-        func settingsShot(_ name: String, _ tab: SettingsTab) {
+        func settingsShot(_ name: String, _ tab: SettingsTab, updates: UpdateController = .preview()) {
             each(name) { appearance, url in
-                let navigation = SettingsNavigation()
-                navigation.tab = tab
-                let settingsModel = model(base, in: directory)
-                renderWindow(SettingsView(model: settingsModel, notifier: UserNotifier(), navigation: navigation),
-                             width: SettingsView.width, appearance: appearance, to: url)
+                let tabs = SettingsView.makeTabs(model: model(base, in: directory), notifier: UserNotifier(),
+                                                 updates: updates, selected: tab)
+                renderSettings(tabs, appearance: appearance, to: url)
             }
         }
         settingsShot("settings-general", .general)
+        settingsShot("settings-general-update", .general,
+                     updates: .preview(.found(version: "1.1.0", notesURL: nil)))
         settingsShot("settings-notifications", .notifications)
         settingsShot("settings-categories", .categories)
         settingsShot("settings-payment", .paymentMethods)
@@ -198,17 +221,20 @@ enum Snapshots {
         yearShot("year-sub-inactive", library: base) { m, s in s.path = [id(m, "Notion")] }
         NSApp.setActivationPolicy(.accessory)
 
-        // Status item: the glyph alone, "3d", and the accent "1d" and "0d", on a light and a dark menu bar.
-        for (theme, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)] {
-            let strip = StatusItemStrip(states: [(nil, false), (Formatters.counter(3), false),
-                                                 (Formatters.counter(1), true), (Formatters.counter(0), true)])
+        // Status item: the glyph alone, "3d", the accent "1d" and "0d", then the update badge alone and with "3d",
+        // on a light and a dark menu bar.
+        for (theme, appearance) in [("light", NSAppearance.Name.aqua), ("dark", .darkAqua)]
+        where only.map("statusitem".contains) ?? true {
+            let strip = StatusItemStrip(states: [(nil, false, false), (Formatters.counter(3), false, false),
+                                                 (Formatters.counter(1), true, false), (Formatters.counter(0), true, false),
+                                                 (nil, false, true), (Formatters.counter(3), false, true)])
             strip.appearance = NSAppearance(named: appearance)
             strip.background = appearance == .darkAqua ? NSColor(white: 0x1E / 255, alpha: 1) : NSColor(white: 0xF6 / 255, alpha: 1)
             strip.frame.size = strip.fittingSize
             write(strip, to: directory.appendingPathComponent("statusitem-\(theme)-\(language).png"))
         }
 
-        writeIcon(to: directory.appendingPathComponent("appicon.png"))
+        if only == nil { writeIcon(to: directory.appendingPathComponent("appicon.png")) }
 
         print(directory.path)
     }
@@ -249,7 +275,7 @@ enum Snapshots {
                               styleMask: [.titled, .closable], backing: .buffered, defer: false)
         window.appearance = NSAppearance(named: appearance)
         window.contentView = host
-        NSApp.activate()
+        activate()
         window.makeKeyAndOrderFront(nil)
         for _ in 0..<3 {
             host.layoutSubtreeIfNeeded()
@@ -257,6 +283,23 @@ enum Snapshots {
             RunLoop.main.run(until: Date().addingTimeInterval(0.2))
         }
         write(host, to: url)
+        window.orderOut(nil)
+    }
+
+    /// The Settings window as the app builds it, toolbar tabs and title bar included: the whole frame view is drawn.
+    private static func renderSettings(_ tabs: NSTabViewController, appearance: NSAppearance.Name, to url: URL) {
+        let window = KeyWindow(contentViewController: tabs)
+        window.styleMask = [.titled, .closable]
+        window.toolbarStyle = .preference
+        window.appearance = NSAppearance(named: appearance)
+        window.setFrameOrigin(NSPoint(x: -4000, y: -4000))
+        activate()
+        window.makeKeyAndOrderFront(nil)
+        for _ in 0..<3 {
+            window.contentView?.layoutSubtreeIfNeeded()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.2))
+        }
+        if let frame = window.contentView?.superview { write(frame, to: url) }
         window.orderOut(nil)
     }
 
@@ -284,7 +327,7 @@ enum Snapshots {
         // A regular app, as with the Year window open, so it can be the active one and draw active chrome.
         // Launched from a shell, a cooperative `activate()` is refused while the terminal is active.
         NSApp.setActivationPolicy(.regular)
-        NSApp.activate(ignoringOtherApps: true)
+        activate()
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
         for _ in 0..<4 {
@@ -293,7 +336,7 @@ enum Snapshots {
         }
         // Activation can lag behind the previous shot's window leaving: ask again for up to 5 s.
         for _ in 0..<10 where !NSApp.isActive {
-            NSApp.activate(ignoringOtherApps: true)
+            activate()
             window.makeKeyAndOrderFront(nil)
             pumpEvents(for: 0.5)
         }
@@ -368,7 +411,7 @@ enum Snapshots {
                               styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
         window.appearance = NSAppearance(named: appearance)
         window.contentView = host
-        NSApp.activate()
+        activate()
         window.makeKeyAndOrderFront(nil)
         for _ in 0..<3 {
             host.layoutSubtreeIfNeeded()
@@ -407,7 +450,7 @@ enum Snapshots {
                                styleMask: [.borderless], backing: .buffered, defer: false)
         window.appearance = NSAppearance(named: appearance)
         window.contentView = host
-        NSApp.activate()
+        activate()
         window.makeKeyAndOrderFront(nil)
         for _ in 0..<3 {
             host.layoutSubtreeIfNeeded()
@@ -435,14 +478,14 @@ enum Snapshots {
 /// A menu-bar strip with the status item's content (glyph + counter) in each state, drawn as the button lays
 /// it out: the 18 pt glyph, then the counter title, both centred on the 24 pt bar.
 private final class StatusItemStrip: NSView {
-    private let states: [(text: String?, accent: Bool)]
+    private let states: [(text: String?, accent: Bool, badge: Bool)]
     var background = NSColor.windowBackgroundColor
 
     private static let barHeight: CGFloat = 24
     private static let padding: CGFloat = 12
     private static let gap: CGFloat = 28
 
-    init(states: [(text: String?, accent: Bool)]) {
+    init(states: [(text: String?, accent: Bool, badge: Bool)]) {
         self.states = states
         super.init(frame: .zero)
     }
@@ -466,10 +509,9 @@ private final class StatusItemStrip: NSView {
         effectiveAppearance.performAsCurrentDrawingAppearance {
             background.setFill()
             bounds.fill()
-            let icon = MenuBarIcon.image()
             var x = Self.padding
             for state in states {
-                icon.draw(in: NSRect(x: x, y: (Self.barHeight - 18) / 2, width: 18, height: 18), from: .zero,
+                MenuBarIcon.image(badge: state.badge).draw(in: NSRect(x: x, y: (Self.barHeight - 18) / 2, width: 18, height: 18), from: .zero,
                           operation: .sourceOver, fraction: 1, respectFlipped: true, hints: nil)
                 x += 18
                 if let text = state.text {

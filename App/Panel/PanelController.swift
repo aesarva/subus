@@ -20,7 +20,7 @@ final class PanelController: NSObject, NSPopoverDelegate {
     /// that click means "close", not "reopen".
     private var closedAt = Date.distantPast
 
-    init(model: AppModel, anchor: @escaping () -> NSStatusBarButton?,
+    init(model: AppModel, updates: UpdateController, anchor: @escaping () -> NSStatusBarButton?,
          onAdd: @escaping () -> Void, onYear: @escaping () -> Void, onSettings: @escaping () -> Void,
          onEdit: @escaping (UUID) -> Void) {
         self.model = model
@@ -41,7 +41,8 @@ final class PanelController: NSObject, NSPopoverDelegate {
                 // The confirmation sheet takes focus; a transient popover would close under it.
                 self?.popover.behavior = presented ? .applicationDefined : .transient
             })
-        host = NSHostingController(rootView: PanelRoot(model: model, state: state, actions: actions))
+        host = NSHostingController(rootView: PanelRoot(model: model, state: state, actions: actions,
+                                                        updates: updates))
         // The hosting controller publishes the SwiftUI ideal size as preferredContentSize,
         // and the popover's contentSize follows it as the content changes.
         host.sizingOptions = [.preferredContentSize]

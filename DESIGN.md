@@ -463,6 +463,15 @@ A one-line notice under the tabs:
 - **Dismiss:** only "notifications off" has a dismiss ×, which hides it for the session.
 - **Tints as built:** save error uses system red (`systemRed`), recovery uses system orange, notifications off uses secondary.
 
+### Update Row
+The update line pinned above the footer (on the tabs and on the card), with a divider over it and 16 × 10 pt padding, in callout type:
+- **Available:** a 6 pt dot in `controlAccentColor`, "Version X is available", a "What's New" link on the right; under it a full-width large `.borderedProminent` "Install and Relaunch" in the system accent. The brand orange is not used: an update is not "now".
+- **Downloading:** "Downloading X" over a linear progress bar (indeterminate until the size is known).
+- **Installing:** a small spinner and "Installing…".
+- **Checking** (only after a manual check) and **Move to Applications:** one secondary line.
+- **Failed:** "Couldn't update" (the error in its tooltip) and a "Try Again" link button on the right.
+- Nothing shows when there is no update, and "up to date" shows only in Settings.
+
 ### Empty State: "You Are Here"
 A centred calm state with 32 × 36 pt padding: a 13 pt semibold title, a 12 pt secondary message, and one large prominent native button. With no symbol, it carries the world's own mark: today's ring in ink on a short bare rail (64 × 20 pt), with no station after it. Search and filter misses use an SF Symbol instead. "All subscriptions are paused" links to All.
 
@@ -485,8 +494,9 @@ An 18 × 18 pt renewal ring:
 - **Ring and arrow:** a radius-6 open arc and an arrow head at the top right, both 2 pt round-capped strokes in `labelColor`.
 - **Dot:** a filled 5.2 pt centre dot in #E8590C.
 - **Drawing:** non-template, so the dot stays orange on light and dark menu bars.
+- **Update badge:** while an update is available, downloading or installing, a 5 pt dot in `controlAccentColor` sits at the bottom right (centre 15.5, 15.5), in a 7 pt hole cut out of the ring, so a 1 pt gap keeps it apart from the line. It is the system accent, not the brand orange, so it never reads as the centre dot.
 - **Counter:** " Nd" after the glyph, in tabular digits. It is label colour normally, and semibold accent text at 0–1 days. With no future charge, or with the setting off, only the glyph shows.
-- **Accessibility label:** "Subus, next charge in N days: name".
+- **Accessibility label:** "Subus, next charge in N days: name", followed by ", update available" while the badge shows.
 
 ### App Icon
 An Icon Composer `.icon` with no glass and no translucency, and a neutral shadow at 50 %:
@@ -497,7 +507,7 @@ An Icon Composer `.icon` with no glass and no translucency, and a neutral shadow
 The dark Dock/Finder rendition is unverified; no capture of it exists.
 
 ### Native Windows (Editor, Settings)
-These stay standard SwiftUI `Form` / `TabView` in system appearance and inherit only palette tokens:
+These stay standard in system appearance and inherit only palette tokens. Settings is a standard macOS Settings window: an `NSTabViewController` with toolbar tabs (SF Symbol over the name, as in Safari or Mail), `toolbarStyle = .preference`, the window titled with the selected tab and following its height; each tab is a grouped `Form`, or a list with 20 pt margins. A SwiftUI `TabView` in a plain window is not used: it draws the old segmented switch over an inset ground. They carry:
 - the editor's 56 pt logo preview with the eight tile swatches (18 pt circles, 2 pt primary ring when selected); its drop-target ring is a 3 pt `controlAccentColor` border;
 - the category swatches in Settings (line colours);
 - monogram tiles.

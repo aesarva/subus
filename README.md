@@ -48,6 +48,7 @@ If you pay for a dozen services, you lose count: a forgotten trial, a service yo
 | **Spending** | Monthly breakdown by category and by payment method, plus a list of price increases over the last year. |
 | **Subscriptions** | Name, logo (your own image, the site's icon on request, or a monogram), price, billing cycle (N days, weeks, months or years), first charge, trial end, end date, category, payment method (a free-text label, never card numbers), website, manage/cancel link, price history, notes. |
 | **Import / export** | JSON (complete, with logos — a real backup) and CSV (UTF-8, opens in Excel and Numbers). Import shows a preview before anything changes. |
+| **Updates** | Subus checks GitHub for a new version once a day. "Install and Relaunch" in the panel downloads, verifies and installs it in one click; a dot on the menu-bar icon shows an update is waiting. Automatic checks can be turned off in Settings → General. |
 | **Safe data** | Atomic writes, an automatic backup and recovery from a corrupted file. |
 | **Languages** | English and Russian, following the system language, with an in-app override. |
 
@@ -69,17 +70,19 @@ If you pay for a dozen services, you lose count: a forgotten trial, a service yo
 
 ## Install
 
-1. Download `Subus.dmg` from [Releases](https://github.com/aesarva/subus/releases) and open it.
-2. Drag **Subus** onto the **Applications** shortcut, then launch it. It lives in the menu bar; a Dock icon shows only while an add, edit or Settings window is open.
-3. Releases are not yet notarized, so Gatekeeper blocks the first launch. On macOS 15–26: open the app and dismiss the warning, then go to **System Settings → Privacy & Security**, scroll to **Security**, click **Open Anyway** and confirm. On macOS 14, right-click the app and choose **Open**.
+1. Download [`Subus.dmg`](https://github.com/aesarva/subus/releases/latest/download/Subus.dmg) from the [latest release](https://github.com/aesarva/subus/releases/latest) and open it.
+2. Drag **Subus** onto the **Applications** shortcut, then launch it. It lives in the menu bar; a Dock icon shows only while an add, edit, Settings or Year window is open.
+
+Releases are signed with a Developer ID and notarized by Apple. From 1.0.0 on, Subus updates itself: keep it in **Applications**, since it cannot update itself from the disk image.
 
 Requires macOS 14 Sonoma or later. Liquid Glass on macOS 26+, a plain material on 14–15.
 
 ## Privacy and network
 
-Subus has no account, no analytics and no server of its own. The sandboxed app talks to the network in exactly two cases:
+Subus has no account, no analytics and no server of its own. The sandboxed app talks to the network in exactly three cases:
 
 - **`cbr.ru`** — the daily exchange rates (`https://www.cbr.ru/scripts/XML_daily.asp`), on launch and then about every 12 hours when the cache is older than 24 hours. Offline, the cached rate is used.
+- **`github.com`** — once a day, the update feed of this repository (`releases/latest/download/appcast.xml`); when there is an update and you install it, the DMG from the release. Nothing about your Mac is sent. Turn it off in Settings → General → Check for updates automatically.
 - **The subscription's own site** — only when you click **Fetch icon** in the editor: its home page and the HTTPS addresses it points to for its icon (for example, a CDN).
 
 Everything else stays local. Your data lives in the app's sandbox container:
@@ -88,7 +91,7 @@ Everything else stays local. Your data lives in the app's sandbox container:
 ~/Library/Containers/io.github.aesarva.Subus/Data/Library/Application Support/Subus/
 ```
 
-(Settings → Data → Show data folder opens it.) The sandbox entitlements are only `app-sandbox`, `network.client` and `files.user-selected.read-write` (for import, export and logo files you pick). See [SECURITY.md](SECURITY.md).
+(Settings → Data → Show data folder opens it.) The sandbox entitlements are only `app-sandbox`, `network.client`, `files.user-selected.read-write` (for import, export and logo files you pick) and a mach-lookup exception for the two services of Sparkle's installer (`io.github.aesarva.Subus-spks` and `-spki`), through which a sandboxed app installs its update. See [SECURITY.md](SECURITY.md).
 
 ## Build from source
 
@@ -102,9 +105,10 @@ brew install xcodegen
 make test       # SubusCore tests and plist lint
 make build      # generate the Xcode project and build (Debug)
 make run        # build and launch; extra flags: make run ARGS='-SeedDemoData -OpenPanelOnLaunch'
-make app        # Release universal build (arm64 + x86_64), hardened runtime → build/Subus.app
+make app        # Release universal build (arm64 + x86_64) → build/Subus.app
 make dmg        # make app + dist/Subus-<VERSION>.dmg without a Developer ID
 make snapshots  # render the UI state matrix (light/dark × en/ru) into build/snapshots/
+                # make snapshots ONLY=update renders only matching states, without taking focus
 ```
 
 `scripts/build-app.sh` honours `ARCHS`, `VERSION` and `SIGN_IDENTITY` (default `-`, ad-hoc).
@@ -115,17 +119,17 @@ With a **Developer ID Application** certificate in your keychain and notarizatio
 
 ```sh
 xcrun notarytool store-credentials Subus --apple-id <you@example.com> --team-id <TEAMID>
-scripts/release.sh 0.1.0     # build, sign, notarize app and DMG, staple, check Gatekeeper
+scripts/release.sh 1.0.0     # build, sign, notarize app and DMG, staple, check Gatekeeper, write appcast.xml
 ```
 
-Without a certificate, `scripts/release.sh 0.1.0 --unsigned` (or `make dmg`) checks everything except signing and notarization.
+Without a certificate, `scripts/release.sh 1.0.0 --unsigned` (or `make dmg`) checks everything except signing and notarization.
 
 ### Project layout
 
 ```
 App/                    SwiftUI/AppKit app: status item, panel, editor, settings, services
 Packages/SubusCore/     data model, schedule, reminders, rates, import/export, storage (+ tests)
-scripts/                build-app.sh and release.sh
+scripts/                build-app.sh, release.sh and make-appcast.sh
 docs/                   images, design sketches, spec and implementation plan
 PRODUCT.md, DESIGN.md   product context and the visual system
 ```

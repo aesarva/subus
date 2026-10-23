@@ -3310,12 +3310,12 @@
         }
       }
     },
-    "Subus connects only to cbr.ru for exchange rates, and — when you click Fetch icon — to the subscription's website and the HTTPS addresses it points to for its icon.": {
+    "Subus connects only to cbr.ru for exchange rates, to GitHub once a day to check for updates (unless you turn it off in General), and — when you click Fetch icon — to the subscription's website and the HTTPS addresses it points to for its icon.": {
       "localizations": {
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Subus обращается только к cbr.ru за курсами валют и — когда вы нажимаете «Загрузить иконку» — к сайту подписки и к HTTPS-адресам, на которые он указывает, за иконкой."
+            "value": "Subus обращается только к cbr.ru за курсами валют, раз в сутки к GitHub за проверкой обновлений (если она не выключена в «Основных») и — когда вы нажимаете «Загрузить иконку» — к сайту подписки и к HTTPS-адресам, на которые он указывает, за иконкой."
           }
         }
       }
@@ -4392,6 +4392,156 @@
           "stringUnit": {
             "state": "translated",
             "value": "В ближайшие 12 месяцев списаний нет"
+          }
+        }
+      }
+    },
+    "Version %@ is available": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступна версия %@"
+          }
+        }
+      }
+    },
+    "What's New": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Что нового"
+          }
+        }
+      }
+    },
+    "Install and Relaunch": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Установить и перезапустить"
+          }
+        }
+      }
+    },
+    "Downloading %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скачивание %@"
+          }
+        }
+      }
+    },
+    "Installing…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Установка…"
+          }
+        }
+      }
+    },
+    "Checking for updates…": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверка обновлений…"
+          }
+        }
+      }
+    },
+    "Couldn't update": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось обновить"
+          }
+        }
+      }
+    },
+    "Try Again": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторить"
+          }
+        }
+      }
+    },
+    "Move Subus to Applications to get updates.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перенесите Subus в «Программы», чтобы получать обновления."
+          }
+        }
+      }
+    },
+    "update available": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "доступно обновление"
+          }
+        }
+      }
+    },
+    "Check for updates automatically": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверять обновления автоматически"
+          }
+        }
+      }
+    },
+    "Version %@ (%@)": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Версия %@ (%@)"
+          }
+        }
+      }
+    },
+    "Check Now": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверить сейчас"
+          }
+        }
+      }
+    },
+    "Subus is up to date.": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Установлена последняя версия Subus."
+          }
+        }
+      }
+    },
+    "Couldn't update: %@": {
+      "localizations": {
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось обновить: %@"
           }
         }
       }

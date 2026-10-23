@@ -24,6 +24,7 @@ final class LoginItemModel {
 
 struct GeneralTab: View {
     let model: AppModel
+    let updates: UpdateController
     @State private var login = LoginItemModel()
     @State private var language = LanguageModel()
 
@@ -75,6 +76,8 @@ struct GeneralTab: View {
             Toggle("Show days until next charge in the menu bar",
                    isOn: Binding(get: { model.settings.showMenuBarCounter },
                                  set: { value in model.update { $0.showMenuBarCounter = value } }))
+
+            UpdatesSection(updates: updates)
         }
         .formStyle(.grouped)
         .scrollDisabled(true)
@@ -83,5 +86,53 @@ struct GeneralTab: View {
             login.refresh()
         }
         .onAppear { login.refresh() }
+    }
+}
+
+/// The version, automatic checks, and a check on demand with its result under it.
+struct UpdatesSection: View {
+    let updates: UpdateController
+
+    var body: some View {
+        Section {
+            Toggle("Check for updates automatically",
+                   isOn: Binding(get: { updates.automaticallyChecks }, set: { updates.automaticallyChecks = $0 }))
+            LabeledContent("Version \(updates.currentVersion) (\(updates.currentBuild))") {
+                // A found version installs right from here, without closing Settings.
+                if case .available = updates.state {
+                    Button("Install and Relaunch") { updates.install() }
+                        .buttonStyle(.borderedProminent)
+                } else {
+                    Button("Check Now") { updates.checkNow() }
+                        .disabled(isBusy || !updates.canCheckNow)
+                }
+            }
+            .monospacedDigit()
+            if let status {
+                Text(verbatim: status).font(.callout).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    /// "Check Now" is off while an update is under way and when Subus runs from a disk image.
+    private var isBusy: Bool {
+        switch updates.state {
+        case .checking, .downloading, .installing, .needsMove: true
+        default: false
+        }
+    }
+
+    private var status: String? {
+        switch updates.state {
+        case .checking: String(localized: "Checking for updates…")
+        case .upToDate: String(localized: "Subus is up to date.")
+        case .available(let version, _): String(localized: "Version \(version) is available")
+        case .failed(let message): String(localized: "Couldn't update: \(message)")
+        case .needsMove: String(localized: "Move Subus to Applications to get updates.")
+        case .downloading(let version, let progress):
+            String(localized: "Downloading \(version)") + (progress.map { " · \(Int($0 * 100)) %" } ?? "")
+        case .installing: String(localized: "Installing…")
+        case .idle: nil
+        }
     }
 }
