@@ -1,0 +1,82 @@
+{
+  "detector": {
+    "ignoreRules": [
+      "tiny-text"
+    ],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-20T13:00:37.695Z",
+        "reason": "assistant decided: decision-round sketch (gitignored, never shipped); flagged insets are a native segmented control's 2px inset and list-row separators, both native macOS conventions"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-20T13:00:37.714Z",
+        "reason": "assistant decided: decision-round sketch (gitignored, never shipped); flagged insets are a native segmented control's 2px inset and list-row separators, both native macOS conventions"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-10-20T13:00:37.730Z",
+        "reason": "assistant decided: decision-round sketch (gitignored, never shipped); flagged insets are a native segmented control's 2px inset and list-row separators, both native macOS conventions"
+      },
+      {
+        "rule": "tiny-text",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-20T13:00:37.749Z",
+        "reason": "assistant decided: decision-round sketch; 11px secondary meta matches macOS native secondary label size in a 360pt menu-bar panel"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-20T20:57:12.344Z",
+        "reason": "assistant decided: pre-DESIGN.md decision-round sketches (spent hand, gitignored mocks, never shipped); the -apple-system/SF Pro Text stack there predates the documented system"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-20T20:57:12.361Z",
+        "reason": "assistant decided: pre-DESIGN.md decision-round sketches (spent hand, gitignored mocks, never shipped); the -apple-system/SF Pro Text stack there predates the documented system"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-10-20T20:57:12.378Z",
+        "reason": "assistant decided: pre-DESIGN.md decision-round sketches (spent hand, gitignored mocks, never shipped); the -apple-system/SF Pro Text stack there predates the documented system"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/icon/glyphs.html"
+        ],
+        "createdAt": "2026-10-20T20:57:12.393Z",
+        "reason": "assistant decided: pre-DESIGN.md decision-round sketches (spent hand, gitignored mocks, never shipped); the -apple-system/SF Pro Text stack there predates the documented system"
+      }
+    ]
+  }
+}
